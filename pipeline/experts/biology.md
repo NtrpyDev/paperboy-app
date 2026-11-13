@@ -9,3 +9,4 @@ Settle each of these from the paper itself before writing the brief. Where the p
 - Controls, and what the key alternative explanation would be.
 - For structures and omics: resolution, coverage, validation by an independent method.
 - Whether it is a preprint, and what a skeptical reviewer would ask for next.
+- For field and ecological studies: whether the treatment was randomized or only measured, pseudoreplication and nesting of samples, how many sites, seasons, and years, the spatial scale, and losses the design could not control.

@@ -32,7 +32,7 @@ Read `CONTENT/state/cursors.json`. A cursor is the last day a source has been pr
 6. `uv run paperboy-pipeline select --work ../work` writes `work/judged.jsonl` and prints what it rejected.
 7. `uv run paperboy-pipeline queue add --content CONTENT --work ../work` queues the papers worth an explainer.
 8. `uv run paperboy-pipeline publish --work ../work --content CONTENT --commit --push`. The day's cards go live now, before any explainer work, so a run that stops later still leaves them in the feed.
-9. `uv run paperboy-pipeline cursors --content CONTENT --set-through YESTERDAY --sources <every source not noted as failed>`, then run the publish command of item 8 again: it adds nothing new and commits and pushes the moved cursors with the rest of `state/`. A failed source keeps its cursor so the next run reads those days again.
+9. `uv run paperboy-pipeline cursors --content CONTENT --set-through YESTERDAY --sources <every source not noted as failed, joined by commas with no spaces, for example arxiv,biorxiv,medrxiv,europepmc,crossref>`, then run the publish command of item 8 again: it adds nothing new and commits and pushes the moved cursors with the rest of `state/`. A failed source keeps its cursor so the next run reads those days again.
 
 If discover wrote no candidates, skip items 2 to 8 and still do item 9: those days are processed.
 

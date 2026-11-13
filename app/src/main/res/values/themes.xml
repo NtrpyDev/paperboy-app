@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- The activity's theme: light by day and dark at night (values-night), on the design's
+         ground, so the window behind the first frame is already the right color. -->
+    <style name="Theme.Paperboy" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/stock</item>
+    </style>
+
+    <!-- The themes an explainer's WebView is built on. WebView sets the page's
+         prefers-color-scheme from isLightTheme, so these follow the reader's choice in the
+         app rather than the system setting. -->
+    <style name="Theme.Paperboy.Day" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:isLightTheme" tools:targetApi="29">true</item>
+    </style>
+    <style name="Theme.Paperboy.Night" parent="android:Theme.Material.NoActionBar">
+        <item name="android:isLightTheme" tools:targetApi="29">false</item>
+    </style>
+</resources>

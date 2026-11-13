@@ -1,0 +1,58 @@
+{
+  "v": 1,
+  "upgrades": {
+    "arxiv-2609.10300": {
+      "explainer": "papers/arxiv-2609.10300/",
+      "hero": {
+        "path": "papers/arxiv-2609.10300/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "papers/arxiv-2609.10300/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
+      "readout": {
+        "value": ">5.1",
+        "unit": "sigma",
+        "label": "Fixture significance of the result"
+      },
+      "explained_at": "2026-11-12T16:00:00Z"
+    },
+    "arxiv-2609.10301": {
+      "explainer": "papers/arxiv-2609.10301/",
+      "hero": {
+        "path": "papers/arxiv-2609.10301/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "papers/arxiv-2609.10301/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
+      "readout": null,
+      "explained_at": "2026-11-12T16:10:00Z"
+    },
+    "arxiv-2609.10302": {
+      "explainer": "papers/arxiv-2609.10302/",
+      "hero": {
+        "path": "papers/arxiv-2609.10302/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "papers/arxiv-2609.10302/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
+      "explained_at": "2026-11-12T16:20:00Z"
+    }
+  }
+}

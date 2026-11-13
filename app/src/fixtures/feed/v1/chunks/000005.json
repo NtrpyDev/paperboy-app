@@ -1,0 +1,884 @@
+{
+  "v": 1,
+  "number": 5,
+  "items": [
+    {
+      "id": "arxiv-2609.10160",
+      "title": "Fixture study 160 on vaccines",
+      "hook": "Fixture paper 160: a medicine finding about vaccines",
+      "hook_turn": "about vaccines",
+      "summary": "This is fixture paper 160 in medicine, used by the app tests. It stands in for a plain summary of a study about vaccines.",
+      "field": "medicine",
+      "tags": [
+        "vaccines"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-11",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10160",
+      "has_explainer": false,
+      "significance": 7.0,
+      "added_at": "2026-10-11T16:00:00Z"
+    },
+    {
+      "id": "arxiv-2609.10161",
+      "title": "Fixture study 161 on polymers",
+      "hook": "Fixture paper 161: a chemistry finding about polymers",
+      "summary": "This is fixture paper 161 in chemistry, used by the app tests. It stands in for a plain summary of a study about polymers.",
+      "field": "chemistry",
+      "tags": [
+        "polymers"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-11",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10161",
+      "has_explainer": false,
+      "significance": 3.2,
+      "added_at": "2026-10-11T20:00:00Z",
+      "readout": {
+        "value": "161",
+        "label": "Fixture count of things"
+      }
+    },
+    {
+      "id": "arxiv-2609.10162",
+      "title": "Fixture study 162 on climate",
+      "hook": "Fixture paper 162: a earth finding about climate",
+      "summary": "This is fixture paper 162 in earth, used by the app tests. It stands in for a plain summary of a study about climate.",
+      "field": "earth",
+      "tags": [
+        "climate"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-12",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10162",
+      "has_explainer": false,
+      "significance": 3.9,
+      "added_at": "2026-10-12T00:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10163",
+      "title": "Fixture study 163 on materials",
+      "hook": "Fixture paper 163: a engineering finding about materials",
+      "summary": "This is fixture paper 163 in engineering, used by the app tests. It stands in for a plain summary of a study about materials.",
+      "field": "engineering",
+      "tags": [
+        "materials"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-12",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10163",
+      "has_explainer": false,
+      "significance": 4.6,
+      "added_at": "2026-10-12T04:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10164",
+      "title": "Fixture study 164 on education",
+      "hook": "Fixture paper 164: a social finding about education",
+      "summary": "This is fixture paper 164 in social, used by the app tests. It stands in for a plain summary of a study about education.",
+      "field": "social",
+      "tags": [
+        "education"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-12",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10164",
+      "has_explainer": false,
+      "significance": 5.3,
+      "added_at": "2026-10-12T08:00:00Z"
+    },
+    {
+      "id": "arxiv-2609.10165",
+      "title": "Fixture study 165 on optics",
+      "hook": "Fixture paper 165: a physics finding about optics",
+      "hook_turn": "about optics",
+      "summary": "This is fixture paper 165 in physics, used by the app tests. It stands in for a plain summary of a study about optics.",
+      "field": "physics",
+      "tags": [
+        "optics"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-12",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10165",
+      "has_explainer": false,
+      "significance": 6.0,
+      "added_at": "2026-10-12T12:00:00Z",
+      "readout": {
+        "value": "165",
+        "label": "Fixture count of things"
+      }
+    },
+    {
+      "id": "arxiv-2609.10166",
+      "title": "Fixture study 166 on black holes",
+      "hook": "Fixture paper 166: a space finding about black holes",
+      "summary": "This is fixture paper 166 in space, used by the app tests. It stands in for a plain summary of a study about black holes.",
+      "field": "space",
+      "tags": [
+        "black holes"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-12",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10166",
+      "has_explainer": false,
+      "significance": 6.7,
+      "added_at": "2026-10-12T16:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10167",
+      "title": "Fixture study 167 on topology",
+      "hook": "Fixture paper 167: a math finding about topology",
+      "summary": "This is fixture paper 167 in math, used by the app tests. It stands in for a plain summary of a study about topology.",
+      "field": "math",
+      "tags": [
+        "topology"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-12",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10167",
+      "has_explainer": false,
+      "significance": 7.4,
+      "added_at": "2026-10-12T20:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10168",
+      "title": "Fixture study 168 on machine learning",
+      "hook": "Fixture paper 168: a cs finding about machine learning",
+      "summary": "This is fixture paper 168 in cs, used by the app tests. It stands in for a plain summary of a study about machine learning.",
+      "field": "cs",
+      "tags": [
+        "machine learning"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-13",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10168",
+      "has_explainer": false,
+      "significance": 3.6,
+      "added_at": "2026-10-13T00:00:00Z"
+    },
+    {
+      "id": "arxiv-2609.10169",
+      "title": "Fixture study 169 on ecology",
+      "hook": "Fixture paper 169: a biology finding about ecology",
+      "summary": "This is fixture paper 169 in biology, used by the app tests. It stands in for a plain summary of a study about ecology.",
+      "field": "biology",
+      "tags": [
+        "ecology"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-13",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10169",
+      "has_explainer": false,
+      "significance": 4.3,
+      "added_at": "2026-10-13T04:00:00Z",
+      "readout": {
+        "value": "169",
+        "label": "Fixture count of things"
+      }
+    },
+    {
+      "id": "arxiv-2609.10170",
+      "title": "Fixture study 170 on vision",
+      "hook": "Fixture paper 170: a neuroscience finding about vision",
+      "hook_turn": "about vision",
+      "summary": "This is fixture paper 170 in neuroscience, used by the app tests. It stands in for a plain summary of a study about vision.",
+      "field": "neuroscience",
+      "tags": [
+        "vision"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-13",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10170",
+      "has_explainer": false,
+      "significance": 5.0,
+      "added_at": "2026-10-13T08:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10171",
+      "title": "Fixture study 171 on clinical trial",
+      "hook": "Fixture paper 171: a medicine finding about clinical trial",
+      "summary": "This is fixture paper 171 in medicine, used by the app tests. It stands in for a plain summary of a study about clinical trial.",
+      "field": "medicine",
+      "tags": [
+        "clinical trial"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-13",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10171",
+      "has_explainer": false,
+      "significance": 5.7,
+      "added_at": "2026-10-13T12:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10172",
+      "title": "Fixture study 172 on batteries",
+      "hook": "Fixture paper 172: a chemistry finding about batteries",
+      "summary": "This is fixture paper 172 in chemistry, used by the app tests. It stands in for a plain summary of a study about batteries.",
+      "field": "chemistry",
+      "tags": [
+        "batteries"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-13",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10172",
+      "has_explainer": false,
+      "significance": 6.4,
+      "added_at": "2026-10-13T16:00:00Z"
+    },
+    {
+      "id": "arxiv-2609.10173",
+      "title": "Fixture study 173 on oceans",
+      "hook": "Fixture paper 173: a earth finding about oceans",
+      "summary": "This is fixture paper 173 in earth, used by the app tests. It stands in for a plain summary of a study about oceans.",
+      "field": "earth",
+      "tags": [
+        "oceans"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-13",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10173",
+      "has_explainer": false,
+      "significance": 7.1,
+      "added_at": "2026-10-13T20:00:00Z",
+      "readout": {
+        "value": "173",
+        "label": "Fixture count of things"
+      }
+    },
+    {
+      "id": "arxiv-2609.10174",
+      "title": "Fixture study 174 on robotics",
+      "hook": "Fixture paper 174: a engineering finding about robotics",
+      "summary": "This is fixture paper 174 in engineering, used by the app tests. It stands in for a plain summary of a study about robotics.",
+      "field": "engineering",
+      "tags": [
+        "robotics"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-14",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10174",
+      "has_explainer": false,
+      "significance": 3.3,
+      "added_at": "2026-10-14T00:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10175",
+      "title": "Fixture study 175 on cities",
+      "hook": "Fixture paper 175: a social finding about cities",
+      "hook_turn": "about cities",
+      "summary": "This is fixture paper 175 in social, used by the app tests. It stands in for a plain summary of a study about cities.",
+      "field": "social",
+      "tags": [
+        "cities"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-14",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10175",
+      "has_explainer": false,
+      "significance": 4.0,
+      "added_at": "2026-10-14T04:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10176",
+      "title": "Fixture study 176 on lasers",
+      "hook": "Fixture paper 176: a physics finding about lasers",
+      "summary": "This is fixture paper 176 in physics, used by the app tests. It stands in for a plain summary of a study about lasers.",
+      "field": "physics",
+      "tags": [
+        "lasers"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-14",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10176",
+      "has_explainer": false,
+      "significance": 4.7,
+      "added_at": "2026-10-14T08:00:00Z"
+    },
+    {
+      "id": "arxiv-2609.10177",
+      "title": "Fixture study 177 on exoplanets",
+      "hook": "Fixture paper 177: a space finding about exoplanets",
+      "summary": "This is fixture paper 177 in space, used by the app tests. It stands in for a plain summary of a study about exoplanets.",
+      "field": "space",
+      "tags": [
+        "exoplanets"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-14",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10177",
+      "has_explainer": false,
+      "significance": 5.4,
+      "added_at": "2026-10-14T12:00:00Z",
+      "readout": {
+        "value": "177",
+        "label": "Fixture count of things"
+      }
+    },
+    {
+      "id": "arxiv-2609.10178",
+      "title": "Fixture study 178 on number theory",
+      "hook": "Fixture paper 178: a math finding about number theory",
+      "summary": "This is fixture paper 178 in math, used by the app tests. It stands in for a plain summary of a study about number theory.",
+      "field": "math",
+      "tags": [
+        "number theory"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-14",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10178",
+      "has_explainer": false,
+      "significance": 6.1,
+      "added_at": "2026-10-14T16:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10179",
+      "title": "Fixture study 179 on compilers",
+      "hook": "Fixture paper 179: a cs finding about compilers",
+      "summary": "This is fixture paper 179 in cs, used by the app tests. It stands in for a plain summary of a study about compilers.",
+      "field": "cs",
+      "tags": [
+        "compilers"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-14",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10179",
+      "has_explainer": false,
+      "significance": 6.8,
+      "added_at": "2026-10-14T20:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10180",
+      "title": "Fixture study 180 on genetics",
+      "hook": "Fixture paper 180: a biology finding about genetics",
+      "hook_turn": "about genetics",
+      "summary": "This is fixture paper 180 in biology, used by the app tests. It stands in for a plain summary of a study about genetics.",
+      "field": "biology",
+      "tags": [
+        "genetics"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-15",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10180",
+      "has_explainer": false,
+      "significance": 3.0,
+      "added_at": "2026-10-15T00:00:00Z"
+    },
+    {
+      "id": "arxiv-2609.10181",
+      "title": "Fixture study 181 on sleep",
+      "hook": "Fixture paper 181: a neuroscience finding about sleep",
+      "summary": "This is fixture paper 181 in neuroscience, used by the app tests. It stands in for a plain summary of a study about sleep.",
+      "field": "neuroscience",
+      "tags": [
+        "sleep"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-15",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10181",
+      "has_explainer": false,
+      "significance": 3.7,
+      "added_at": "2026-10-15T04:00:00Z",
+      "readout": {
+        "value": "181",
+        "label": "Fixture count of things"
+      }
+    },
+    {
+      "id": "arxiv-2609.10182",
+      "title": "Fixture study 182 on cancer",
+      "hook": "Fixture paper 182: a medicine finding about cancer",
+      "summary": "This is fixture paper 182 in medicine, used by the app tests. It stands in for a plain summary of a study about cancer.",
+      "field": "medicine",
+      "tags": [
+        "cancer"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-15",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10182",
+      "has_explainer": false,
+      "significance": 4.4,
+      "added_at": "2026-10-15T08:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10183",
+      "title": "Fixture study 183 on catalysis",
+      "hook": "Fixture paper 183: a chemistry finding about catalysis",
+      "summary": "This is fixture paper 183 in chemistry, used by the app tests. It stands in for a plain summary of a study about catalysis.",
+      "field": "chemistry",
+      "tags": [
+        "catalysis"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-15",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10183",
+      "has_explainer": false,
+      "significance": 5.1,
+      "added_at": "2026-10-15T12:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10184",
+      "title": "Fixture study 184 on earthquakes",
+      "hook": "Fixture paper 184: a earth finding about earthquakes",
+      "summary": "This is fixture paper 184 in earth, used by the app tests. It stands in for a plain summary of a study about earthquakes.",
+      "field": "earth",
+      "tags": [
+        "earthquakes"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-15",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10184",
+      "has_explainer": false,
+      "significance": 5.8,
+      "added_at": "2026-10-15T16:00:00Z"
+    },
+    {
+      "id": "arxiv-2609.10185",
+      "title": "Fixture study 185 on bridges",
+      "hook": "Fixture paper 185: a engineering finding about bridges",
+      "hook_turn": "about bridges",
+      "summary": "This is fixture paper 185 in engineering, used by the app tests. It stands in for a plain summary of a study about bridges.",
+      "field": "engineering",
+      "tags": [
+        "bridges"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-15",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10185",
+      "has_explainer": false,
+      "significance": 6.5,
+      "added_at": "2026-10-15T20:00:00Z",
+      "readout": {
+        "value": "185",
+        "label": "Fixture count of things"
+      }
+    },
+    {
+      "id": "arxiv-2609.10186",
+      "title": "Fixture study 186 on economics",
+      "hook": "Fixture paper 186: a social finding about economics",
+      "summary": "This is fixture paper 186 in social, used by the app tests. It stands in for a plain summary of a study about economics.",
+      "field": "social",
+      "tags": [
+        "economics"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-16",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10186",
+      "has_explainer": false,
+      "significance": 7.2,
+      "added_at": "2026-10-16T00:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10187",
+      "title": "Fixture study 187 on superconductors",
+      "hook": "Fixture paper 187: a physics finding about superconductors",
+      "summary": "This is fixture paper 187 in physics, used by the app tests. It stands in for a plain summary of a study about superconductors.",
+      "field": "physics",
+      "tags": [
+        "superconductors"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-16",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10187",
+      "has_explainer": false,
+      "significance": 3.4,
+      "added_at": "2026-10-16T04:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10188",
+      "title": "Fixture study 188 on galaxies",
+      "hook": "Fixture paper 188: a space finding about galaxies",
+      "summary": "This is fixture paper 188 in space, used by the app tests. It stands in for a plain summary of a study about galaxies.",
+      "field": "space",
+      "tags": [
+        "galaxies"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-16",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10188",
+      "has_explainer": false,
+      "significance": 4.1,
+      "added_at": "2026-10-16T08:00:00Z"
+    },
+    {
+      "id": "arxiv-2609.10189",
+      "title": "Fixture study 189 on combinatorics",
+      "hook": "Fixture paper 189: a math finding about combinatorics",
+      "summary": "This is fixture paper 189 in math, used by the app tests. It stands in for a plain summary of a study about combinatorics.",
+      "field": "math",
+      "tags": [
+        "combinatorics"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-16",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10189",
+      "has_explainer": false,
+      "significance": 4.8,
+      "added_at": "2026-10-16T12:00:00Z",
+      "readout": {
+        "value": "189",
+        "label": "Fixture count of things"
+      }
+    },
+    {
+      "id": "arxiv-2609.10190",
+      "title": "Fixture study 190 on cryptography",
+      "hook": "Fixture paper 190: a cs finding about cryptography",
+      "hook_turn": "about cryptography",
+      "summary": "This is fixture paper 190 in cs, used by the app tests. It stands in for a plain summary of a study about cryptography.",
+      "field": "cs",
+      "tags": [
+        "cryptography"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-16",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10190",
+      "has_explainer": false,
+      "significance": 5.5,
+      "added_at": "2026-10-16T16:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10191",
+      "title": "Fixture study 191 on evolution",
+      "hook": "Fixture paper 191: a biology finding about evolution",
+      "summary": "This is fixture paper 191 in biology, used by the app tests. It stands in for a plain summary of a study about evolution.",
+      "field": "biology",
+      "tags": [
+        "evolution"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-16",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10191",
+      "has_explainer": false,
+      "significance": 6.2,
+      "added_at": "2026-10-16T20:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10192",
+      "title": "Fixture study 192 on memory",
+      "hook": "Fixture paper 192: a neuroscience finding about memory",
+      "summary": "This is fixture paper 192 in neuroscience, used by the app tests. It stands in for a plain summary of a study about memory.",
+      "field": "neuroscience",
+      "tags": [
+        "memory"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-17",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10192",
+      "has_explainer": false,
+      "significance": 6.9,
+      "added_at": "2026-10-17T00:00:00Z"
+    },
+    {
+      "id": "arxiv-2609.10193",
+      "title": "Fixture study 193 on vaccines",
+      "hook": "Fixture paper 193: a medicine finding about vaccines",
+      "summary": "This is fixture paper 193 in medicine, used by the app tests. It stands in for a plain summary of a study about vaccines.",
+      "field": "medicine",
+      "tags": [
+        "vaccines"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-17",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10193",
+      "has_explainer": false,
+      "significance": 3.1,
+      "added_at": "2026-10-17T04:00:00Z",
+      "readout": {
+        "value": "193",
+        "label": "Fixture count of things"
+      }
+    },
+    {
+      "id": "arxiv-2609.10194",
+      "title": "Fixture study 194 on polymers",
+      "hook": "Fixture paper 194: a chemistry finding about polymers",
+      "summary": "This is fixture paper 194 in chemistry, used by the app tests. It stands in for a plain summary of a study about polymers.",
+      "field": "chemistry",
+      "tags": [
+        "polymers"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-17",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10194",
+      "has_explainer": false,
+      "significance": 3.8,
+      "added_at": "2026-10-17T08:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10195",
+      "title": "Fixture study 195 on climate",
+      "hook": "Fixture paper 195: a earth finding about climate",
+      "hook_turn": "about climate",
+      "summary": "This is fixture paper 195 in earth, used by the app tests. It stands in for a plain summary of a study about climate.",
+      "field": "earth",
+      "tags": [
+        "climate"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-17",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10195",
+      "has_explainer": false,
+      "significance": 4.5,
+      "added_at": "2026-10-17T12:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10196",
+      "title": "Fixture study 196 on materials",
+      "hook": "Fixture paper 196: a engineering finding about materials",
+      "summary": "This is fixture paper 196 in engineering, used by the app tests. It stands in for a plain summary of a study about materials.",
+      "field": "engineering",
+      "tags": [
+        "materials"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-17",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10196",
+      "has_explainer": false,
+      "significance": 5.2,
+      "added_at": "2026-10-17T16:00:00Z"
+    },
+    {
+      "id": "arxiv-2609.10197",
+      "title": "Fixture study 197 on education",
+      "hook": "Fixture paper 197: a social finding about education",
+      "summary": "This is fixture paper 197 in social, used by the app tests. It stands in for a plain summary of a study about education.",
+      "field": "social",
+      "tags": [
+        "education"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-17",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10197",
+      "has_explainer": false,
+      "significance": 5.9,
+      "added_at": "2026-10-17T20:00:00Z",
+      "readout": {
+        "value": "197",
+        "label": "Fixture count of things"
+      }
+    },
+    {
+      "id": "arxiv-2609.10198",
+      "title": "Fixture study 198 on optics",
+      "hook": "Fixture paper 198: a physics finding about optics",
+      "summary": "This is fixture paper 198 in physics, used by the app tests. It stands in for a plain summary of a study about optics.",
+      "field": "physics",
+      "tags": [
+        "optics"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-10-18",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10198",
+      "has_explainer": false,
+      "significance": 6.6,
+      "added_at": "2026-10-18T00:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
+    },
+    {
+      "id": "arxiv-2609.10199",
+      "title": "Fixture study 199 on black holes",
+      "hook": "Fixture paper 199: a space finding about black holes",
+      "summary": "This is fixture paper 199 in space, used by the app tests. It stands in for a plain summary of a study about black holes.",
+      "field": "space",
+      "tags": [
+        "black holes"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
+      "published": "2026-10-18",
+      "authors_short": "Fixture et al.",
+      "url": "https://arxiv.org/abs/2609.10199",
+      "has_explainer": false,
+      "significance": 7.3,
+      "added_at": "2026-10-18T04:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
+    }
+  ]
+}

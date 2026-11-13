@@ -207,8 +207,18 @@ class _Converter:
         label = _child(el, "label")
         caption = _child(el, "caption")
         label_text = squash("".join(label.itertext())) if label is not None else ""
-        caption_text = " ".join(self.blocks(caption)) if caption is not None else ""
-        return label_text, caption_text
+        parts = []
+        if caption is not None:
+            for child in caption:
+                if not isinstance(child.tag, str):
+                    continue
+                if _local(child.tag) == "title":
+                    parts.append(self.inline(child))  # the caption's first sentence, kept plain
+                else:
+                    flow = Flow()
+                    self.element(child, flow)
+                    parts.extend(flow.done())
+        return label_text, " ".join(p for p in parts if p)
 
     def figure(self, el) -> None:
         if _local(el.tag) == "fig-group":
@@ -394,7 +404,8 @@ def convert(xml: bytes) -> tuple[Paper, str | None]:
         words = [squash("".join(k.itertext())) for k in _children(group, "kwd")]
         if words:
             paper.front.append("Keywords: " + "; ".join(words))
-    for group in _children(meta, "fn-group"):
+    front_notes = root.find("front/notes")
+    for group in _children(meta, "fn-group") + (_children(front_notes, "fn-group") if front_notes is not None else []):
         conv.element(group, Flow())
 
     body = _child(root, "body")

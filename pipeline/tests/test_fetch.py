@@ -356,3 +356,107 @@ def test_missing_or_invalid_candidate_is_a_real_error(tmp_path):
     (folder / "candidate.json").write_text(json.dumps({"id": "arxiv-2611.15301"}))
     assert run_fetch(tmp_path, "arxiv-2611.15301", web) not in (0, 3)
     assert web.requests == []
+
+
+# bioRxiv and medRxiv (JATS XML)
+
+BIORXIV_XML = "https://www.biorxiv.org/content/early/2026/11/01/2026.10.30.763081.source.xml"
+BIORXIV_XML_FINAL = "https://www.biorxiv.org/content/biorxiv/early/2026/11/01/2026.10.30.763081.source.xml"
+BIORXIV_DOI = "10.64898/2026.10.30.763081"
+
+
+def biorxiv_candidate(fulltext_url=BIORXIV_XML) -> dict:
+    return candidate(
+        "doi-10.64898-2026.10.30.763081",
+        doi=BIORXIV_DOI,
+        venue="bioRxiv",
+        source="biorxiv",
+        license="cc-by",
+        url=f"https://www.biorxiv.org/content/{BIORXIV_DOI}v1",
+        fulltext={"available": True, "kind": "biorxiv", "url": fulltext_url},
+    )
+
+
+def biorxiv_web() -> FakeWeb:
+    # bioRxiv answers the API's jatsxml link with a 301 to the real file, as it did live.
+    return FakeWeb({
+        BIORXIV_XML: (301, {"location": BIORXIV_XML_FINAL}, b""),
+        BIORXIV_XML_FINAL: (200, XML, fixture("biorxiv-2026.10.30.763081.source.xml")),
+        f"https://api.biorxiv.org/details/biorxiv/{BIORXIV_DOI}": (
+            200, JSON, fixture("biorxiv-details-2026.10.30.763081.json")),
+    })
+
+
+def test_biorxiv_jats_becomes_markdown_with_sections_in_order(tmp_path):
+    folder = put_candidate(tmp_path, biorxiv_candidate())
+
+    assert run_fetch(tmp_path, "doi-10.64898-2026.10.30.763081", biorxiv_web()) == 0
+
+    md, source = read_outputs(folder)
+    assert md.startswith("# Single-cell perturbation prediction near experimental reproducibility with GENESIS\n")
+    assert ("Authors: Riccardo Conci, Davide D’Ascenzo, Sebastiano Cultrera di Montesano, Srivatsan Raghavan,"
+            " Peter S. Winter, Eliezer M. Van Allen, Lorin Crawford, William Lotter") in md
+    assert "## Abstract\n\nSingle-cell perturbation atlases now measure cellular responses across millions of cells" in md
+    headings = re.findall(r"^#{2,6} (.+)$", md, flags=re.M)
+    assert headings[:9] == [
+        "Abstract",
+        "Introduction",
+        "GENESIS generates perturbation responses from experimental covariates",
+        "Experimental reproducibility provides a reference for model performance",
+        "GENESIS performance approaches experimental reproducibility",
+        "GENESIS maintains strong performance with reduced training data",
+        "Generated profiles recapitulate context-dependent biological programs",
+        "Discussion",
+        "Methods",
+    ]
+    assert "### Datasets and data processing\n" in md and "#### Tahoe-100M\n" in md
+    assert source == {
+        "available": True,
+        "url": BIORXIV_XML_FINAL,
+        "kind": "biorxiv",
+        "license": "cc-by",
+        "retrieved_at": source["retrieved_at"],
+        "chars": len(md),
+        "sections": 78,
+    }
+
+
+def test_biorxiv_numbers_in_text_and_image_only_parts_are_marked(tmp_path):
+    folder = put_candidate(tmp_path, biorxiv_candidate())
+    run_fetch(tmp_path, "doi-10.64898-2026.10.30.763081", biorxiv_web())
+    md, _ = read_outputs(folder)
+
+    assert ("in Pearson *Δ* (GENESIS: 0.430 [95% CI 0.381-0.482]; experimental reproducibility: 0.432"
+            " [0.378-0.491]; *p* = 0.56)") in md
+    # bioRxiv's XML carries these equations and tables only as images; say so instead of guessing.
+    assert "[Equation shown only as an image in the source; not transcribed.]" in md
+    assert ("**Supplementary Table 1:** Model performance relative to experimental reproducibility on Tahoe-100M"
+            " biological-context generalization (Fig. 2a).") in md
+    assert "[The table body is an image in the source and is not transcribed.]" in md
+    assert "[^1]: https://github.com/rickconci/GENESIS" in md
+    assert "## References\n\nThe reference list (44 entries) is left out.\n" in md
+    labels = re.findall(r"^- \*\*(.+?):\*\* ", md, flags=re.M)
+    assert labels[:5] == ["Fig. 1", "Fig. 2", "Fig. 3", "Fig. 4", "Extended Data Fig. 1"]
+    assert len(labels) == 20
+
+
+def test_biorxiv_landing_page_candidate_is_looked_up_in_the_api(tmp_path):
+    folder = put_candidate(tmp_path, biorxiv_candidate(fulltext_url=None))
+    web = biorxiv_web()
+
+    assert run_fetch(tmp_path, "doi-10.64898-2026.10.30.763081", web) == 0
+
+    assert web.urls()[0] == f"https://api.biorxiv.org/details/biorxiv/{BIORXIV_DOI}"
+    assert BIORXIV_XML in web.urls()
+    assert read_outputs(folder)[1]["license"] == "cc-by"
+
+
+def test_biorxiv_xml_not_posted_yet_is_unavailable(tmp_path):
+    folder = put_candidate(tmp_path, biorxiv_candidate())
+    web = FakeWeb({BIORXIV_XML: (404, HTML, b"<html><title>Page not found</title></html>")})
+
+    assert run_fetch(tmp_path, "doi-10.64898-2026.10.30.763081", web) == 3
+
+    source = json.loads((folder / "source.json").read_text())
+    assert source["available"] is False and "404" in source["reason"]
+    assert not (folder / "fulltext.md").exists()

@@ -309,3 +309,38 @@ describe("cross-origin reads", () => {
     expect(res.headers.get("access-control-allow-origin")).toBeNull();
   });
 });
+
+describe("unknown paths", () => {
+  it.each(["/nothing-here", "/state/seen.txt", "/feed", "/papers"])(
+    "%s is 404 without asking the content repo",
+    async (path) => {
+      const { origin, get } = setup({ "state/seen.txt": "secret-ish" });
+
+      const res = await get(path);
+
+      expect(res.status).toBe(404);
+      expect(origin.calls).toEqual([]);
+    },
+  );
+
+  it.each(["/feed/v1/%2e%2e%2fstate/seen.txt", "/papers/a%2Fb/index.html", "/papers//index.html"])(
+    "%s, a path outside the plain file name characters, is 404 without asking the content repo",
+    async (path) => {
+      const { origin, get } = setup({});
+
+      const res = await get(path);
+
+      expect(res.status).toBe(404);
+      expect(origin.calls).toEqual([]);
+    },
+  );
+
+  it("is 404 when the content repo does not have the file, and nothing is stored", async () => {
+    const { get } = setup({});
+
+    const res = await get("/papers/arxiv-1/missing.json");
+
+    expect(res.status).toBe(404);
+    expect(await env.CONTENT.get("papers/arxiv-1/missing.json")).toBeNull();
+  });
+});

@@ -88,8 +88,8 @@ export function createHandler(deps: Deps) {
   return {
     async fetch(request: Request, env: Env): Promise<Response> {
       let key = new URL(request.url).pathname.slice(1);
-      if (!key.startsWith("papers/") && !key.startsWith("feed/")) return notFound();
       if (key.startsWith("papers/") && key.endsWith("/")) key += "index.html";
+      if (!isContentKey(key)) return notFound();
       const changing = await isChanging(env, key);
 
       const stored = await env.CONTENT.get(key);
@@ -125,6 +125,13 @@ function serve(key: string, body: BodyInit, changing: boolean): Response {
   if (extension === "html") headers.set("content-security-policy", EXPLAINER_POLICY);
   if (key.startsWith("feed/")) headers.set("access-control-allow-origin", "*");
   return new Response(body, { headers });
+}
+
+// Only plain file paths under feed/ and papers/ are passed on to the content repo.
+const CONTENT_KEY = /^(feed|papers)(\/[A-Za-z0-9._-]+)+$/;
+
+function isContentKey(key: string): boolean {
+  return CONTENT_KEY.test(key) && !key.split("/").some((part) => part === "." || part === "..");
 }
 
 function isFullChunk(body: ArrayBuffer): boolean {

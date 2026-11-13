@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Upgrades",
-  "description": "feed/v1/upgrades.json. Kept for feeds published before every paper entered the feed with its page; the current pipeline does not write it. Explainers added to items that sit in closed chunks, keyed by paper id. Closed chunks never change, so the app merges each entry over the matching item: has_explainer becomes true, explainer and hero are set, and readout is replaced or removed when the entry has the readout key. An item in the open chunk is upgraded in the chunk itself and does not appear here.",
+  "description": "feed/v2/upgrades.json. Kept for feeds published before every paper entered the feed with its page; the current pipeline does not write it. Explainers added to items that sit in closed chunks, keyed by paper id. Closed chunks never change, so the app merges each entry over the matching item: has_explainer becomes true, explainer and hero are set, and readout is replaced or removed when the entry has the readout key. An item in the open chunk is upgraded in the chunk itself and does not appear here.",
   "type": "object",
   "additionalProperties": false,
   "required": [

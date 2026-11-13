@@ -69,8 +69,8 @@ Reads every Judged record in `WORK/judged.jsonl` and puts each paper that has a 
 What it writes in the content repo (schemas in `schema/`):
 
 ```
-feed/v1/head.json             Head: chunk count, total items, updated time, kit 1, min_app 1 (nothing reads kit yet)
-feed/v1/chunks/000001.json    Chunk: up to 40 items, oldest first
+feed/v2/head.json             Head: chunk count, total items, updated time, kit 1, min_app 2 (nothing reads kit yet)
+feed/v2/chunks/000001.json    Chunk: up to 40 items, oldest first
 papers/<id>/                  index.html, hero.webp, hero-night.webp, meta.json (PaperMeta)
 state/seen/<YYYY-MM>.jsonl    Seen: one line per paper in the feed, by the month it was added
 ```
@@ -79,7 +79,7 @@ Rules:
 
 - **Chunks.** New items append to the open chunk, the highest numbered chunk while it holds fewer than 40 items. When it is full the next item starts a new chunk. A full chunk is closed and is never written again.
 - **No duplicates.** A paper whose id, DOI, arXiv id, or title key matches a line in `state/seen/` is not added again, and its page is never replaced.
-- **Older feeds.** A feed published before pages were required holds items without one. When such a paper has a passing page, publish writes its files and an updated `meta.json`; the item is updated in place in the open chunk, or, in a closed chunk, the paper is added to `feed/v1/upgrades.json` as `{"explainer", "hero", "explained_at"}` plus `"readout"` when it has a `card.json`. The current flow never needs this: `reset-feed` removes those items.
+- **Older feeds.** A feed published before pages were required holds items without one. When such a paper has a passing page, publish writes its files and an updated `meta.json`; the item is updated in place in the open chunk, or, in a closed chunk, the paper is added to `feed/v2/upgrades.json` as `{"explainer", "hero", "explained_at"}` plus `"readout"` when it has a `card.json`. The current flow never needs this: `reset-feed` removes those items.
 - **All or nothing.** Every file is checked against its schema before anything is written. Invalid input or invalid output exits with status 1 and leaves the repo unchanged.
 - **Reruns change nothing.** JSON is written with sorted keys, two-space indent, and a trailing newline, and a file is only written when its bytes change. The head is rewritten only in a run that changes something else. A second run with the same work folder leaves the tree byte-identical.
 - **`--now`** fixes the clock (for tests). Without it the current UTC time is used.
@@ -295,4 +295,4 @@ Runs the usage probe and exits 0 (go), 10 (stop: weekly usage is at or over the 
 paperboy-pipeline reset-feed --content CONTENT_REPO --keep-explained --rewind-cursors-to YYYY-MM-DD [--yes] [--now RFC3339]
 ```
 
-One time, for a feed published before every paper needed a page. Keeps only the feed items that have an explainer (merged with their `upgrades.json` entries, given their `depth`, in new chunks from chunk 1, head rewritten, `upgrades.json` deleted), only those papers' folders under `papers/`, and only those papers' lines in `state/seen/` (with their new chunk numbers); empties `state/queue/`, `state/claims/`, and `state/queued/`; keeps `state/queue-failed.jsonl`; and sets every cursor later than the given day to it, so the next run reads the days after it again. An item marked explained whose folder has no `index.html` is dropped and named. It prints the counts before and after and every file it writes and deletes, changes nothing without `--yes`, checks every file it writes against its schema first, and never commits or pushes.
+One time, for a feed published before every paper needed a page, which is in `feed/v1/`. Starts the feed again in `feed/v2/` with only the items that have an explainer (merged with their `upgrades.json` entries, given their `depth`, in chunks from chunk 1, with a head and no `upgrades.json`). The new feed gets a new folder because apps and the worker keep closed chunks as permanent, so a new chunk 1 at the old address would never reach a phone that kept the old one. `feed/v1/` is left as a stub: its chunks and `upgrades.json` are deleted and its head is rewritten with `chunk_count` 0, `total_items` 0, and `min_app` 2, so a 0.1.0 install, which reads `feed/v1/` and has version code 1, shows its update cover. It keeps only those papers' folders under `papers/`, and only those papers' lines in `state/seen/` (with their new chunk numbers); empties `state/queue/`, `state/claims/`, and `state/queued/`; keeps `state/queue-failed.jsonl`; and sets every cursor later than the given day to it, so the next run reads the days after it again. An item marked explained whose folder has no `index.html` is dropped and named. It prints the counts before and after and every file it writes and deletes, changes nothing without `--yes`, checks every file it writes against its schema first, and never commits or pushes. It refuses a checkout that already has `feed/v2/`.

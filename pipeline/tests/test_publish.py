@@ -1,6 +1,7 @@
 """The publish command, tested at the command line: a work folder in, a content repo tree out."""
 import copy
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -335,3 +336,145 @@ def test_schemas_reject_what_publish_must_never_write():
     assert schemas.errors("upgrades", {"v": 1, "upgrades": {"arxiv-1": {"explainer": "papers/arxiv-1/", "hero": {"path": "x"}, "explained_at": NOW}}})
     assert schemas.errors("cursors", {"v": 1, "cursors": {"nature": "2026-11-01"}})
     assert schemas.errors("seen", {"id": "arxiv-1", "doi": None, "arxiv_id": "1", "title_key": "x", "chunk": 1, "added_at": NOW})
+
+
+def published_repo(tmp_path: Path) -> Path:
+    content = tmp_path / "content"
+    publish(write_work(tmp_path / "w0", [judged(n) for n in range(1, 42)]), content)
+    return content
+
+
+def test_invalid_judged_record_aborts_with_nothing_changed(tmp_path, capsys):
+    content = published_repo(tmp_path)
+    before = tree(content)
+    bad = judged(50)
+    del bad["hook"]
+    work = write_work(tmp_path / "work", [judged(60), bad])
+
+    assert publish(work, content) == 1
+
+    assert tree(content) == before
+    assert "line 2" in capsys.readouterr().err
+
+
+def test_unparseable_judged_line_aborts_with_nothing_changed(tmp_path):
+    content = published_repo(tmp_path)
+    before = tree(content)
+    work = write_work(tmp_path / "work", [judged(60)])
+    with (work / "judged.jsonl").open("a") as f:
+        f.write("{not json\n")
+
+    assert publish(work, content) == 1
+    assert tree(content) == before
+
+
+def test_unreadable_explainer_files_abort_with_nothing_changed(tmp_path):
+    content = published_repo(tmp_path)
+    before = tree(content)
+    work = write_work(tmp_path / "work", [judged(60), judged(61)], explained={"arxiv-2611.00061": {}})
+    (work / "papers/arxiv-2611.00061/explainer/hero.webp").write_bytes(b"not an image")
+
+    assert publish(work, content) == 1
+    assert tree(content) == before
+
+    (work / "papers/arxiv-2611.00061/explainer/hero.webp").write_bytes((FIXTURES / "hero.webp").read_bytes())
+    (work / "papers/arxiv-2611.00061/review.json").write_text("{")
+    assert publish(work, content) == 1
+    assert tree(content) == before
+
+
+def test_output_that_fails_its_schema_aborts_with_nothing_changed(tmp_path, capsys):
+    content = published_repo(tmp_path)
+    (content / "state/cursors.json").write_text('{"v": 1, "cursors": {"nature": "2026-01-01"}}\n')
+    before = tree(content)
+
+    assert publish(write_work(tmp_path / "work", [judged(60)]), content) == 1
+
+    assert tree(content) == before
+    assert "state/cursors.json" in capsys.readouterr().err
+
+
+def test_bad_now_aborts(tmp_path):
+    content = published_repo(tmp_path)
+    before = tree(content)
+    assert publish(write_work(tmp_path / "work", [judged(60)]), content, now="yesterday") == 1
+    assert publish(write_work(tmp_path / "work", [judged(60)]), content, now="2026-11-12T08:00:00") == 1
+    assert tree(content) == before
+
+
+def git(root: Path, *args: str) -> str:
+    return subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True, text=True).stdout
+
+
+def git_repo(path: Path) -> Path:
+    path.mkdir(parents=True)
+    git(path, "init", "-q", "-b", "main")
+    git(path, "config", "user.name", "Test")
+    git(path, "config", "user.email", "test@example.invalid")
+    (path / "README.md").write_text("content repo\n")
+    git(path, "add", "README.md")
+    git(path, "commit", "-q", "-m", "Start")
+    return path
+
+
+SUBJECTS = {
+    "feed": "Feed head and chunks the app reads",
+    "papers": "Published papers: explainer page, card image, and record for each",
+    "state": "Pipeline bookkeeping: which papers are already in the feed",
+}
+
+
+def test_commit_makes_one_commit_per_changed_folder_with_its_subject(tmp_path):
+    content = git_repo(tmp_path / "content")
+    (content / "README.md").write_text("an unrelated edit the caller has not committed\n")
+    (content / "notes.txt").write_text("untracked\n")
+
+    assert publish(write_work(tmp_path / "work", [judged(1)]), content, "--commit") == 0
+
+    subjects = git(content, "log", "--format=%s").splitlines()
+    assert sorted(subjects[:3]) == sorted(SUBJECTS.values())
+    assert subjects[3] == "Start"
+    for folder, subject in SUBJECTS.items():
+        assert git(content, "log", "-1", "--format=%s", "--", folder).strip() == subject
+        changed = git(content, "show", "--name-only", "--format=", git(content, "log", "-1", "--format=%H", "--", folder).strip())
+        assert {line.split("/")[0] for line in changed.split()} == {folder}
+    assert git(content, "status", "--porcelain").splitlines() == [" M README.md", "?? notes.txt"]
+
+
+def test_commit_skips_folders_that_did_not_change(tmp_path):
+    content = git_repo(tmp_path / "content")
+    work = write_work(tmp_path / "work", [judged(1)])
+    publish(work, content, "--commit")
+    count = len(git(content, "log", "--format=%s").splitlines())
+
+    assert publish(work, content, "--commit") == 0
+    assert len(git(content, "log", "--format=%s").splitlines()) == count
+
+    publish(write_work(tmp_path / "w2", [judged(1)], explained={"arxiv-2611.00001": {}}), content, "--commit", now=LATER)
+    subjects = git(content, "log", "--format=%s").splitlines()
+    assert sorted(subjects[:2]) == sorted([SUBJECTS["feed"], SUBJECTS["papers"]])
+    assert len(subjects) == count + 2
+
+
+def test_without_commit_nothing_is_committed(tmp_path):
+    content = git_repo(tmp_path / "content")
+    assert publish(write_work(tmp_path / "work", [judged(1)]), content) == 0
+    assert git(content, "log", "--format=%s").splitlines() == ["Start"]
+
+
+def test_push_sends_main_to_origin(tmp_path):
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "-q", "--bare", "-b", "main", str(remote)], check=True)
+    content = git_repo(tmp_path / "content")
+    git(content, "remote", "add", "origin", str(remote))
+    git(content, "push", "-q", "origin", "main")
+
+    assert publish(write_work(tmp_path / "work", [judged(1)]), content, "--commit", "--push") == 0
+
+    assert git(remote, "rev-parse", "main") == git(content, "rev-parse", "main")
+
+
+def test_git_failure_is_reported_as_an_error(tmp_path, capsys):
+    content = tmp_path / "content"
+    assert publish(write_work(tmp_path / "work", [judged(1)]), content, "--commit") == 1
+    assert "publish: git" in capsys.readouterr().err

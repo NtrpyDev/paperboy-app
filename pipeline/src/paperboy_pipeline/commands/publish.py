@@ -55,10 +55,14 @@ def run(args) -> int:
         print(f"publish: {error}", file=sys.stderr)
         return 1
     print(f"publish: wrote {len(written)} files")
-    if args.commit:
-        _commit(args.content)
-    if args.push:
-        _git(args.content, "push", "origin", "main")
+    try:
+        if args.commit:
+            _commit(args.content)
+        if args.push:
+            _git(args.content, "push", "origin", "main")
+    except subprocess.CalledProcessError as error:
+        print(f"publish: git {' '.join(error.cmd[3:])} failed: {error.stderr.strip()}", file=sys.stderr)
+        return 1
     return 0
 
 

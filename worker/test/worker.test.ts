@@ -359,3 +359,25 @@ describe("content repo outage", () => {
     },
   );
 });
+
+describe("request methods", () => {
+  it("answers HEAD with the headers of GET and no body", async () => {
+    const { get } = setup({ "feed/v1/head.json": head(1) });
+
+    const res = await get("/feed/v1/head.json", { method: "HEAD" });
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("application/json; charset=utf-8");
+    expect(await res.text()).toBe("");
+  });
+
+  it("refuses anything other than GET and HEAD without asking the content repo", async () => {
+    const { origin, get } = setup({ "feed/v1/head.json": head(1) });
+
+    const res = await get("/feed/v1/head.json", { method: "POST", body: "x" });
+
+    expect(res.status).toBe(405);
+    expect(res.headers.get("allow")).toBe("GET, HEAD");
+    expect(origin.calls).toEqual([]);
+  });
+});

@@ -99,30 +99,41 @@ export function createHandler(deps: Deps) {
 
   return {
     async fetch(request: Request, env: Env): Promise<Response> {
-      let key = new URL(request.url).pathname.slice(1);
-      if (key.startsWith("papers/") && key.endsWith("/")) key += "index.html";
-      if (!isContentKey(key)) return notFound();
-      const changing = await isChanging(env, key);
-
-      const stored = await env.CONTENT.get(key);
-      if (stored) {
-        const age = deps.now() - Number(stored.customMetadata?.fetched_at ?? 0);
-        // A copy fetched while the file was still changing may be missing its last
-        // edits, so it keeps being refreshed until a copy is fetched after it stopped.
-        const storedChanging = stored.customMetadata?.changing === "true";
-        const due = (changing || storedChanging) && age > REFRESH_MS;
-        if (!due) return serve(key, stored.body, changing || storedChanging);
-        const fresh = await fill(env, key, changing);
-        if (typeof fresh === "string") return serve(key, stored.body, true);
-        return serve(key, fresh.body, fresh.changing);
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return new Response("Method not allowed\n", { status: 405, headers: { allow: "GET, HEAD" } });
       }
-
-      const filled = await fill(env, key, changing);
-      if (filled === "missing") return notFound();
-      if (filled === "unreachable") return new Response("Content repo unreachable\n", { status: 502 });
-      return serve(key, filled.body, filled.changing);
+      const res = await respond(request, env);
+      if (request.method !== "HEAD") return res;
+      await res.body?.cancel();
+      return new Response(null, res);
     },
   };
+
+  async function respond(request: Request, env: Env): Promise<Response> {
+    let key = new URL(request.url).pathname.slice(1);
+    if (key.startsWith("papers/") && key.endsWith("/")) key += "index.html";
+    if (!isContentKey(key)) return notFound();
+    const changing = await isChanging(env, key);
+
+    const stored = await env.CONTENT.get(key);
+    if (stored) {
+      const age = deps.now() - Number(stored.customMetadata?.fetched_at ?? 0);
+      // A copy fetched while the file was still changing may be missing its last
+      // edits, so it keeps being refreshed until a copy is fetched after it stopped.
+      const storedChanging = stored.customMetadata?.changing === "true";
+      const due = (changing || storedChanging) && age > REFRESH_MS;
+      if (!due) return serve(key, stored.body, changing || storedChanging);
+      const fresh = await fill(env, key, changing);
+      if (typeof fresh === "string") return serve(key, stored.body, true);
+      await stored.body.cancel();
+      return serve(key, fresh.body, fresh.changing);
+    }
+
+    const filled = await fill(env, key, changing);
+    if (filled === "missing") return notFound();
+    if (filled === "unreachable") return new Response("Content repo unreachable\n", { status: 502 });
+    return serve(key, filled.body, filled.changing);
+  }
 }
 
 type Failure = "missing" | "unreachable";

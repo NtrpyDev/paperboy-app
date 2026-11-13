@@ -161,4 +161,46 @@ describe("chunks", () => {
     expect(JSON.parse(await res.text()).items).toHaveLength(40);
     expect(origin.calls).toHaveLength(callsAfterFill);
   });
+
+  it("fetches a chunk once more after it closes, so its last items are not lost, then keeps it", async () => {
+    const { origin, time, get } = setup({
+      "feed/v1/head.json": head(1),
+      "feed/v1/chunks/000001.json": chunk(1, 39),
+    });
+    await get("/feed/v1/head.json");
+    await get("/feed/v1/chunks/000001.json");
+    origin.files["feed/v1/chunks/000001.json"] = chunk(1, 40);
+    origin.files["feed/v1/head.json"] = head(2);
+    time.advance(61);
+    await get("/feed/v1/head.json");
+
+    const closed = await get("/feed/v1/chunks/000001.json");
+    expect(JSON.parse(await closed.text()).items).toHaveLength(40);
+
+    const callsAfterClose = origin.calls.length;
+    time.advance(86400);
+    await get("/feed/v1/chunks/000001.json");
+    expect(origin.calls).toHaveLength(callsAfterClose);
+  });
+
+  // The content repo's raw host caches files for up to five minutes, so right after
+  // a chunk closes it can still hand out the copy from before its last items.
+  it("keeps refreshing a closed chunk until it holds the full 40 items", async () => {
+    const { origin, time, get } = setup({
+      "feed/v1/head.json": head(2),
+      "feed/v1/chunks/000001.json": chunk(1, 39),
+    });
+    await get("/feed/v1/head.json");
+    await get("/feed/v1/chunks/000001.json");
+    origin.files["feed/v1/chunks/000001.json"] = chunk(1, 40);
+
+    time.advance(61);
+    const res = await get("/feed/v1/chunks/000001.json");
+    expect(JSON.parse(await res.text()).items).toHaveLength(40);
+
+    const callsWhenFull = origin.calls.length;
+    time.advance(86400);
+    await get("/feed/v1/chunks/000001.json");
+    expect(origin.calls).toHaveLength(callsWhenFull);
+  });
 });

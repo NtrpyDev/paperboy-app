@@ -5,6 +5,8 @@ const REFRESH_MS = 60_000;
 
 const HEAD = "feed/v1/head.json";
 const CHUNK = /^feed\/v1\/chunks\/(\d{6})\.json$/;
+// Every closed chunk holds exactly this many items (chunk_size in schema/head.schema.json).
+const CHUNK_SIZE = 40;
 
 export interface Deps {
   fetch: typeof fetch;
@@ -12,9 +14,10 @@ export interface Deps {
 }
 
 export function createHandler(deps: Deps) {
-  // Fetches a file from the content repo and stores it. Returns null when the repo
-  // does not have it or cannot be reached.
-  async function fill(env: Env, key: string): Promise<ArrayBuffer | null> {
+  // Fetches a file from the content repo and stores it, noting whether it was still
+  // changing when fetched. Returns null when the repo does not have it or cannot be
+  // reached.
+  async function fill(env: Env, key: string, changing: boolean): Promise<ArrayBuffer | null> {
     let res: Response;
     try {
       res = await deps.fetch(ORIGIN + key);
@@ -23,8 +26,11 @@ export function createHandler(deps: Deps) {
     }
     if (!res.ok) return null;
     const body = await res.arrayBuffer();
+    // The raw host caches for up to five minutes, so a chunk that just closed can
+    // still arrive short. It counts as changing until it comes back full.
+    if (!changing && CHUNK.test(key) && !isFullChunk(body)) changing = true;
     await env.CONTENT.put(key, body, {
-      customMetadata: { fetched_at: String(deps.now()) },
+      customMetadata: { fetched_at: String(deps.now()), changing: String(changing) },
     });
     return body;
   }
@@ -33,7 +39,7 @@ export function createHandler(deps: Deps) {
   // bucket does not have it. Null when no head can be read.
   async function openChunk(env: Env): Promise<number | null> {
     const stored = await env.CONTENT.get(HEAD);
-    const text = stored ? await stored.text() : await bodyText(await fill(env, HEAD));
+    const text = stored ? await stored.text() : bodyText(await fill(env, HEAD, true));
     if (text === null) return null;
     try {
       const n = JSON.parse(text).chunk_count;
@@ -63,16 +69,29 @@ export function createHandler(deps: Deps) {
       const stored = await env.CONTENT.get(key);
       if (stored) {
         const age = deps.now() - Number(stored.customMetadata?.fetched_at ?? 0);
-        if (!changing || age <= REFRESH_MS) return new Response(stored.body);
-        const fresh = await fill(env, key);
+        // A copy fetched while the file was still changing may be missing its last
+        // edits, so it keeps being refreshed until a copy is fetched after it stopped.
+        const storedChanging = stored.customMetadata?.changing === "true";
+        const due = (changing || storedChanging) && age > REFRESH_MS;
+        if (!due) return new Response(stored.body);
+        const fresh = await fill(env, key, changing);
         return new Response(fresh ?? stored.body);
       }
 
-      const body = await fill(env, key);
+      const body = await fill(env, key, changing);
       if (!body) return notFound();
       return new Response(body);
     },
   };
+}
+
+function isFullChunk(body: ArrayBuffer): boolean {
+  try {
+    const items = JSON.parse(new TextDecoder().decode(body)).items;
+    return Array.isArray(items) && items.length >= CHUNK_SIZE;
+  } catch {
+    return false;
+  }
 }
 
 function bodyText(body: ArrayBuffer | null): string | null {

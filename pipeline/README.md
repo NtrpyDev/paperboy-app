@@ -97,7 +97,7 @@ Lists newly released papers and writes them to `WORK/candidates.jsonl`, one Cand
 - **Abstracts** are pipeline input only. JATS and HTML tags are removed; LaTeX is kept as written.
 - **Exit status** is 1 when a source failed after retries or a record did not match the schema. The candidates from the other sources are still written.
 
-Live smoke run (not part of the test suite; makes about seven polite requests and takes about 20 seconds):
+Live smoke run (not part of the test suite; makes one request per source and took about 20 seconds on 2026-11-13):
 
 ```
 cd pipeline

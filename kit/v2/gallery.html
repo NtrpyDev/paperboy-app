@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Two black holes merged. Earth felt space stretch.</title>
+<link rel="stylesheet" href="/kit/v2/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="/kit/v2/paperboy.css">
+<script src="/kit/v2/vendor/d3.min.js"></script>
+<script src="/kit/v2/vendor/plot.umd.min.js"></script>
+<script src="/kit/v2/vendor/katex/katex.min.js"></script>
+<script src="/kit/v2/vendor/katex/auto-render.min.js"></script>
+<script src="/kit/v2/paperboy.js"></script>
+</head>
+<body>
+<!-- The kit's gallery: the Paper 1 explainer of the design boards, written the way an explainer is
+     written, then every other pattern the kit has. Facts come from design/CONTENT.md. The specimen
+     charts near the end carry placeholder labels in brackets and their shapes mean nothing. -->
+<article class="pb">
+
+<header class="pb-hero">
+  <div class="pb-kicker">
+    <span class="pb-tag">Physics</span>
+    <span class="pb-badge" data-status="peer_reviewed">Peer-reviewed</span>
+    <a class="pb-journal" href="https://doi.org/10.1103/PhysRevLett.116.061102">Physical Review Letters</a>
+  </div>
+  <h1 class="pb-title">Two black holes merged. <em>Earth felt space stretch.</em></h1>
+  <div class="pb-stage" id="hero" data-kind="illustration"></div>
+  <div class="pb-readout-row">
+    <div>
+      <div class="pb-readout">1.0<span class="pb-sign">×</span>10<sup>−21</sup></div>
+      <span class="pb-label">Peak strain. Pitch 35 to 250 Hz</span>
+    </div>
+    <div class="pb-plate-slug">Plate 1<br>Illustration,<br>not to scale</div>
+  </div>
+  <p class="pb-dek">LIGO's two detectors caught a ripple in spacetime lasting a fifth of a second. Its shape matches black holes of about 36 and 29 solar masses spiraling into one.</p>
+</header>
+
+<div class="pb-callout" data-kind="key">
+  <span class="pb-callout-label">Key idea</span>
+  <p>The first direct detection of gravitational waves, and the first sight of two black holes merging.</p>
+</div>
+
+<section class="pb-section" data-section="question">
+  <p class="pb-eyebrow">The question</p>
+  <h2>Can a machine on Earth <em>feel space stretch?</em></h2>
+  <p>A gravitational wave is a ripple in spacetime. Before this paper, no one had detected one directly.</p>
+  <p>When a wave passes, lengths change. Here a 4 km arm changed by far less than the width of a proton. Could any instrument register something that small?</p>
+</section>
+
+<section class="pb-section" data-section="method">
+  <p class="pb-eyebrow">What they did</p>
+  <h2>Two detectors, <em>each an L with 4 km arms.</em></h2>
+  <p>LIGO has two detectors, one in Hanford, Washington and one in Livingston, Louisiana. Each is an L-shaped laser interferometer.</p>
+  <figure class="pb-fig pb-wide" data-kind="illustration" data-slug="Fig. 1">
+    <div class="pb-chart" id="fig1-how"></div>
+    <div class="pb-chart" id="fig1-names"></div>
+    <div class="pb-bleed" id="fig1-when"></div>
+  </figure>
+  <p>On September 14, 2015, at 09:50:45 UTC, both recorded the same signal. It reached Livingston about 7 milliseconds before Hanford. The event is named GW150914.</p>
+</section>
+
+<section class="pb-section" data-section="findings">
+  <p class="pb-eyebrow">What they found</p>
+  <h2>One chirp, <em>a fifth of a second long.</em></h2>
+  <p>The signal swept up in frequency from 35 Hz to 250 Hz in about 0.2 seconds. A rising sweep like that is called a <span class="pb-term" data-def="A signal that sweeps up in frequency. This one rose from 35 Hz to 250 Hz in about 0.2 seconds.">chirp</span>.</p>
+  <p>Its shape matches two black holes spiraling into one, about 410 megaparsecs away, roughly 1.3 billion light years.†</p>
+  <div class="pb-callout" data-kind="caveat">
+    <span class="pb-callout-label">Caveat</span>
+    <p>† The mass and distance values carry wide error ranges. The distance, for example, is 410 megaparsecs with a range of roughly 230 to 570.</p>
+  </div>
+
+  <figure class="pb-fig" data-kind="data" data-slug="Fig. 2">
+    <div class="pb-stat">
+      <div class="pb-stat-value">410</div>
+      <div class="pb-stat-label"><b>Megaparsecs away</b>roughly 1.3 billion light years</div>
+    </div>
+    <div id="fig2-range"></div>
+    <div id="fig2-legend"></div>
+    <div id="fig2-table"></div>
+  </figure>
+
+  <p>The two black holes had about 36 and 29 solar masses. The one they formed has about 62. About 3 solar masses of energy left as gravitational waves.</p>
+
+  <figure class="pb-fig" data-kind="data" data-slug="Fig. 3">
+    <p class="pb-fig-title">Where the mass went</p>
+    <div id="fig3-bars"></div>
+    <div id="fig3-legend"></div>
+    <div id="fig3-table"></div>
+  </figure>
+
+  <p>By the time the wave reached Earth, its peak strain was 1.0 × 10<sup>−21</sup>.</p>
+
+  <figure class="pb-fig" data-kind="illustration" data-slug="For scale">
+    <div class="pb-chart" id="scale"></div>
+    <figcaption>That strain is a change in arm length far smaller than a proton.</figcaption>
+  </figure>
+
+  <figure class="pb-fig pb-wide" data-kind="illustration" data-slug="Try it">
+    <p class="pb-fig-title">Play the chirp by hand</p>
+    <div class="pb-bleed" id="try"></div>
+    <div id="try-row"></div>
+    <div class="pb-multiples">
+      <div><div class="pb-chart" id="try-rest"></div><span class="pb-label">At rest</span><div class="pb-readout pb-readout-s">35<span class="pb-unit">Hz</span></div></div>
+      <div><div class="pb-chart" id="try-peak"></div><span class="pb-label">At 0.2 seconds</span><div class="pb-readout pb-readout-s">250<span class="pb-unit">Hz</span></div></div>
+    </div>
+    <figcaption>Drag the carriage along the ruler to move through the signal.</figcaption>
+  </figure>
+</section>
+
+<section class="pb-section" data-section="confidence">
+  <h2>How sure <em>is this?</em></h2>
+  <ul class="pb-confidence">
+    <li class="pb-confidence-head">Strengths</li>
+    <li><b>Review</b><span class="v"><span class="pb-badge" data-status="peer_reviewed">Peer-reviewed</span></span><span class="note">Physical Review Letters, February 11, 2016.</span></li>
+    <li><b>Significance</b><span class="v"><span class="pb-sign">&gt;</span>5.1<span class="pb-unit">sigma</span></span><span class="note">A false alarm this strong is expected less than once in 203,000 years.</span></li>
+    <li><b>Detectors</b><span class="v">2<span class="pb-unit">sites</span></span><span class="note">Hanford and Livingston both recorded it, about 7 milliseconds apart.</span></li>
+    <li class="pb-confidence-head">Limits</li>
+    <li><b>Distance</b><span class="v">410<span class="pb-unit">megaparsecs</span></span><span class="note">With a range of roughly 230 to 570.</span><span id="ledger-range"></span></li>
+    <li><b>Masses</b><span class="v">36, 29, 62<span class="pb-unit">solar masses</span></span><span class="note">All three are estimates with wide error ranges.</span></li>
+    <li><b>Sky position</b><span class="v">600<span class="pb-unit">square degrees</span></span><span class="note">Where it came from was known only to within about this much sky.</span></li>
+    <li data-kind="standing"><b>This explainer</b>Machine written, and it can be wrong. Check it against the paper.</li>
+  </ul>
+</section>
+
+<section class="pb-section" data-section="matters">
+  <p class="pb-eyebrow">Why it matters</p>
+  <h2>Two firsts <em>in one signal.</em></h2>
+  <p>Before this paper, gravitational waves had never been detected directly, and no one had observed two black holes merging. One signal, a fifth of a second long, did both.</p>
+</section>
+
+<!-- ============================================================ the kit's other patterns -->
+
+<section class="pb-section">
+  <p class="pb-eyebrow">01 Top bar on the web</p>
+  <h2>On the web, <em>the wordmark leads home.</em></h2>
+  <p>The bar at the top of this page is the web form. The kit writes it, and the wordmark links to the site. Inside the app the bar is left out, because the app draws its own.</p>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">02 Data table</p>
+  <h2>Every data figure <em>carries its numbers.</em></h2>
+  <p>A figure drawn from the paper's numbers closes with one row. Opened, it lists every number the chart draws. Here it is open.</p>
+  <figure class="pb-fig" data-kind="data" data-slug="Fig. 3">
+    <p class="pb-fig-title">Where the mass went</p>
+    <div id="p2-bars"></div>
+    <div id="p2-table"></div>
+  </figure>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">03 Scroll steps</p>
+  <h2>One picture stays. <em>The steps scroll past it.</em></h2>
+  <p>The picture is pinned under the top of the screen. Short steps pass beneath it, and each one changes the picture in one way.</p>
+  <div class="pb-steps" id="steps">
+    <div class="pb-steps-visual">
+      <figure class="pb-fig" data-kind="illustration" data-slug="Fig. 1">
+        <div class="pb-chart" id="steps-names"></div>
+        <div class="pb-bleed" id="steps-visual"></div>
+      </figure>
+    </div>
+    <div class="pb-step"><span class="pb-step-n">Step 1 of 4</span><p>Each detector is an L with two 4 km arms.</p></div>
+    <div class="pb-step"><span class="pb-step-n">Step 2 of 4</span><p>LIGO has two, one in Livingston, Louisiana and one in Hanford, Washington.</p></div>
+    <div class="pb-step"><span class="pb-step-n">Step 3 of 4</span><p>On September 14, 2015, a wave crossed both. It reached Livingston first, and Hanford about 7 milliseconds later.</p></div>
+    <div class="pb-step"><span class="pb-step-n">Step 4 of 4</span><p>Both recorded the same signal. The event is named GW150914.</p></div>
+  </div>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">04 Glossary term</p>
+  <h2>A term you can tap, <em>defined in place.</em></h2>
+  <p>Both detectors recorded the same <span class="pb-term" data-def="A signal that sweeps up in frequency. This one rose from 35 Hz to 250 Hz in about 0.2 seconds.">chirp</span> on September 14, 2015. It reached Livingston about 7 milliseconds before Hanford. Tap the dotted word to open its definition; tap again to close it.</p>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">05 Segmented toggle</p>
+  <h2>One switch, <em>two or three positions.</em></h2>
+  <p>It changes what one figure shows. The chosen position is stamped.</p>
+  <figure class="pb-fig" data-kind="data" data-slug="Fig. 3">
+    <p class="pb-fig-title">Where the mass went</p>
+    <div id="p5-toggle"></div>
+    <div id="p5-bars"></div>
+    <div id="p5-legend"></div>
+    <div id="p5-table"></div>
+  </figure>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">06 Line chart</p>
+  <h2>Up to four lines, <em>each named at its end.</em></h2>
+  <p>Lines differ by weight and lightness, never by hue alone. One of them is the finding, and it is the only one that is drawn as you watch.</p>
+  <figure class="pb-fig" data-kind="illustration" data-specimen data-slug="Fig. [N]">
+    <p class="pb-fig-title">Four lines, one ruler</p>
+    <div id="p6-lines"></div>
+    <div id="p6-legend"></div>
+  </figure>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">07 Scatter and 08 touch readout</p>
+  <h2>Many points, <em>a few of them named.</em></h2>
+  <p>Most points are small and muted. The ones that matter are larger, in the text color, and named beside the mark. Touch a point and a ring closes on it, a line drops to the ruler, and a slab gives its name and values.</p>
+  <figure class="pb-fig" data-kind="illustration" data-specimen data-slug="Fig. [N]">
+    <p class="pb-fig-title">Many points, three named</p>
+    <div id="p7-scatter"></div>
+    <div id="p7-legend"></div>
+  </figure>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">09 Dumbbell</p>
+  <h2>Before and after, <em>one row for each item.</em></h2>
+  <p>An open ring is the value before. A solid dot is the value after. The row that carries the finding ends in the live mark.</p>
+  <figure class="pb-fig" data-kind="illustration" data-specimen data-slug="Fig. [N]">
+    <p class="pb-fig-title">Four pairs of values</p>
+    <div id="p9-pairs"></div>
+    <div id="p9-legend"></div>
+  </figure>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">10 Uncertainty</p>
+  <h2>What is not known <em>is drawn too.</em></h2>
+  <p>A measured point carries its error bar. A line that is an estimate carries a screened band. Solid means measured, and screened means a range.</p>
+  <figure class="pb-fig" data-kind="illustration" data-specimen data-slug="Fig. [N]">
+    <p class="pb-fig-title">Each value, its range</p>
+    <div id="p10-ranges"></div>
+    <div id="p10-legend"></div>
+  </figure>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">11 Math</p>
+  <h2>Math sits in the column <em>like a sentence.</em></h2>
+  <p>By the time the wave reached Earth, its peak strain was \(1.0 \times 10^{-21}\). Before and after, the masses add up, each within its error range:</p>
+  <p>\[ 36\,M_\odot + 29\,M_\odot \approx 62\,M_\odot + 3\,M_\odot \tag*{Eq. 1} \]</p>
+  <p>Here \(M_\odot\) is one solar mass. About \(3\,M_\odot\) left as gravitational waves.</p>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">12 Buttons</p>
+  <h2>A slab and <em>a ruled outline.</em></h2>
+  <p>The slab is the one primary action. The outline leaves the page, here for the paper. Both are 48 px tall and square.</p>
+  <a class="pb-btn" data-kind="primary" href="#hero">See it explained</a>
+  <a class="pb-btn" href="https://doi.org/10.1103/PhysRevLett.116.061102">Read the paper</a>
+</section>
+
+<footer class="pb-source">
+  <p class="pb-eyebrow">Source</p>
+  <cite>Observation of Gravitational Waves from a Binary Black Hole Merger</cite>
+  <p class="pb-authors">B. P. Abbott et al. (LIGO Scientific Collaboration and Virgo Collaboration)</p>
+  <small>Physical Review Letters 116, 061102</small>
+  <small>February 11, 2016. Peer-reviewed. CC BY 3.0</small>
+  <a class="pb-btn" href="https://doi.org/10.1103/PhysRevLett.116.061102">Read the paper</a>
+  <p class="pb-note">This page was written by a machine and can be wrong. The paper is the source.</p>
+</footer>
+
+</article>
+<script>
+PB.ready(function () {
+  /* ---- The chirp: the shape of the signal, as an illustration. Not plotted from data.
+     A wave that rises in pitch and grows to the merger at 78 percent of the way, rings down for
+     three cycles, then runs flat into the pen point. t runs from 0 to 1 across width w. */
+  var TM = 0.78, C1 = 2, C4 = 7;
+  function chirp(x0, y0, w, amp) {
+    var phM = 2 * Math.PI * (C1 + C4), rM = 2 * Math.PI * (C1 + 4 * C4) / TM, slow = 0.55;
+    var te = Math.min(1, TM + 4 * Math.PI * 3 / (rM * (1 + slow)));
+    function env(t) {
+      if (t <= TM) { var u = t / TM; return 0.06 + 0.94 * u * u * u; }
+      return t >= te ? 0 : Math.pow(1 - (t - TM) / (te - TM), 1.7);
+    }
+    function phase(t) {
+      if (t <= TM) { var u = t / TM; return 2 * Math.PI * (C1 * u + C4 * Math.pow(u, 4)); }
+      var v = Math.min(1, (t - TM) / (te - TM));
+      return phM + rM * (te - TM) * (v - (1 - slow) * v * v / 2);
+    }
+    function rate(t) {
+      if (t <= TM) { var u = t / TM; return 2 * Math.PI * (C1 + 4 * C4 * u * u * u) / TM; }
+      return rM * (1 - (1 - slow) * Math.min(1, (t - TM) / (te - TM)));
+    }
+    function y(t) { return y0 - amp * env(t) * Math.sin(phase(t)); }
+    var pts = [];
+    for (var t = 0; t < te; t += Math.min(0.01, (Math.PI / 10) / rate(t))) pts.push([x0 + w * t, y(t)]);
+    pts.push([x0 + w * te, y0]);
+    return { d: PB.curve(pts) + "L" + (x0 + w) + " " + y0, merger: x0 + w * TM, env: env, phase: phase, y: y };
+  }
+
+  /* the time ruler under a chirp: a tick every 0.02 s, a major tick every 0.1 s, run off the right edge */
+  function timeRuler(g, x0, merger, y, right, labels, from) {
+    var x = d3.scaleLinear().domain([0, 0.2]).range([x0, merger]);
+    var ticks = d3.range(0, x.invert(right) + 1e-9, 0.02).map(function (v) { return +v.toFixed(2); });
+    PB.ruler(g, {
+      x: x, y: y, x1: Math.max(x0, from || 0), x2: right,
+      major: ticks.filter(function (v, i) { return i % 5 === 0; }), minor: ticks,
+      labels: labels || [0, 0.1, 0.2], unit: labels && labels.indexOf(0.2) < 0 ? null : "s"
+    });
+  }
+
+  /* ---- Plate 1: the wave field, the two wells, and the chirp crossing them on a time ruler */
+  PB.plate("#hero", {
+    band: function (w) { return w >= 1160 ? 320 : w >= 930 ? 284 : w >= 700 ? 250 : 196; },
+    label: "Illustration of the signal: a wave that rises in pitch from 35 hertz to 250 hertz over about 0.2 seconds, then dies away",
+    draw: function (p) {
+      var k = p.band / 196;
+      var cx = p.left + (p.right - p.left) * 0.76, cy = 62 * k;
+      // the two bodies, about 36 and 29 solar masses, 84 px apart along a line at minus 25 degrees
+      var a = -25 * Math.PI / 180, sep = 84 * k;
+      var bodies = [
+        { x: cx - sep * 29 / 65 * Math.cos(a), y: cy - sep * 29 / 65 * Math.sin(a), m: 36 },
+        { x: cx + sep * 36 / 65 * Math.cos(a), y: cy + sep * 36 / 65 * Math.sin(a), m: 29 }
+      ];
+      var wells = PB.engrave.wells(p.key, { bodies: bodies, reach: 44, k: k });
+      PB.engrave.rings(p.print, {
+        cx: cx, cy: cy, width: p.width, height: p.band, k: k,
+        near: [50, 66, 0.62], ramp: [46, 118], avoid: [wells.inside(60), wells.inside(76)]
+      });
+      var c = chirp(p.left, p.band - 39 * k, p.right - p.left, 29 * k);
+      timeRuler(p.live, p.left, c.merger, p.rulerY, p.width);
+      PB.live(p.live, c.d, { carriage: p.rulerY, pulse: true });
+    }
+  });
+
+  /* ---- Fig. 1, part one: one detector seen from above. A laser at the corner of an L sends light
+     down each arm and back. */
+  PB.svg("#fig1-how", { height: 236, label: "Illustration, not to scale: one detector seen from above. A laser at the corner of an L sends light down two arms, each 4 kilometers long, and back." }, function (svg, s) {
+    var cx = Math.round(s.width * 0.37), cy = 179, a = 150, tw = 15, st = 11, eb = 16;
+    var top = cy - st - a, right = cx + st + a, lx = cx - st - 30;
+    var body = svg.append("g").attr("class", "pb-shape");
+    [[cx - tw / 2, top, tw, a], [cx + st, cy - tw / 2, a, tw], [cx - eb / 2, top - eb, eb, eb], [right, cy - eb / 2, eb, eb],
+     [cx - st, cy - st, 2 * st, 2 * st], [lx, cy - 6, 22, 12]].forEach(function (r) {
+      body.append("rect").attr("x", r[0]).attr("y", r[1]).attr("width", r[2]).attr("height", r[3]);
+    });
+    var o = 3, ym = cy - st - a / 2, xm = cx + st + a / 2;
+    function chev(x, y, dx, dy) {
+      var bx = x - dx * 3.75, by = y - dy * 3.75;
+      return "M" + (bx - dy * 2.5) + " " + (by + dx * 2.5) + "L" + x + " " + y + "L" + (bx + dy * 2.5) + " " + (by - dx * 2.5);
+    }
+    svg.append("path").attr("class", "pb-outline").style("stroke-width", "1.2px")
+      .attr("d", "M" + (lx + 22) + " " + cy + "H" + (cx - o) + "V" + top + "H" + (cx + o) + "V" + (cy - o) + "H" + right + "V" + (cy + o) + "H" + (cx - o) +
+        chev(cx - o, ym - 22, 0, -1) + chev(cx + o, ym + 22, 0, 1) + chev(xm + 22, cy - o, 1, 0) + chev(xm - 22, cy + o, -1, 0));
+    var xd = cx + tw / 2 + 17, yd = cy + st + 19;
+    var dims = svg.append("g").attr("class", "pb-outline").style("stroke-width", "0.75px");
+    [[xd, top, xd, cy - st], [xd - 4, top, xd + 4, top], [xd - 4, cy - st, xd + 4, cy - st],
+     [cx + st, yd, right, yd], [cx + st, yd - 4, cx + st, yd + 4], [right, yd - 4, right, yd + 4]].forEach(function (l) {
+      dims.append("line").attr("x1", l[0]).attr("y1", l[1]).attr("x2", l[2]).attr("y2", l[3]);
+    });
+    var t = svg.append("g").attr("class", "pb-mark-label");
+    t.append("text").attr("x", lx - 8).attr("y", cy + 3.8).attr("text-anchor", "end").text("Laser");
+    t.append("text").attr("x", xd + 11).attr("y", ym + 3.8).text("Arm, 4 km");
+    t.append("text").attr("x", xm).attr("y", yd + 18).attr("text-anchor", "middle").text("Arm, 4 km");
+  });
+
+  /* ---- Fig. 1, part two: the wave reaches the two detectors 7 milliseconds apart. The gap is the
+     figure's one live mark: a beam ruled off on a millisecond ruler. */
+  function drawDetectors(p, opts) {
+    var s = 30, x0 = p.left + 6, X = function (v) { return x0 + v * s; };
+    var a = 112, band = p.band, cy = 140, by = band + 32, ry = band + 62, tube = 5;
+    if (opts.field !== false) {
+      var field = p.print.append("g");
+      if (opts.front != null) {
+        var cid = "front-" + Math.random().toString(36).slice(2, 7);
+        field.append("clipPath").attr("id", cid).append("circle").attr("cx", x0 - 176).attr("cy", 250).attr("r", Math.hypot(X(opts.front) - (x0 - 176), cy - 250));
+        field.attr("clip-path", "url(#" + cid + ")");
+      }
+      PB.engrave.rings(field, { cx: x0 - 176, cy: 250, width: p.width, height: band, rot: 18, rmin: 150 });
+    }
+    function det(g, cx) {
+      [[cx - tube / 2, cy - 6 - a, tube, a], [cx - 4, cy - 6 - a - 8, 8, 8], [cx + 6, cy - tube / 2, a, tube],
+       [cx + 6 + a, cy - 4, 8, 8], [cx - 6, cy - 6, 12, 12]].forEach(function (r) {
+        g.append("rect").attr("x", r[0]).attr("y", r[1]).attr("width", r[2]).attr("height", r[3]);
+      });
+    }
+    var at = opts.detectors || [0, 7];
+    var ground = p.key.append("g").attr("class", "pb-ground").style("stroke-width", "6px").style("stroke-linejoin", "round");
+    var ink = p.key.append("g").attr("class", "pb-shape").style("stroke-width", "1.1px");
+    at.forEach(function (v) { det(ground, X(v)); det(ink, X(v)); });
+    if (!opts.beam) return;
+    var drops = p.live.append("g");
+    [0, 7].forEach(function (v) {
+      drops.append("line").attr("class", "pb-grid-line").attr("x1", X(v)).attr("x2", X(v)).attr("y1", band).attr("y2", ry);
+      drops.append("line").attr("class", "pb-ground").style("stroke-width", "5px").attr("x1", X(v)).attr("x2", X(v)).attr("y1", cy + 6).attr("y2", band);
+      drops.append("line").attr("class", "pb-outline").style("stroke-width", "0.6px").attr("x1", X(v)).attr("x2", X(v)).attr("y1", cy + 6).attr("y2", band);
+    });
+    var x = d3.scaleLinear().domain([0, 10]).range([X(0), X(10)]);
+    PB.ruler(p.live, { x: x, y: ry, x2: p.width, major: [0, 5, 10], minor: d3.range(0, 11), labels: [0, 5, 10], unit: "MS" });
+    p.live.append("text").attr("class", "pb-mark-label").attr("x", X(0) + 9).attr("y", by - 10).text("About 7 milliseconds later");
+    PB.live(p.live, "M" + X(0) + " " + by + "H" + X(7), { ms: 900, carriage: ry, cap: 5 });
+  }
+  function detectorNames(target) {
+    PB.svg(target, { height: 16, label: "Livingston, Louisiana on the left; Hanford, Washington on the right" }, function (svg) {
+      svg.append("text").attr("class", "pb-mark-label").attr("data-strong", "").attr("x", 0).attr("y", 12).text("Livingston, Louisiana");
+      svg.append("text").attr("class", "pb-mark-label").attr("data-strong", "").attr("x", 210).attr("y", 12).text("Hanford, Washington");
+    });
+  }
+  detectorNames("#fig1-names");
+  PB.plate("#fig1-when", {
+    band: 160, below: 88,
+    label: "Illustration, not to scale: a wave crossing the two detectors. It reaches Livingston, Louisiana first and Hanford, Washington about 7 milliseconds later.",
+    draw: function (p) { drawDetectors(p, { beam: true }); }
+  });
+
+  /* ---- Fig. 2: the distance and its range */
+  PB.rangeBar("#fig2-range", {
+    domain: [0, 600], low: 230, high: 570, value: 410, unit: "Mpc", major: [0, 200, 400, 600], minor: 50,
+    label: "Data from the paper: distance about 410 megaparsecs, with a range of roughly 230 to 570, on a scale from 0 to 600"
+  });
+  PB.legend("#fig2-legend", [{ kind: "live", label: "Reported value" }, { kind: "screen", label: "Range" }]);
+  PB.table("#fig2-table", {
+    caption: "The distance is an estimate with a wide range.",
+    columns: [{ key: "what", label: "What" }, { key: "mpc", label: "Megaparsecs", numeric: true }],
+    rows: [{ what: "Reported distance", mpc: 410 }, { what: "Low end of the range", mpc: 230 }, { what: "High end of the range", mpc: 570 }]
+  });
+
+  /* ---- Fig. 3: where the mass went. All four masses are about values, so they are screened;
+     the 3 that left as waves is the finding, the one live mark. */
+  var BEFORE = { label: "Before", note: "two black holes", segments: [
+    { from: 0, to: 36, kind: "screen", angle: 1, figure: "36" },
+    { from: 36, to: 65, kind: "screen", angle: 2, figure: "29" }] };
+  var AFTER = { label: "After", note: "one black hole, and waves", segments: [
+    { from: 0, to: 62, kind: "weave", figure: "62" },
+    { from: 62, to: 65, kind: "live", figure: "3", name: "Left as\nwaves" }] };
+  var MASS_LABEL = "Data from the paper, in solar masses. Before: two black holes of about 36 and 29. After: one black hole of about 62, and about 3 that left as gravitational waves.";
+  function massBars(target, rows) {
+    return PB.barRows(target, { domain: [0, 70], unit: "Solar masses", major: [0, 10, 20, 30, 40, 50, 60, 70], minor: 5, rows: rows, label: MASS_LABEL, format: function (v) { return v % 20 === 0 ? String(v) : ""; } });
+  }
+  var MASS_TABLE = {
+    caption: "All four values are estimates.",
+    columns: [{ key: "when", label: "When" }, { key: "what", label: "What" }, { key: "m", label: "Solar masses", numeric: true }],
+    rows: [
+      { when: "Before", what: "The heavier black hole", m: 36 }, { when: "Before", what: "The lighter black hole", m: 29 },
+      { when: "After", what: "The black hole they formed", m: 62 }, { when: "After", what: "Left as gravitational waves", m: 3 }]
+  };
+  massBars("#fig3-bars", [BEFORE, AFTER]);
+  PB.legend("#fig3-legend", [{ kind: "screen", label: "An estimate" }]);
+  PB.table("#fig3-table", MASS_TABLE);
+
+  /* ---- For scale: one arm, a detail of its end, and inside the detail a proton. The change in
+     arm length is the live mark: too short to have a length, it is an end cap and a dot. */
+  PB.svg("#scale", { height: 304, label: "Illustration, not to scale: one 4 kilometer arm, and a detail of its end. Inside the detail, the width of a proton is ruled off, and beside it the change in arm length, which is far smaller." }, function (svg, s) {
+    var mid = s.width / 2, ay = 12;
+    var big = [mid, 174, 126], small = [s.width - 7, ay, 6];
+    var px = mid, py = 146, pr = 56, zx = px - pr, yb = 222, yl = 248;
+    var d = Math.hypot(big[0] - small[0], big[1] - small[1]), base = Math.atan2(big[1] - small[1], big[0] - small[0]), al = Math.acos((small[2] - big[2]) / d);
+    var lead = svg.append("g").attr("class", "pb-grid-line");
+    [1, -1].forEach(function (sg) {
+      var t = base + sg * al;
+      lead.append("line").attr("x1", small[0] + small[2] * Math.cos(t)).attr("y1", small[1] + small[2] * Math.sin(t)).attr("x2", big[0] + big[2] * Math.cos(t)).attr("y2", big[1] + big[2] * Math.sin(t));
+    });
+    lead.append("circle").attr("cx", small[0]).attr("cy", small[1]).attr("r", small[2]);
+    lead.append("circle").attr("cx", big[0]).attr("cy", big[1]).attr("r", big[2]);
+    lead.append("line").attr("x1", zx).attr("x2", zx).attr("y1", py).attr("y2", yl + 8);
+    lead.append("line").attr("x1", px + pr).attr("x2", px + pr).attr("y1", py).attr("y2", yb);
+    PB.beam(svg, { x1: 1, x2: s.width - 1, y: ay });
+    PB.fillShape(svg, "context", 1, function (q) { return q.append("circle").attr("cx", px).attr("cy", py).attr("r", pr); });
+    PB.beam(svg, { x1: zx, x2: px + pr, y: yb });
+    var mark = svg.append("g").attr("class", "pb-flood");
+    mark.append("line").attr("class", "pb-ground").style("stroke-width", "7px").attr("x1", zx).attr("x2", zx).attr("y1", yl - 10).attr("y2", yl + 10);
+    mark.append("line").attr("class", "pb-live-beam").attr("x1", zx).attr("x2", zx).attr("y1", yl - 8).attr("y2", yl + 8);
+    mark.append("circle").attr("class", "pb-live-fill").attr("cx", zx).attr("cy", yl).attr("r", 3.6);
+    var t = svg.append("g").attr("class", "pb-mark-label");
+    t.append("text").attr("x", 1).attr("y", ay + 21).text("One arm, 4 km");
+    t.append("text").attr("x", px).attr("y", py - pr - 10).attr("text-anchor", "middle").text("A proton");
+    t.append("text").attr("x", zx + 13).attr("y", yl + 3.8).text("Change in arm length");
+  });
+
+  /* ---- Try it: the chirp as a control. The carriage on the ruler is the handle. The part already
+     played is the live line; the part not yet played is the thin muted line. The field swells where
+     a crest has passed, as far as the carriage has been dragged. */
+  function chirpField(g, x0, w, y0, xh, from, to) {
+    g.selectAll("*").remove();
+    var rcx = x0 - 280;
+    for (var r = 3.2 * Math.ceil((from - rcx - 4) / 3.2); rcx + r < to + 4; r += 3.2) {
+      var x = rcx + r, tt = (x - x0) / w, wd = 0;
+      if (tt >= 0 && tt <= TM && x < xh - 0.5) {
+        var crest = Math.pow(Math.max(0, Math.sin(chirpShape.phase(tt))), 0.85);
+        var u = tt / TM, period = w * TM / (C1 + 4 * C4 * u * u * u);
+        var kk = Math.min(1, Math.max(0, (17 - period) / 7));
+        wd = 1.7 * (crest * (1 - kk) + 0.5 * kk) * (0.3 + 0.7 * Math.pow(chirpShape.env(tt), 0.6));
+      }
+      var ring = g.append("circle").attr("cx", rcx).attr("cy", y0).attr("r", r.toFixed(1)).attr("class", "pb-field-hair");
+      if (wd > 0.1) ring.style("stroke-width", (0.5 + wd * (PB.theme().night ? 0.75 : 1)).toFixed(2) + "px").style("stroke-opacity", 1);
+    }
+  }
+  var chirpShape = chirp(0, 0, 1, 1);
+  var tryHandle = null, tryField = null, tryGeom = null, tryPos = 0.665;
+  PB.plate("#try", {
+    band: 196,
+    label: "Illustration: the chirp drawn as far as the carriage has been dragged along a time ruler",
+    draw: function (p) {
+      var x0 = p.left, w = p.right - p.left, y0 = p.band / 2 + 2;
+      var c = chirp(x0, y0, w, 46);
+      tryGeom = { x0: x0, w: w, y0: y0 };
+      tryField = p.print.append("g");
+      chirpField(tryField, x0, w, y0, x0 + w * tryPos, 0, p.width);
+      timeRuler(p.live, x0, c.merger, p.rulerY, p.width);
+      tryHandle = PB.live(p.live, c.d, { upTo: x0 + w * tryPos });
+    }
+  });
+  var tryBox = document.querySelector("#try");
+  var colLeft = tryBox.querySelector(".pb-plate-live").getBoundingClientRect().left;
+  PB.slider("#try", {
+    label: "Time in the signal", caption: "Time in the signal", min: 0, max: 1000, step: 1, value: Math.round(tryPos * 1000), row: "#try-row",
+    over: { left: tryGeom.x0 - 6, top: 196 - 24, width: tryGeom.w + 12 },
+    format: function (v) { var t = v / 1000; return t < 0.02 ? "at rest" : t < TM ? "pitch rising" : t < 0.86 ? "the merger" : "dying away"; },
+    valueText: function (v) { return (0.2 * v / 1000 / TM).toFixed(2) + " seconds into the signal"; },
+    onInput: function (v) {
+      tryPos = v / 1000;
+      var xh = tryGeom.x0 + tryGeom.w * tryPos;
+      tryHandle.set(xh);
+      chirpField(tryField, tryGeom.x0, tryGeom.w, tryGeom.y0, xh, 0, tryBox.clientWidth);
+    }
+  });
+
+  /* the two details: crops of the same control at 390 px, at rest and at 0.2 seconds */
+  function detail(target, tPos, vx, label) {
+    PB.svg(target, { height: 146, label: label }, function (svg, s) {
+      svg.style("overflow", "hidden");
+      var x0 = 20, w = 350, band = 112, y0 = 58;
+      var c = chirp(x0, y0, w, 46), xh = x0 + w * tPos;
+      var g = svg.append("g").attr("transform", "translate(" + (-vx) + ",0)");
+      var cid = "crop-" + vx;
+      svg.append("clipPath").attr("id", cid).append("rect").attr("x", vx).attr("y", 0).attr("width", s.width).attr("height", band);
+      var field = g.append("g").attr("clip-path", "url(#" + cid + ")");
+      chirpField(field, x0, w, y0, xh, vx, vx + s.width);
+      var line = g.append("g").attr("clip-path", "url(#" + cid + ")");
+      PB.live(line, c.d, { upTo: xh });
+      timeRuler(g, x0, c.merger, band, vx + s.width, tPos === 0 ? [0] : [0.2], vx);
+      g.append("rect").attr("x", xh - 6).attr("y", band - 13).attr("width", 12).attr("height", 22).style("fill", "var(--pb-carriage)");
+    });
+  }
+  detail("#try-rest", 0, 12, "Detail of the control at rest: the carriage at 0 seconds, where the pitch is 35 hertz");
+  detail("#try-peak", TM, 225, "Detail of the control with the carriage at 0.2 seconds, where the pitch is 250 hertz");
+
+  /* ---- The ledger's small range bar */
+  PB.rangeBar("#ledger-range", { mini: true, domain: [0, 600], low: 230, high: 570, value: 410, label: "The distance drawn: a band from 230 to 570 megaparsecs with a mark at 410, on a line from 0 to 600" });
+
+  /* ============================================================ patterns */
+
+  /* 02: the table, open */
+  massBars("#p2-bars", [BEFORE, AFTER]);
+  PB.table("#p2-table", Object.assign({ open: true }, MASS_TABLE));
+
+  /* 03: Fig. 1 in four steps. Each step changes the picture in one way. */
+  detectorNames("#steps-names");
+  var stepNow = 0;
+  var stepsPlate = PB.plate("#steps-visual", {
+    band: 160, below: 88,
+    label: "Illustration, not to scale: the two detectors, and a wave reaching them 7 milliseconds apart",
+    draw: function (p) {
+      drawDetectors(p, {
+        detectors: stepNow === 0 ? [0] : [0, 7],
+        field: stepNow >= 2, front: stepNow === 2 ? 7.2 : null, beam: stepNow >= 2
+      });
+    }
+  });
+  PB.steps("#steps", function (i) {
+    if (i === stepNow) return;
+    stepNow = i;
+    stepsPlate.redraw();
+  });
+
+  /* 05: the toggle switches Fig. 3 between its two rows */
+  var p5 = massBars("#p5-bars", [AFTER]);
+  PB.toggle("#p5-toggle", {
+    label: "Show the mass", value: "after",
+    options: [{ value: "before", label: "Before" }, { value: "after", label: "After" }],
+    onChange: function (v) {
+      document.querySelector("#p5-bars").replaceChildren();
+      massBars("#p5-bars", [v === "before" ? BEFORE : AFTER]);
+    }
+  });
+  PB.legend("#p5-legend", [{ kind: "screen", label: "An estimate" }]);
+  PB.table("#p5-table", MASS_TABLE);
+
+  /* 06: a line chart with Observable Plot. Plot draws the measured lines; the kit adds the value
+     lines, the ruler, and the live line. Placeholder shapes. */
+  var X = d3.range(0, 10.01, 0.5);
+  var series = {
+    a: X.map(function (x) { return { x: x, y: 0.6 + 7.4 * Math.pow(x / 10, 2.1) }; }),
+    b: X.map(function (x) { return { x: x, y: 2.9 + 1.8 * Math.pow(x / 10, 0.7) }; }),
+    c: X.map(function (x) { return { x: x, y: 5.9 - 2.4 * (1 - Math.cos(Math.PI * x / 10)) / 2 * 1.3 }; }),
+    d: X.map(function (x) { return { x: x, y: 0.4 + 1.3 * x / 10 }; })
+  };
+  PB.plot("#p6-lines", function (c) {
+    var last = function (s) { return s[s.length - 1]; };
+    return {
+      height: 196, marginRight: Math.max(96, c.width - 254), marginTop: 26,
+      x: { domain: [0, 10] }, y: { domain: [0, 8.2] },
+      values: { values: [2, 4.5, 7], format: function (v) { return { 2: "[Y1]", 4.5: "[Y2]", 7: "[Y3]" }[v]; }, unit: "[UNIT]" },
+      marks: [
+        c.marks.line(series.d, { x: "x", y: "y", series: "estimate" }),
+        c.marks.line(series.c, { x: "x", y: "y", series: 3 }),
+        c.marks.line(series.b, { x: "x", y: "y", series: 2 }),
+        c.marks.endLabels([last(series.b)], { x: "x", y: "y", text: function () { return "[Series B]"; } }),
+        c.marks.endLabels([last(series.c)], { x: "x", y: "y", text: function () { return "[Series C]"; } }),
+        c.marks.endLabels([last(series.d)], { x: "x", y: "y", text: function () { return "[Series D]"; }, fill: c.theme.ink2 }),
+        c.marks.endLabels([last(series.a)], { x: "x", y: "y", text: function () { return "[Series A]"; }, dy: 18, finding: true }),
+        c.marks.figure([last(series.a)], { x: "x", y: "y", text: function () { return "[N]"; } })
+      ],
+      live: { data: series.a, x: "x", y: "y", label: "Specimen: the finding drawn as the live line" },
+      ruler: { major: [0, 5, 10], minor: d3.range(0, 10.01, 1), labels: [0, 5, 10], format: function (v) { return { 0: "[X1]", 5: "[X2]", 10: "[X3]" }[v]; }, unit: "[UNIT]", unitAt: "end", unitX: c.width }
+    };
+  });
+  PB.legend("#p6-legend", [{ kind: "live", label: "The finding" }, { kind: "line", label: "Measured" }, { kind: "thin", label: "An estimate" }]);
+
+  /* 07 and 08: a scatter with Observable Plot, and the touch readout on it */
+  var rng = d3.randomLcg(7);
+  var pts = d3.range(46).map(function (i) { var x = 0.6 + 9 * rng(); return { x: x, y: 0.8 + 0.42 * x + 1.6 * (rng() - 0.5) }; });
+  var named = [{ x: 8.3, y: 3.2, name: "[Point B]" }, { x: 5.4, y: 2.2, name: "[Point C]" }];
+  var finding = { x: 9.1, y: 6.4, name: "[The finding]" };
+  var scatterTip = PB.tooltip();
+  PB.plot("#p7-scatter", function (c) {
+    return {
+      height: 210, marginRight: Math.max(30, c.width - 286), marginTop: 26,
+      x: { domain: [0, 10] }, y: { domain: [0, 7] },
+      values: { values: [2, 4, 6], format: function (v) { return { 2: "[Y1]", 4: "[Y2]", 6: "[Y3]" }[v]; }, unit: "[UNIT]" },
+      marks: [
+        c.marks.dots(pts.concat(named), { x: "x", y: "y", named: function (d) { return !!d.name; } }),
+        c.marks.endLabels(named, { x: "x", y: "y", text: "name", dx: 9 }),
+        c.Plot.dot([finding], { x: "x", y: "y", r: 6.5, fill: c.theme.page }),
+        c.Plot.dot([finding], { x: "x", y: "y", r: 3.6, fill: c.theme.live, className: "pb-flood" }),
+        c.marks.endLabels([finding], { x: "x", y: "y", text: "name", dx: -11, textAnchor: "end", finding: true })
+      ],
+      ruler: { major: [0, 5, 10], minor: d3.range(0, 10.01, 1), labels: [0, 5, 10], format: function (v) { return { 0: "[X1]", 5: "[X2]", 10: "[X3]" }[v]; }, unit: "[UNIT]", unitAt: "end", unitX: c.width }
+    };
+  });
+  PB.legend("#p7-legend", [{ kind: "live", label: "The finding" }, { kind: "named", label: "Named" }, { kind: "point", label: "Every other point" }]);
+  (function touchable() {
+    var box = document.querySelector("#p7-scatter");
+    var mark = null;
+    function nearest(evt) {
+      var svg = box.querySelector("svg");
+      var dots = Array.prototype.slice.call(svg.querySelectorAll("circle")).filter(function (n) { return !n.closest(".pb-touch"); });
+      var best = null, bd = 24;
+      dots.forEach(function (n) {
+        var r = n.getBoundingClientRect(), dx = r.left + r.width / 2 - evt.clientX, dy = r.top + r.height / 2 - evt.clientY;
+        var dist = Math.hypot(dx, dy);
+        if (dist < bd) { bd = dist; best = n; }
+      });
+      return best;
+    }
+    function show(evt) {
+      var n = nearest(evt);
+      if (mark) { mark.remove(); mark = null; }
+      if (!n) { scatterTip.hide(); return; }
+      var svg = d3.select(box.querySelector("svg"));
+      var cx = +n.getAttribute("cx"), cy = +n.getAttribute("cy");
+      var h = +svg.attr("height");
+      mark = PB.touch(svg, { x: cx, y: cy, rulerY: h - 34 });
+      var r = n.getBoundingClientRect();
+      scatterTip.show({ name: "[Point name]", rows: [["[X]", "[value]", "[unit]"], ["[Y]", "[value]", "[unit]"]] }, { x: r.left + r.width / 2, y: r.top + r.height / 2 - 6.5 });
+    }
+    function hide() { if (mark) { mark.remove(); mark = null; } scatterTip.hide(); }
+    box.addEventListener("pointerdown", show);
+    box.addEventListener("pointermove", function (e) { if (e.buttons || e.pointerType === "mouse") show(e); });
+    box.addEventListener("pointerup", function (e) { if (e.pointerType !== "mouse") hide(); });
+    box.addEventListener("pointerleave", hide);
+    window.addEventListener("scroll", hide, { passive: true });
+  })();
+
+  /* 09: a dumbbell, drawn with the kit's SVG helpers */
+  var pairs = [{ name: "[Item A]", a: 2.6, b: 7.4, finding: true }, { name: "[Item B]", a: 3.6, b: 6.7 }, { name: "[Item C]", a: 2.1, b: 4.8 }, { name: "[Item D]", a: 4.0, b: 3.0 }];
+  PB.svg("#p9-pairs", { height: 196, label: "Specimen: four items, each with a value before and a value after" }, function (svg, s) {
+    var x = d3.scaleLinear().domain([0, 10]).range([86, Math.min(s.width - 60, 290)]);
+    var y = function (i) { return 54 + 30 * i; }, ruler = y(3) + 24;
+    var vl = svg.append("g").attr("class", "pb-grid-line");
+    [5, 10].forEach(function (v) { vl.append("line").attr("x1", x(v)).attr("x2", x(v)).attr("y1", y(0) - 6).attr("y2", ruler); });
+    pairs.forEach(function (p, i) {
+      svg.append("text").attr("class", "pb-mark-label").attr("data-strong", p.finding ? "" : null).attr("x", 0).attr("y", y(i) + 4).text(p.name);
+      svg.append("line").attr("class", "pb-ground").style("stroke-width", "5px").attr("x1", x(p.a)).attr("x2", x(p.b)).attr("y1", y(i)).attr("y2", y(i));
+      svg.append("line").attr("class", "pb-beam").attr("x1", x(p.a)).attr("x2", x(p.b)).attr("y1", y(i)).attr("y2", y(i));
+      svg.append("circle").attr("class", "pb-ring").attr("cx", x(p.a)).attr("cy", y(i));
+      if (p.finding) {
+        svg.append("circle").attr("class", "pb-pen-trap").attr("cx", x(p.b)).attr("cy", y(i));
+        svg.append("circle").attr("class", "pb-live-fill pb-flood").attr("cx", x(p.b)).attr("cy", y(i)).attr("r", 4);
+      } else svg.append("circle").attr("cx", x(p.b)).attr("cy", y(i)).attr("r", 4).style("fill", "var(--pb-ink)");
+    });
+    svg.append("text").attr("class", "pb-mark-label").attr("x", x(pairs[0].a)).attr("y", y(0) - 12).attr("text-anchor", "middle").text("[Before]");
+    svg.append("text").attr("class", "pb-mark-label").attr("x", x(pairs[0].b)).attr("y", y(0) - 12).attr("text-anchor", "middle").text("[After]");
+    PB.ruler(svg, { x: x, y: ruler, major: [0, 5, 10], minor: d3.range(0, 10.01, 1), labels: [0, 5, 10], format: function (v) { return { 0: "[X1]", 5: "[X2]", 10: "[X3]" }[v]; }, unit: "[UNIT]", unitAt: "end", unitX: s.width });
+  });
+  PB.legend("#p9-legend", [{ kind: "ring", label: "Before" }, { kind: "solid", label: "After" }, { kind: "live", label: "The finding" }]);
+
+  /* 10: error bars on measured points and a screened band on an estimate */
+  PB.svg("#p10-ranges", { height: 214, label: "Specimen: measured points with error bars, and an estimated line with its range as a band" }, function (svg, s) {
+    var x = d3.scaleLinear().domain([0, 10]).range([0, Math.min(s.width - 60, 286)]);
+    var y = d3.scaleLinear().domain([0, 8]).range([176, 6]);
+    PB.valueLines(svg, { y: y, values: [2, 4.5, 7], x1: 0, x2: x(10), format: function (v) { return { 2: "[Y1]", 4.5: "[Y2]", 7: "[Y3]" }[v]; }, unit: "[UNIT]" });
+    var line = d3.range(0.5, 9.01, 0.5).map(function (v) { return { x: v, m: 1.2 + 0.05 * v * v + 0.12 * v, w: 0.25 + 0.08 * v }; });
+    var band = d3.area().curve(d3.curveCatmullRom).x(function (d) { return x(d.x); }).y0(function (d) { return y(d.m - d.w); }).y1(function (d) { return y(d.m + d.w); })(line);
+    svg.append("path").attr("d", band).style("fill", PB.screen(svg, { tone: "context" }));
+    svg.append("path").attr("d", band).attr("class", "pb-band").style("fill", "none");
+    var center = PB.curve(line.map(function (d) { return [x(d.x), y(d.m)]; }));
+    svg.append("path").attr("class", "pb-line-trap").attr("d", center);
+    svg.append("path").attr("class", "pb-line").attr("d", center);
+    var meas = [[1.3, 1.6, 0.4], [2.3, 1.2, 0.5], [3.4, 2.4, 0.4], [4.7, 2.1, 0.6], [6, 3.4, 0.45]];
+    var found = [7.2, 4.6, 0.5];
+    meas.concat([found]).forEach(function (m, i) {
+      var cx = x(m[0]), lo = y(m[1] - m[2]), hi = y(m[1] + m[2]);
+      var isF = i === meas.length;
+      svg.append("line").attr("class", "pb-whisker-trap").attr("x1", cx).attr("x2", cx).attr("y1", hi).attr("y2", lo);
+      var w = svg.append("g").attr("class", "pb-whisker");
+      w.append("line").attr("x1", cx).attr("x2", cx).attr("y1", hi).attr("y2", lo);
+      w.append("line").attr("x1", cx - 4).attr("x2", cx + 4).attr("y1", hi).attr("y2", hi);
+      w.append("line").attr("x1", cx - 4).attr("x2", cx + 4).attr("y1", lo).attr("y2", lo);
+      if (isF) {
+        var f = svg.append("g").attr("class", "pb-drop");
+        f.append("circle").attr("class", "pb-pen-trap").attr("cx", cx).attr("cy", y(m[1]));
+        f.append("circle").attr("class", "pb-pen").attr("cx", cx).attr("cy", y(m[1]));
+        svg.append("text").attr("class", "pb-mark-label").attr("data-finding", "").attr("x", cx - 12).attr("y", hi - 2).attr("text-anchor", "end").text("[The finding]");
+      } else svg.append("circle").attr("class", "pb-dot").attr("data-named", "").attr("cx", cx).attr("cy", y(m[1]));
+    });
+    var end = line[line.length - 1];
+    svg.append("rect").attr("class", "pb-ground").attr("x", x(end.x) + 8).attr("y", y(end.m) - 9).attr("width", 62).attr("height", 14);
+    svg.append("text").attr("class", "pb-mark-label").attr("x", x(end.x) + 10).attr("y", y(end.m) + 2).text("[Model]");
+    PB.ruler(svg, { x: x, y: 196 - 20, major: [0, 5, 10], minor: d3.range(0, 10.01, 1), labels: [0, 5, 10], format: function (v) { return { 0: "[X1]", 5: "[X2]", 10: "[X3]" }[v]; }, unit: "[UNIT]", unitAt: "end", unitX: s.width });
+  });
+  PB.legend("#p10-legend", [{ kind: "live", label: "The finding" }, { kind: "errorbar", label: "Measured, with its range" }, { kind: "band", label: "Estimated range" }]);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,585 @@
+/* Paperboy explainer kit v2: the First Light design (design/SYSTEM.md, design/HANDOFF.md,
+   design/ADDENDUM-EXPLAINER.md). A gray printed sheet by day, a blue-black light table by night.
+   Hierarchy comes from type and rules, never from boxes, tints, shadows, or colored edges.
+   Text is always ink or muted ink. The live color marks one thing per figure and never text. */
+
+@import url("fonts/fonts.css");
+
+/* ---------------------------------------------------------------- tokens, day */
+:root {
+  color-scheme: light dark;
+
+  --pb-page: #E9E6DE;      /* stock: the ground */
+  --pb-ink: #16130F;       /* text, rules, outlines */
+  --pb-ink-2: #5A554B;     /* second-rank text */
+  --pb-muted: #5A554B;     /* the design has two text ranks, so this equals ink-2 */
+  --pb-grid: #5A554B;      /* grid, drop, and leader lines, 0.6 px */
+  --pb-axis: #16130F;      /* the ruler and its tick labels */
+  --pb-accent: #E0330A;    /* live: the one live mark. Never text. */
+  --pb-live: var(--pb-accent);
+
+  --pb-rule: #16130F;      /* rules, tag outlines, button outlines */
+  --pb-slab: #16130F;      /* primary button, solid tag, touch readout */
+  --pb-on-slab: #E9E6DE;
+  --pb-stamp: #5A554B;     /* the chosen toggle segment */
+  --pb-on-stamp: #E9E6DE;
+  --pb-plate: #1F3FD0;     /* print ink: line screens and engraved rings only */
+  --pb-contour: #16130F;   /* the black plate layer */
+  --pb-screen: #16130F;    /* estimate and range screens */
+  --pb-carriage: #16130F;
+
+  /* v1 names kept so PB.theme() and old page code keep working. There are no surfaces. */
+  --pb-surface: var(--pb-page);
+  --pb-raised: var(--pb-page);
+  --pb-deemph: var(--pb-ink-2);
+  --pb-border: var(--pb-rule);
+
+  --pb-display: 'Noto Serif Display', Didot, 'Bodoni MT', Georgia, serif;
+  --pb-font: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --pb-mono: 'Martian Mono', 'DejaVu Sans Mono', Menlo, monospace;
+  --pb-w-voice1: 800;      /* D1 by day, D2 by night */
+  --pb-w-voice2: 300;      /* D4 by day, D5 by night */
+  --pb-st-voice2: 100%;    /* width of the second voice inside a headline */
+  --pb-ls-readout: -0.005em;
+  --pb-fs-label: 11px;     /* the design's 10.5 px, raised to the render check's 11 px floor */
+  --pb-fs-tag: 11px;       /* the design's 10 px, raised the same way */
+
+  --pb-live-core: 1.9px;
+  --pb-live-trap: 7px;
+  --pb-halo-a: 0; --pb-halo-b: 0; --pb-halo-c: 0;      /* 17, 11, 6 px halo strokes, night only */
+  --pb-pen-halo-a: 0; --pb-pen-halo-b: 0; --pb-pen-halo-c: 0;  /* 13, 10, 6.5 px pen discs, night only */
+  --pb-pen: 3.6px;
+  --pb-pen-trap: 6.5px;
+  --pb-beam: 2px;          /* a live beam or marker in a figure */
+
+  --pb-ring: 0.5px;
+  --pb-ring-opacity: 1;
+
+  --pb-measure: 34em;
+  --pb-gutter: 20px;
+  --pb-radius: 0;
+  --pb-wipe-x: 63.7px;     /* ink wipe slant: band height / tan 72 degrees */
+
+  --pb-ico-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='square'%3E%3Cpath d='M7 1.5v11M1.5 7h11'/%3E%3C/svg%3E");
+  --pb-ico-minus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='square'%3E%3Cpath d='M1.5 7h11'/%3E%3C/svg%3E");
+  --pb-ico-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='square'%3E%3Cpath d='M2 7.6l3.4 3.4 6.6-8'/%3E%3C/svg%3E");
+  --pb-ico-out: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11' fill='none' stroke='black' stroke-width='1.3' stroke-linecap='square'%3E%3Cpath d='M2 9l7-7M3.5 2H9v5.5'/%3E%3C/svg%3E");
+  --pb-ico-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='square'%3E%3Cpath d='M3 10h13M11 5l5 5-5 5'/%3E%3C/svg%3E");
+}
+
+/* ---------------------------------------------------------------- tokens, night
+   The page follows the system setting; data-theme="light" or "dark" on <html> forces one. */
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --pb-page: #0E1116; --pb-ink: #E9E4D7; --pb-ink-2: #9C988D; --pb-muted: #9C988D;
+    --pb-grid: #5E6573; --pb-axis: #9C988D; --pb-accent: #FFA63D;
+    --pb-rule: #9C988D; --pb-slab: #E9E4D7; --pb-on-slab: #0E1116;
+    --pb-stamp: #9C988D; --pb-on-stamp: #0E1116;
+    --pb-plate: #4D63C9; --pb-contour: #9C988D; --pb-screen: #9C988D; --pb-carriage: #E9E4D7;
+    --pb-w-voice1: 900; --pb-w-voice2: 400; --pb-st-voice2: 87.5%; --pb-ls-readout: 0.02em;
+    --pb-live-trap: 4px; --pb-halo-a: 0.05; --pb-halo-b: 0.12; --pb-halo-c: 0.08;
+    --pb-pen-halo-a: 0.05; --pb-pen-halo-b: 0.14; --pb-pen-halo-c: 0.09;
+    --pb-pen: 3.4px; --pb-pen-trap: 5px; --pb-beam: 1.9px;
+    --pb-ring: 0.6px; --pb-ring-opacity: 0.55;
+  }
+}
+:root[data-theme="dark"] {
+  --pb-page: #0E1116; --pb-ink: #E9E4D7; --pb-ink-2: #9C988D; --pb-muted: #9C988D;
+  --pb-grid: #5E6573; --pb-axis: #9C988D; --pb-accent: #FFA63D;
+  --pb-rule: #9C988D; --pb-slab: #E9E4D7; --pb-on-slab: #0E1116;
+  --pb-stamp: #9C988D; --pb-on-stamp: #0E1116;
+  --pb-plate: #4D63C9; --pb-contour: #9C988D; --pb-screen: #9C988D; --pb-carriage: #E9E4D7;
+  --pb-w-voice1: 900; --pb-w-voice2: 400; --pb-st-voice2: 87.5%; --pb-ls-readout: 0.02em;
+  --pb-live-trap: 4px; --pb-halo-a: 0.05; --pb-halo-b: 0.12; --pb-halo-c: 0.08;
+  --pb-pen-halo-a: 0.05; --pb-pen-halo-b: 0.14; --pb-pen-halo-c: 0.09;
+  --pb-pen: 3.4px; --pb-pen-trap: 5px; --pb-beam: 1.9px;
+  --pb-ring: 0.6px; --pb-ring-opacity: 0.55;
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+/* ---------------------------------------------------------------- the sheet */
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--pb-page); }
+body {
+  margin: 0; background: var(--pb-page); color: var(--pb-ink);
+  font-family: var(--pb-font); font-size: 17px; line-height: 1.47;
+  overflow-x: hidden; -webkit-font-smoothing: antialiased;
+}
+.pb { max-width: calc(var(--pb-measure) + 2 * var(--pb-gutter)); margin: 0 auto; padding: 0 var(--pb-gutter) 40px; }
+.pb p { margin: 12px 0 0; text-wrap: pretty; }
+.pb a { color: var(--pb-ink); text-decoration-thickness: 0.75px; text-underline-offset: 3px; }
+.pb a:focus-visible, .pb button:focus-visible, .pb summary:focus-visible, .pb input:focus-visible { outline: 2px solid var(--pb-ink); outline-offset: 2px; }
+.pb strong, .pb b { font-weight: 600; }
+.pb sup { font-size: 0.64em; line-height: 0; vertical-align: 0.5em; letter-spacing: 0.01em; }
+.pb-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---------------------------------------------------------------- mono labels, slugs, tags */
+.pb-label, .pb-slug, .pb-eyebrow, .pb-callout-label, .pb-legend, .pb-fig::before, .pb-fig::after,
+.pb-confidence b, .pb-confidence-head, .pb-source small, .pb-plate-slug, .pb-step-n, .pb-toggle-label {
+  font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 500;
+  letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase; color: var(--pb-ink-2); font-style: normal;
+}
+.pb-slug, .pb-eyebrow, .pb-callout-label, .pb-fig::before, .pb-confidence-head { font-weight: 600; color: var(--pb-ink); }
+.pb-label, .pb-slug { display: block; }
+.pb .pb-eyebrow { margin: 0; }
+
+/* the tag row: an outline field tag, a solid or screened badge, the journal link. Told apart by form, never by hue. */
+.pb-kicker { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; row-gap: 6px; padding-top: 13px; }
+.pb-tag, .pb-badge {
+  font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-tag); font-weight: 600; letter-spacing: 0.06em;
+  line-height: 1.3; text-transform: uppercase; color: var(--pb-ink); border: 1px solid var(--pb-rule);
+  padding: 4px 6px 3px; white-space: nowrap; display: inline-block; border-radius: 0; background: none;
+}
+.pb-badge[data-status="peer_reviewed"] { color: var(--pb-on-slab); background: var(--pb-slab); border-color: var(--pb-slab); }
+.pb-badge[data-status="preprint"] { border: 0; padding: 3.5px; background-image: repeating-linear-gradient(135deg, var(--pb-rule) 0 1.1px, transparent 1.1px 3.2px); }
+.pb-badge[data-status="preprint"] > span { display: block; background: var(--pb-page); padding: 1.5px 4px 0.5px; }
+.pb-journal {
+  margin: -13px 0 -13px auto; min-height: 44px; display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--pb-font); font-size: 15px; font-weight: 400; font-style: italic; line-height: 1; white-space: nowrap;
+}
+.pb a.pb-journal { text-decoration: underline; text-decoration-thickness: 0.75px; text-underline-offset: 3px; }
+.pb-journal::after, .pb-out::after {
+  content: ""; flex: none; display: inline-block; width: 11px; height: 11px; background: currentColor;
+  -webkit-mask: var(--pb-ico-out) center / 11px 11px no-repeat; mask: var(--pb-ico-out) center / 11px 11px no-repeat;
+}
+
+/* ---------------------------------------------------------------- the two voices */
+.pb-title, .pb h2, .pb h3, .pb-readout, .pb-stat-value, .pb-hero-number, .pb-confidence .v, .pb-fig-title, .pb-figure-num {
+  font-family: var(--pb-display); font-weight: var(--pb-w-voice1); font-stretch: 62.5%; letter-spacing: -0.005em;
+  font-variant-numeric: lining-nums; font-style: normal; margin: 0; color: var(--pb-ink);
+}
+.pb-title em, .pb h2 em, .pb h3 em, .pb-fig-title em {
+  font-style: italic; font-weight: var(--pb-w-voice2); font-stretch: var(--pb-st-voice2); letter-spacing: -0.012em;
+}
+.pb-title em.pb-turn, .pb h2 em.pb-turn, .pb h3 em.pb-turn { display: block; }   /* the kit breaks before a turn that would leave one word on a line */
+.pb-title { font-size: 44px; line-height: 0.98; padding-top: 10px; text-wrap: pretty; }
+.pb h2 { font-size: 30px; line-height: 1.02; margin-top: 8px; }
+.pb h3 { font-size: 30px; line-height: 1; margin-top: 10px; }
+.pb h2 + p, .pb h3 + p { margin-top: 14px; }
+.pb-dek { font-size: 17px; line-height: 1.47; }
+.pb .pb-dek { margin-top: 14px; }
+
+/* the readout row under a plate: the one number, its label, and the plate slug */
+.pb-readout-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-top: 6px; }
+.pb-readout-row > :first-child { display: flex; flex-direction: column; gap: 3px; }
+.pb-readout { font-size: 44px; line-height: 1; letter-spacing: var(--pb-ls-readout); white-space: nowrap; }
+.pb .pb-readout sup, .pb .pb-stat-value sup, .pb .pb-confidence .v sup { font-size: 0.56em; line-height: 0; vertical-align: 0.72em; letter-spacing: 0.01em; }
+.pb-sign { display: inline-block; width: 0.5em; height: 0.5em; margin: 0 0.13em 0 0.15em; vertical-align: 0.1em; fill: none; stroke: currentColor; stroke-width: 1.05; overflow: visible; }
+.pb-sign[data-sign="gt"] { margin: 0 0.12em 0 0; }
+.pb-readout-s { font-size: 30px; line-height: 1; }
+.pb-unit { font-family: var(--pb-font); font-size: 15px; line-height: 1; font-weight: 400; font-style: italic; font-stretch: 100%; letter-spacing: 0; margin-left: 6px; }
+.pb-plate-slug { text-align: right; line-height: 1.4; flex: none; }
+
+/* ---------------------------------------------------------------- the plate: full bleed, never a panel
+   The hero's .pb-stage is the plate. PB.plate() draws its layers: the print (plate ink), the
+   key (the black layer), and the live layer with the line, the ruler, and the carriage. */
+.pb-stage, .pb-bleed {
+  position: relative; display: block; width: auto;
+  margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw);
+  background: none; border: 0; border-radius: 0; overflow: visible;
+}
+.pb-stage { margin-top: 12px; min-height: 230px; }
+.pb-stage > svg, .pb-stage > canvas { display: block; width: 100%; height: auto; }
+.pb-plate-print { position: absolute; left: 0; top: 0; right: 0; overflow: hidden; }
+.pb-plate-print > div { position: absolute; left: 0; top: 0; }
+.pb-plate-print svg, .pb-plate-live { display: block; }
+.pb-plate-live { position: absolute; left: 0; top: 0; overflow: visible; }
+.pb-stage-label { display: none; }   /* v1 put a caption on the stage. Nothing sits on a plate in v2. */
+
+/* ---------------------------------------------------------------- sections: a double rule, heavy on top, a slug, a two-voice head */
+.pb-section { margin-top: 40px; padding-top: 14.75px; border-top: 3px solid var(--pb-rule); position: relative; }
+.pb-section::before, .pb-source::before { content: ""; position: absolute; left: 0; right: 0; top: 2px; height: 0.75px; background: var(--pb-rule); }
+.pb-section > h2:first-child { margin-top: -2px; }
+.pb-lede { font-size: 17px; }
+
+/* key idea: type at scale and nothing else */
+.pb-callout { margin: 0; padding: 0; background: none; border: 0; border-radius: 0; }
+.pb-callout > .pb-callout-label { display: block; }
+.pb-callout[data-kind="key"] { padding: 40px 0; }
+.pb-callout[data-kind="key"] + .pb-section { margin-top: 0; }
+.pb .pb-callout[data-kind="key"] p {
+  margin: 12px 0 0; font-family: var(--pb-display); font-size: 30px; font-weight: var(--pb-w-voice2); font-stretch: 100%;
+  line-height: 1.06; letter-spacing: -0.012em; font-style: italic; text-wrap: balance;
+}
+
+/* caveat: a footnote under a short rule. The dagger is typed after the claim and again in the note. */
+.pb-callout[data-kind="caveat"] { margin-top: 16px; }
+.pb-callout[data-kind="caveat"]::before { content: ""; display: block; width: 64px; height: 0.75px; background: var(--pb-rule); }
+.pb-callout[data-kind="caveat"] .pb-callout-label, .pb-callout[data-kind="analogy"] .pb-callout-label { display: none; }
+.pb .pb-callout[data-kind="caveat"] p, .pb .pb-callout[data-kind="analogy"] p, .pb .pb-fig figcaption, .pb .pb-note {
+  margin: 10px 0 0; font-size: 15px; line-height: 1.4; font-style: italic; color: var(--pb-ink);
+}
+.pb-callout[data-kind="analogy"] { margin-top: 28px; }
+
+/* ---------------------------------------------------------------- figures: a hairline, a head row (slug left, kind right), the drawing */
+.pb-fig {
+  margin: 28px 0 0; padding: 10px 0 0; background: none; border: 0; border-top: 0.75px solid var(--pb-rule);
+  border-radius: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; align-items: baseline;
+}
+.pb-fig > * { grid-column: 1 / -1; min-width: 0; }
+.pb-fig::before { content: attr(data-slug); grid-column: 1; grid-row: 1; }
+.pb-fig::after { grid-column: 2; grid-row: 1; text-align: right; white-space: nowrap; }
+.pb-fig[data-kind="data"]::after { content: "Data, from the paper"; }
+.pb-fig[data-kind="illustration"]::after { content: "Illustration, not to scale"; }
+.pb-fig[data-kind="illustration"][data-scale="true"]::after { content: "Illustration, drawn to scale"; }
+.pb-fig[data-kind="paper"]::after { content: "Figure from the paper"; }
+.pb-fig[data-specimen]::after { content: "Specimen, placeholder data"; }   /* the kit gallery only: never in an explainer */
+.pb .pb-fig-title { font-size: 30px; line-height: 1; margin: 10px 0 0; }
+.pb-fig-sub { margin: 6px 0 0; font-size: 15px; line-height: 1.4; font-style: italic; }
+.pb-plot, .pb-chart { margin-top: 14px; width: 100%; min-height: 20px; }
+.pb-fig-title + .pb-plot, .pb-fig-title + .pb-chart { margin-top: 14px; }
+.pb-fig svg, .pb-fig canvas, .pb-fig img { display: block; max-width: none; }
+.pb-fig img { max-width: 100%; height: auto; }
+.pb-fig .pb-bleed { margin-top: 14px; }
+.pb-credit { margin: 8px 0 0; font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase; color: var(--pb-ink-2); }
+.pb-plot svg, .pb-chart svg { overflow: visible; }
+
+/* small multiples: two or three small drawings side by side, each with its label and value under it */
+.pb-multiples { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-top: 22px; }
+.pb-multiples > * { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pb-multiples .pb-chart { margin-top: 0; margin-bottom: 5px; }
+
+/* the legend: a row under the chart. A 7 px dot for the live mark, a 22 by 10 px swatch for a screen. */
+.pb-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin: 8px 0 0; }
+.pb-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.pb-legend i { width: 7px; height: 7px; border-radius: 50%; background: var(--pb-accent); flex: none; }
+.pb-legend svg { width: 22px; height: 10px; flex: none; display: block; overflow: visible; }
+
+/* ---------------------------------------------------------------- stat: one number, what it is, then the figure that shows its range */
+.pb-stats { display: block; margin: 10px 0 0; }
+.pb-stat { display: flex; align-items: flex-end; gap: 10px; margin: 10px 0 0; padding: 0; background: none; border: 0; border-radius: 0; }
+.pb-stats .pb-stat:first-child { margin-top: 0; }
+.pb-stat-value, .pb-hero-number { font-size: 72px; line-height: 0.86; letter-spacing: var(--pb-ls-readout); }
+.pb .pb-stat-label { display: flex; flex-direction: column; gap: 3px; padding-bottom: 3px; font-size: 15px; line-height: 1.3; font-style: italic; margin: 0; color: var(--pb-ink); }
+.pb-stat-label b { font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-style: normal; line-height: 1.3; }
+
+/* ---------------------------------------------------------------- "How sure is this?": a ledger. No dots, no tints, no status colors. */
+.pb-section[data-section="confidence"] > h2 { margin-bottom: 12px; }
+.pb-confidence { display: block; margin: 12px 0 0; padding: 0; list-style: none; }
+.pb-confidence li {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 16px; row-gap: 4px; align-items: baseline;
+  padding: 11px 0 12px; background: none; border: 0; border-top: 0.75px solid var(--pb-rule); border-radius: 0;
+  font-size: 15px; line-height: 1.4; font-style: italic;
+}
+.pb-confidence li::before { content: none; }
+.pb-confidence li > b { font-weight: 500; }
+.pb-confidence li.pb-confidence-head { display: block; padding: 9px 0 8px; font-size: var(--pb-fs-label); line-height: 1.3; font-style: normal; font-weight: 600; }
+.pb-confidence .v { grid-column: 2; text-align: right; font-size: 30px; line-height: 1; font-style: normal; }
+.pb-confidence .v .pb-badge { vertical-align: 0.25em; }
+.pb-confidence .note { grid-column: 1 / -1; text-wrap: pretty; }
+.pb-confidence li:has(> .pb-range-mini) .note { grid-column: 1; align-self: end; text-wrap: balance; }
+.pb-confidence .pb-range-mini { grid-column: 2; justify-self: end; align-self: end; }
+.pb-confidence li[data-kind="standing"] { display: flex; flex-direction: column; gap: 6px; padding-bottom: 0; font-size: 17px; line-height: 1.47; font-style: normal; }
+
+/* ---------------------------------------------------------------- source footer */
+.pb-source { margin-top: 40px; padding-top: 14.75px; border-top: 3px solid var(--pb-rule); position: relative; font-size: 15px; line-height: 1.4; color: var(--pb-ink); }
+.pb-source cite { display: block; margin-top: 8px; font-size: 17px; line-height: 1.4; font-style: italic; color: var(--pb-ink); text-wrap: pretty; }
+.pb .pb-source p { margin: 6px 0 0; }
+.pb .pb-source .pb-authors { color: var(--pb-ink-2); font-size: 15px; line-height: 1.4; }
+.pb-source small { display: block; margin-top: 3px; }
+.pb-source .pb-authors + small { margin-top: 8px; }
+.pb .pb-source .pb-note { margin-top: 14px; }
+
+/* ---------------------------------------------------------------- buttons: an ink slab, or a ruled outline. Square. 48 px tall. */
+.pb-btn {
+  min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 14px 0 16px; margin-top: 14px;
+  border: 1px solid var(--pb-rule); border-radius: 0; background: none; color: var(--pb-ink); text-decoration: none;
+  font-family: var(--pb-display); font-size: 23px; font-weight: 700; font-stretch: 75%; line-height: 1; letter-spacing: 0.005em; cursor: pointer; width: 100%;
+}
+.pb a.pb-btn { text-decoration: none; }
+.pb-btn::after {
+  content: ""; flex: none; width: 15px; height: 15px; background: currentColor;
+  -webkit-mask: var(--pb-ico-out) center / 15px 15px no-repeat; mask: var(--pb-ico-out) center / 15px 15px no-repeat;
+}
+.pb-btn[data-kind="primary"] { background: var(--pb-slab); border-color: var(--pb-slab); color: var(--pb-on-slab); }
+.pb-btn[data-kind="primary"]::after { width: 20px; height: 20px; -webkit-mask: var(--pb-ico-arrow) center / 20px 20px no-repeat; mask: var(--pb-ico-arrow) center / 20px 20px no-repeat; }
+button.pb-btn:not([data-kind="primary"])::after, .pb-btn[data-icon="none"]::after { content: none; }
+.pb-btn:active { color: var(--pb-ink-2); border-color: var(--pb-ink-2); }
+.pb-btn[data-kind="primary"]:active { background: var(--pb-ink-2); border-color: var(--pb-ink-2); color: var(--pb-on-slab); }
+
+/* ---------------------------------------------------------------- slider: the carriage on a ruler is the handle */
+.pb-controls { display: grid; gap: 12px; margin: 14px 0 0; }
+.pb-slider { display: block; position: relative; }
+.pb-slider-rail { position: relative; height: 44px; }
+.pb-slider-rail::before { content: ""; position: absolute; left: 6px; right: 6px; top: 24px; height: 0.9px; background: var(--pb-axis); }
+.pb-slider-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-top: 4px; }
+.pb-slider-head label, .pb-slider-head .pb-label { font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 500; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase; color: var(--pb-ink-2); }
+.pb-slider-head output { font-size: 15px; line-height: 1.2; font-style: italic; color: var(--pb-ink); font-variant-numeric: lining-nums; text-align: right; }
+.pb-slider input[type="range"], input[type="range"].pb-carriage {
+  -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 44px; margin: 0; padding: 0;
+  background: transparent; border-radius: 0; color: var(--pb-carriage); cursor: ew-resize; touch-action: pan-y;
+}
+.pb-slider-rail input[type="range"] { position: absolute; left: 0; top: 0; }
+input[type="range"].pb-carriage { position: absolute; z-index: 3; }
+.pb-slider input[type="range"]::-webkit-slider-runnable-track, input[type="range"].pb-carriage::-webkit-slider-runnable-track { -webkit-appearance: none; background: transparent; height: 44px; border: 0; }
+.pb-slider input[type="range"]::-webkit-slider-thumb, input[type="range"].pb-carriage::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 22px; margin-top: 11px; background: currentColor; border: 0; border-radius: 0; }
+.pb-slider input[type="range"]::-moz-range-track, input[type="range"].pb-carriage::-moz-range-track { background: transparent; height: 44px; border: 0; }
+.pb-slider input[type="range"]::-moz-range-thumb, input[type="range"].pb-carriage::-moz-range-thumb { width: 12px; height: 22px; background: currentColor; border: 0; border-radius: 0; }
+input[type="range"].pb-carriage:focus-visible, .pb-slider input[type="range"]:focus-visible { outline: 2px solid var(--pb-ink); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------- the web top bar: the wordmark alone, a link to the site.
+   The kit writes it before the article. Inside the Android app it is hidden: the app draws its own bar. */
+.pb-topbar { position: relative; max-width: calc(var(--pb-measure) + 2 * var(--pb-gutter)); margin: 0 auto; padding: 2px var(--pb-gutter) 7.75px; }
+.pb-topbar::before, .pb-topbar::after { content: ""; position: absolute; left: var(--pb-gutter); right: var(--pb-gutter); background: var(--pb-rule); }
+.pb-topbar::before { bottom: 2.75px; height: 3px; }
+.pb-topbar::after { bottom: 0; height: 0.75px; }
+.pb-wordmark {
+  display: inline-block; box-sizing: border-box; height: 44px; margin-left: -10px; padding: 9.5px 10px 12.5px;
+  font-family: var(--pb-display); font-size: 22px; line-height: 22px; font-weight: var(--pb-w-voice1); font-stretch: 62.5%;
+  letter-spacing: -0.005em; color: var(--pb-ink); text-decoration: none; white-space: nowrap;
+}
+.pb-wordmark em { font-style: italic; font-weight: 400; font-stretch: 100%; letter-spacing: -0.02em; }
+.pb-wordmark i { display: inline-block; width: 4px; height: 4px; margin-left: 2px; border-radius: 50%; background: var(--pb-accent); }
+.pb-wordmark:active { color: var(--pb-ink-2); }
+.pb-wordmark:focus-visible { outline: 2px solid var(--pb-ink); outline-offset: 2px; }
+@media (hover: hover) { .pb-wordmark:hover { color: var(--pb-ink-2); } }
+:root.pb-in-app .pb-topbar { display: none; }
+
+/* ---------------------------------------------------------------- the data table: the last row of a data figure */
+.pb-data { margin: 14px 0 0; font-size: 15px; border-top: 0.75px solid var(--pb-rule); border-bottom: 0.75px solid var(--pb-rule); }
+.pb-data[open] { border-bottom: 0; }
+.pb-data > summary {
+  list-style: none; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; color: var(--pb-ink);
+  font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 600; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase;
+}
+.pb-data > summary::-webkit-details-marker { display: none; }
+.pb-data > summary::before { content: none; }
+.pb-data > summary::after { content: ""; flex: none; width: 14px; height: 14px; background: currentColor; -webkit-mask: var(--pb-ico-plus) center / 14px 14px no-repeat; mask: var(--pb-ico-plus) center / 14px 14px no-repeat; }
+.pb-data[open] > summary::after { -webkit-mask-image: var(--pb-ico-minus); mask-image: var(--pb-ico-minus); }
+.pb-data > summary:active { color: var(--pb-ink-2); }
+.pb-table-wrap { overflow-x: auto; margin: 0; padding-bottom: 2px; }
+.pb-data[open] > .pb-table-wrap { animation: pb-press 190ms cubic-bezier(0.2, 0, 0, 1) both; }
+.pb-table { border-collapse: collapse; width: 100%; font-family: var(--pb-font); font-size: 15px; line-height: 1.4; font-variant-numeric: tabular-nums lining-nums; color: var(--pb-ink); }
+.pb-table caption { caption-side: top; text-align: left; padding: 0 0 12px; font-style: italic; color: var(--pb-ink); }
+.pb-table th {
+  padding: 0 12px 7px 0; text-align: left; white-space: nowrap; border-bottom: 0.75px solid var(--pb-rule); color: var(--pb-ink-2);
+  font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 500; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase;
+}
+.pb-table td { padding: 8px 12px 9px 0; text-align: left; vertical-align: baseline; white-space: normal; border-bottom: 0.6px solid var(--pb-grid); }
+.pb-table tbody tr:last-child td { border-bottom: 0.75px solid var(--pb-rule); }
+.pb-table th.num, .pb-table td.num { text-align: right; padding-right: 0; padding-left: 12px; white-space: nowrap; width: 1%; }
+
+/* ---------------------------------------------------------------- scroll steps: the figure is pinned, the steps pass under it */
+.pb-steps { position: relative; margin: 24px 0 0; }
+.pb-steps-visual { position: sticky; top: 0; z-index: 2; margin: 0 calc(-1 * var(--pb-gutter)); padding: 0 var(--pb-gutter) 1px; background: var(--pb-page); }
+.pb-steps-visual > .pb-fig { margin-top: 0; }
+.pb-steps-visual .pb-stage { margin-top: 0; }
+.pb-steps-gauge { display: flex; gap: 4px; box-sizing: border-box; height: 5.75px; margin-top: 16px; border-bottom: 0.75px solid var(--pb-rule); }
+.pb-steps-gauge i { flex: 1 1 0; height: 3px; }
+.pb-steps-gauge i.is-on { background: var(--pb-rule); }
+.pb-step { position: relative; z-index: 1; margin: 0 0 40px; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; opacity: 1; color: var(--pb-ink-2); transition: none; }
+.pb-steps-visual + .pb-step { margin-top: var(--pb-steps-lead, 18vh); }
+.pb-steps > .pb-step:last-child { margin-bottom: 40vh; }
+.pb-step-n { display: block; color: inherit; }
+.pb .pb-step p { margin: 6px 0 0; color: inherit; }
+.pb-step.is-active { color: var(--pb-ink); }
+.pb-step.is-active .pb-step-n { font-weight: 600; }
+
+/* ---------------------------------------------------------------- glossary term and its slip */
+.pb-term {
+  padding: 10px 4px; margin: -10px -4px; cursor: pointer; border: 0; -webkit-tap-highlight-color: transparent;
+  text-decoration: underline dotted var(--pb-ink); text-decoration-thickness: 1.5px; text-underline-offset: 4px;
+}
+.pb-term[aria-expanded="true"] { padding: 0 3px; margin: 0 -3px; background: var(--pb-ink); color: var(--pb-page); text-decoration: none; }
+.pb-term:focus-visible { outline: 2px solid var(--pb-ink); outline-offset: 3px; }
+.pb-term-pop {
+  position: absolute; z-index: 20; box-sizing: border-box; max-width: none; margin: 0; padding: 6px 0 0; display: flex; flex-direction: column;
+  background: var(--pb-page); color: var(--pb-ink); border: 0; border-radius: 0; box-shadow: none;
+  font-family: var(--pb-font); font-size: 15px; line-height: 1.4; font-style: italic; text-wrap: pretty;
+  animation: pb-press 190ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+.pb-term-pop::before { content: ""; flex: none; height: 2px; border-top: 3px solid var(--pb-rule); border-bottom: 0.75px solid var(--pb-rule); box-sizing: content-box; }
+.pb-term-pop::after { content: ""; flex: none; margin-top: auto; height: 0.75px; background: var(--pb-rule); }
+.pb-term-pop b {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 10px 0 6px; font-style: normal; color: var(--pb-ink);
+  font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 600; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase;
+}
+.pb-term-pop b::after { content: "Glossary"; font-weight: 500; color: var(--pb-ink-2); }
+.pb-term-pop > span { padding-bottom: 12px; }
+
+/* ---------------------------------------------------------------- segmented toggle: chosen looks like a stamped rating */
+.pb-toggle-label { display: block; margin: 14px 0 7px; }
+.pb-toggle { display: flex; flex-wrap: nowrap; gap: 0; padding: 0; background: none; border: 0; border-radius: 0; }
+.pb-toggle button {
+  flex: 1 1 0; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: transparent; border: 1px solid var(--pb-rule); border-radius: 0; box-shadow: none; color: var(--pb-ink); cursor: pointer;
+  font-family: var(--pb-font); font-size: 16px; font-weight: 500; line-height: 1;
+}
+.pb-toggle button + button { margin-left: -1px; }
+.pb-toggle button[aria-pressed="true"] { background: var(--pb-stamp); border-color: var(--pb-stamp); color: var(--pb-on-stamp); box-shadow: none; }
+.pb-toggle button[aria-pressed="true"]::before { content: ""; flex: none; width: 14px; height: 14px; background: currentColor; -webkit-mask: var(--pb-ico-check) center / 14px 14px no-repeat; mask: var(--pb-ico-check) center / 14px 14px no-repeat; }
+.pb-toggle button[aria-pressed="false"]:active { color: var(--pb-ink-2); border-color: var(--pb-ink-2); }
+.pb-toggle button:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--pb-ink); outline-offset: 2px; }
+.pb-toggle-label + .pb-toggle + .pb-chart, .pb-toggle + .pb-chart { margin-top: 18px; }
+
+/* ---------------------------------------------------------------- the touch readout */
+.pb-tip {
+  position: fixed; z-index: 30; pointer-events: none; max-width: 240px; padding: 8px 10px; background: var(--pb-slab); color: var(--pb-on-slab);
+  border: 0; border-radius: 0; box-shadow: none; font-family: var(--pb-font); font-size: 15px; line-height: 1.2;
+  font-variant-numeric: tabular-nums lining-nums; animation: pb-press 190ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+.pb-tip b { display: block; margin: 0 0 5px; white-space: nowrap; font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 600; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase; }
+.pb-tip dl { display: grid; grid-template-columns: auto auto; column-gap: 14px; row-gap: 1px; align-items: baseline; margin: 0; }
+.pb-tip dt { white-space: nowrap; font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 500; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase; }
+.pb-tip dd { margin: 0; text-align: right; white-space: nowrap; }
+.pb-tip dd i { font-style: italic; }
+.pb-tip[hidden] { display: none; }
+
+/* ---------------------------------------------------------------- marks inside figures (SVG). Drawn by the kit's helpers; usable by hand. */
+.pb-axis-line { fill: none; stroke: var(--pb-axis); stroke-width: 0.9px; }
+.pb-grid-line { fill: none; stroke: var(--pb-grid); stroke-width: 0.6px; }
+.pb-leader { fill: none; stroke: var(--pb-grid); stroke-width: 0.75px; }
+.pb-outline { fill: none; stroke: var(--pb-ink); stroke-width: 0.9px; }
+.pb-shape { fill: var(--pb-page); stroke: var(--pb-ink); stroke-width: 0.9px; }
+.pb-beam { fill: none; stroke: var(--pb-ink); stroke-width: 1.4px; }
+.pb-ground { fill: var(--pb-page); stroke: var(--pb-page); }
+.pb-tick-label, .pb-mark-label, .pb-value-label, .pb-plot-label text, .pb-plot-finding text {
+  font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.pb-tick-label { fill: var(--pb-axis); text-transform: none; }   /* units keep their case: s, Mpc, Hz */
+.pb-mark-label { fill: var(--pb-ink); }
+.pb-mark-label[data-finding], .pb-mark-label[data-strong], .pb-plot-finding text { font-weight: 600; }
+.pb-plot > svg, .pb-chart svg { text-anchor: start; }
+.pb-plot-figure text { font-family: var(--pb-display); font-stretch: 62.5%; font-weight: var(--pb-w-voice1); font-size: 25px; font-variant-numeric: lining-nums; letter-spacing: -0.005em; }
+.pb-mark-label[data-muted], .pb-value-label { fill: var(--pb-ink-2); }
+.pb-mark-figure { font-family: var(--pb-display); font-stretch: 62.5%; font-weight: var(--pb-w-voice1); font-size: 25px; font-variant-numeric: lining-nums; fill: var(--pb-ink); letter-spacing: -0.005em; }
+.pb-line { fill: none; stroke: var(--pb-ink); stroke-width: 1.4px; stroke-linejoin: round; stroke-linecap: round; }
+.pb-line[data-series="3"] { stroke: var(--pb-plate); }
+.pb-line[data-kind="estimate"] { stroke: var(--pb-ink-2); stroke-width: 0.9px; }
+.pb-line-trap { fill: none; stroke: var(--pb-page); stroke-width: 4.5px; stroke-linejoin: round; stroke-linecap: round; }
+.pb-dot { fill: var(--pb-ink-2); r: 2.1px; }
+.pb-dot[data-named] { fill: var(--pb-ink); r: 3.2px; }
+.pb-ring { fill: var(--pb-page); stroke: var(--pb-ink); stroke-width: 0.9px; r: 4px; }
+.pb-whisker { fill: none; stroke: var(--pb-ink); stroke-width: 0.9px; }
+.pb-whisker-trap { fill: none; stroke: var(--pb-page); stroke-width: 4.5px; }
+.pb-band { stroke: var(--pb-ink); stroke-width: 0.6px; stroke-linejoin: round; }
+.pb-touch-trap { fill: var(--pb-page); }
+.pb-touch-ring { fill: none; stroke: var(--pb-ink); stroke-width: 0.9px; }
+.pb-touch-core { fill: var(--pb-ink); }
+.pb-touch-leader { fill: none; stroke: var(--pb-ink); stroke-width: 0.75px; }
+.pb-touch-tick { fill: none; stroke: var(--pb-ink); stroke-width: 2px; }
+.pb-touch-drop { fill: none; stroke: var(--pb-grid); stroke-width: 0.6px; }
+
+/* the live line: trap, halo (night), core, pen trap, pen halo (night), pen point. One per figure. */
+.pb-live-trap { fill: none; stroke: var(--pb-page); stroke-width: var(--pb-live-trap); stroke-linejoin: round; stroke-linecap: round; }
+.pb-live-halo-a, .pb-live-halo-b, .pb-live-halo-c { fill: none; stroke: var(--pb-accent); stroke-linejoin: round; stroke-linecap: round; }
+.pb-live-halo-a { stroke-width: 17px; stroke-opacity: var(--pb-halo-a); }
+.pb-live-halo-b { stroke-width: 11px; stroke-opacity: var(--pb-halo-b); }
+.pb-live-halo-c { stroke-width: 6px; stroke-opacity: var(--pb-halo-c); }
+.pb-live-core { fill: none; stroke: var(--pb-accent); stroke-width: var(--pb-live-core); stroke-linejoin: round; stroke-linecap: round; }
+.pb-live-rest { fill: none; stroke: var(--pb-ink-2); stroke-width: 0.9px; stroke-linejoin: round; stroke-linecap: round; }
+.pb-live-rest-trap { fill: none; stroke: var(--pb-page); stroke-width: 4.5px; stroke-linejoin: round; stroke-linecap: round; }
+.pb-live-beam { fill: none; stroke: var(--pb-accent); stroke-width: var(--pb-beam); }
+.pb-live-fill { fill: var(--pb-accent); }
+.pb-pen-trap { fill: var(--pb-page); r: var(--pb-pen-trap); }
+.pb-pen-halo-a, .pb-pen-halo-b, .pb-pen-halo-c { fill: var(--pb-accent); }
+.pb-pen-halo-a { r: 13px; fill-opacity: var(--pb-pen-halo-a); }
+.pb-pen-halo-b { r: 10px; fill-opacity: var(--pb-pen-halo-b); }
+.pb-pen-halo-c { r: 6.5px; fill-opacity: var(--pb-pen-halo-c); }
+.pb-pen { fill: var(--pb-accent); r: var(--pb-pen); }
+.pb-carriage-mark { stroke: var(--pb-carriage); stroke-width: 9px; }
+.pb-field-hair { fill: none; stroke: var(--pb-plate); stroke-width: var(--pb-ring); stroke-opacity: var(--pb-ring-opacity); }
+.pb-field-swell { fill: var(--pb-plate); stroke: none; }
+.pb-contour-line { fill: none; stroke: var(--pb-contour); }
+.pb-knockout { fill: var(--pb-page); stroke: none; }
+
+/* ---------------------------------------------------------------- math */
+.katex { font-size: 1.1em; color: var(--pb-ink); }
+.katex-display { margin: 20px 0; padding: 0; overflow-x: auto; overflow-y: hidden; }
+.katex-display > .katex { text-align: left; padding-left: var(--pb-gutter); }
+.katex .katex-tag .mord { font-family: var(--pb-mono) !important; font-stretch: 75%; font-size: var(--pb-fs-label) !important; font-weight: 500; font-style: normal; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pb-ink-2); }
+
+/* ---------------------------------------------------------------- motion: three verbs, one loop, a few single moves.
+   Every element's own style is its resting frame, so with motion off the page is complete. */
+@keyframes pb-press { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes pb-register-a { from { transform: translate(5px, -3px); } to { transform: none; } }
+@keyframes pb-register-b { from { transform: translate(-5px, 3px); } to { transform: none; } }
+@keyframes pb-inkwipe { from { clip-path: polygon(0 0, 0 0, calc(-1 * var(--pb-wipe-x)) 100%, 0 100%); } to { clip-path: polygon(0 0, calc(100% + var(--pb-wipe-x)) 0, 100% 100%, 0 100%); } }
+@keyframes pb-sweep { from { stroke-dashoffset: 1.003; } to { stroke-dashoffset: 0; } }
+@keyframes pb-travel { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+@keyframes pb-orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes pb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes pb-drop { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+@keyframes pb-flood { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pb-stamp { 0% { transform: scale(1.1); background-color: transparent; border-color: var(--pb-rule); } 100% { transform: none; background-color: var(--pb-stamp); border-color: var(--pb-stamp); } }
+@keyframes pb-stamp-ink { 0%, 50% { color: var(--pb-ink); } 50.01%, 100% { color: var(--pb-on-stamp); } }
+@keyframes pb-feedup { from { transform: translateY(0); } to { transform: translateY(calc(-1 * var(--pb-feedup))); } }
+@keyframes pb-growx { from { transform: scaleX(0); } to { transform: none; } }
+@keyframes pb-ridex { from { transform: translateX(-100%); } to { transform: none; } }
+
+.pb-press { animation: pb-press 190ms cubic-bezier(0.2, 0, 0, 1) both; animation-delay: calc(var(--i, 0) * 50ms + var(--pb-delay, 0ms)); }
+.pb-inkwipe { animation: pb-inkwipe 520ms cubic-bezier(0.2, 0, 0, 1) both; animation-delay: var(--pb-delay, 60ms); }
+.pb-register-a { animation: pb-register-a 480ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--pb-delay, 60ms); }
+.pb-register-b { animation: pb-register-b 480ms cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: var(--pb-delay, 60ms); }
+.pb-sweep { stroke-dasharray: 1 1.5; animation: pb-sweep var(--pb-sweep-ms, 1900ms) linear both; animation-delay: var(--pb-sweep-delay, 320ms); }
+.pb-travel { offset-distance: 100%; offset-rotate: 0deg; animation: pb-travel var(--pb-sweep-ms, 1900ms) linear both; animation-delay: var(--pb-sweep-delay, 320ms); }
+.pb-travel.pb-pulse { animation: pb-travel var(--pb-sweep-ms, 1900ms) linear var(--pb-sweep-delay, 320ms) both, pb-pulse 2400ms ease-in-out calc(var(--pb-sweep-delay, 320ms) + var(--pb-sweep-ms, 1900ms) + 200ms) infinite; }
+.pb-orbit { animation: pb-orbit 1800ms linear both; animation-delay: var(--pb-delay, 520ms); }
+.pb-drop { animation: pb-drop 260ms cubic-bezier(0.2, 0, 0, 1) both; animation-delay: var(--pb-delay, 0ms); }
+.pb-flood { animation: pb-flood 260ms cubic-bezier(0.2, 0, 0, 1) both; animation-delay: var(--pb-delay, 0ms); }
+.pb-feedup { animation: pb-feedup 360ms cubic-bezier(0.2, 0, 0, 1) both; }
+.pb-growx { transform-origin: 0 50%; animation: pb-growx 1600ms linear 900ms both; }
+.pb-ridex { animation: pb-ridex 1600ms linear 900ms both; }
+.pb-stamping { animation: pb-stamp 120ms cubic-bezier(0.2, 0, 0, 1) both, pb-stamp-ink 120ms linear both; }
+
+/* a figure below the first screen holds its draw-ins until it scrolls into view, once */
+.pb-wait .pb-sweep, .pb-wait .pb-travel, .pb-wait .pb-drop, .pb-wait .pb-flood, .pb-wait .pb-inkwipe,
+.pb-wait .pb-press, .pb-wait .pb-register-a, .pb-wait .pb-register-b, .pb-wait .pb-orbit, .pb-wait.pb-inkwipe { animation-play-state: paused; }
+/* a figure redrawn for a new width or theme does not draw in again */
+.pb-done .pb-sweep, .pb-done .pb-travel, .pb-done .pb-drop, .pb-done .pb-flood, .pb-done .pb-inkwipe,
+.pb-done .pb-press, .pb-done .pb-register-a, .pb-done .pb-register-b, .pb-done .pb-orbit { animation: none; }
+.pb-done .pb-travel.pb-pulse { animation: pb-pulse 2400ms ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+:root[data-motion="off"] *, :root[data-motion="off"] *::before, :root[data-motion="off"] *::after { animation: none !important; transition: none !important; }
+
+/* ---------------------------------------------------------------- the wide page, 1160 px and wider:
+   the website's grid (1200 px, 56 px margins, 12 columns, 24 px gutters). Text in columns 1 to 7,
+   figures in a rail in columns 9 to 12, the plate from the text's left edge off the right edge of the screen. */
+@media (min-width: 1160px) {
+  :root { --pb-gutter: 56px; --pb-fs-label: 11px; --pb-fs-tag: 11px; }
+  body { font-size: 19px; line-height: 1.5; }
+  .pb {
+    max-width: 1200px; padding-bottom: 56px;
+    --pb-col: calc((100% - 264px) / 12);
+    --pb-text: calc(7 * var(--pb-col) + 144px);
+    --pb-rail: calc(4 * var(--pb-col) + 72px);
+    --pb-edge: calc(-1 * (var(--pb-gutter) + max(0px, (100vw - 1200px) / 2)));
+  }
+  .pb-topbar { max-width: 1200px; padding-top: 20px; }
+  .pb-wordmark { height: auto; margin-left: 0; padding: 1px 0 5px; font-size: 38px; line-height: 1; }
+  .pb-wordmark em { font-weight: var(--pb-w-voice2); }
+  .pb-wordmark i { width: 6.5px; height: 6.5px; margin-left: 3px; }
+  .pb-journal { font-size: 16px; }
+
+  .pb-hero { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; align-items: start; }
+  .pb-hero > * { grid-column: 1 / -1; }
+  .pb-hero > .pb-readout-row { display: contents; }
+  .pb-hero .pb-readout-row > :first-child { grid-column: 1 / span 4; grid-row: 4; padding-top: 6px; align-self: start; }
+  .pb-hero .pb-readout-row > .pb-plate-slug { grid-column: 10 / span 3; grid-row: 4; padding-top: 12px; align-self: start; }
+  .pb-hero > .pb-dek { grid-column: 5 / span 5; grid-row: 4; margin-top: 0; padding-top: 12px; }
+  .pb-title { font-size: 66px; line-height: 0.95; }
+  .pb-hero .pb-stage { margin-top: 34px; }
+
+  .pb h2 { font-size: 44px; line-height: 0.98; }
+  .pb-readout { font-size: 48px; }
+  .pb-stat-value, .pb-hero-number { font-size: 88px; line-height: 0.84; }
+  .pb-callout[data-kind="key"] { padding: 56px 0; }
+  .pb .pb-callout[data-kind="key"] p { font-size: 40px; line-height: 1.04; max-width: calc(10 * var(--pb-col) + 216px); }
+  .pb .pb-callout[data-kind="caveat"] p, .pb .pb-fig figcaption, .pb .pb-note, .pb .pb-callout[data-kind="analogy"] p { font-size: 16px; line-height: 1.42; }
+  .pb-section { margin-top: 56px; display: flow-root; }
+  .pb-section > p, .pb-section > .pb-callout, .pb-section > .katex-display, .pb-section > .pb-steps,
+  .pb-section > .pb-confidence, .pb-source > * { max-width: var(--pb-text); }
+  .pb .pb-section > p { margin-top: 14px; }
+  .pb .pb-section > h2 + p { margin-top: 20px; }
+  .pb-fig { float: right; clear: right; width: var(--pb-rail); margin: 22px 0 24px 24px; }
+  .pb-fig[data-size="column"] { float: none; clear: both; width: var(--pb-text); margin: 28px 0 0; }
+  .pb-fig.pb-wide, .pb-fig:has(.pb-bleed) { float: none; clear: both; width: auto; margin: 28px 0 0; }
+  .pb-section > .pb-fig:has(.pb-bleed) .pb-fig-title, .pb-fig.pb-wide > .pb-fig-title { max-width: var(--pb-text); }
+  .pb-stage, .pb-bleed { margin-left: 0; margin-right: var(--pb-edge); }
+  .pb-steps-visual .pb-fig { float: none; width: auto; margin: 0; }
+  .pb-term-pop { max-width: var(--pb-text); }
+}

@@ -122,17 +122,17 @@ export function createHandler(deps: Deps) {
       // edits, so it keeps being refreshed until a copy is fetched after it stopped.
       const storedChanging = stored.customMetadata?.changing === "true";
       const due = (changing || storedChanging) && age > REFRESH_MS;
-      if (!due) return serve(key, stored.body, changing || storedChanging);
+      if (!due) return serve(key, stored.body, changing || storedChanging, "bucket");
       const fresh = await fill(env, key, changing);
-      if (typeof fresh === "string") return serve(key, stored.body, true);
+      if (typeof fresh === "string") return serve(key, stored.body, true, "bucket");
       await stored.body.cancel();
-      return serve(key, fresh.body, fresh.changing);
+      return serve(key, fresh.body, fresh.changing, "origin");
     }
 
     const filled = await fill(env, key, changing);
     if (filled === "missing") return notFound();
     if (filled === "unreachable") return new Response("Content repo unreachable\n", { status: 502 });
-    return serve(key, filled.body, filled.changing);
+    return serve(key, filled.body, filled.changing, "origin");
   }
 }
 
@@ -143,11 +143,14 @@ interface Filled {
   changing: boolean;
 }
 
-function serve(key: string, body: BodyInit, changing: boolean): Response {
+// The source header says whether this response was fetched from the content repo
+// just now or read from the bucket, so a deployed worker can be checked from outside.
+function serve(key: string, body: BodyInit, changing: boolean, source: "origin" | "bucket"): Response {
   const extension = key.slice(key.lastIndexOf(".") + 1).toLowerCase();
   const headers = new Headers({
     "content-type": TYPES[extension] ?? "application/octet-stream",
     "cache-control": changing ? SHORT_CACHE : LONG_CACHE,
+    "x-paperboy-source": source,
   });
   if (extension === "html") headers.set("content-security-policy", EXPLAINER_POLICY);
   if (key.startsWith("feed/")) headers.set("access-control-allow-origin", "*");

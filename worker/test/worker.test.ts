@@ -381,3 +381,22 @@ describe("request methods", () => {
     expect(origin.calls).toEqual([]);
   });
 });
+
+describe("where a response came from", () => {
+  it("says origin when the file was just fetched from the content repo and bucket when it was stored", async () => {
+    const { origin, time, get } = setup({ "feed/v1/head.json": head(1) });
+
+    const first = await get("/feed/v1/head.json");
+    const second = await get("/feed/v1/head.json");
+    time.advance(61);
+    const refreshed = await get("/feed/v1/head.json");
+    origin.takeDown();
+    time.advance(61);
+    const fallback = await get("/feed/v1/head.json");
+
+    expect(first.headers.get("x-paperboy-source")).toBe("origin");
+    expect(second.headers.get("x-paperboy-source")).toBe("bucket");
+    expect(refreshed.headers.get("x-paperboy-source")).toBe("origin");
+    expect(fallback.headers.get("x-paperboy-source")).toBe("bucket");
+  });
+});

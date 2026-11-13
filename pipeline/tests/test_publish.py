@@ -1,6 +1,7 @@
 """The publish command, tested at the command line: a work folder in, a content repo tree out."""
 import copy
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -478,3 +479,21 @@ def test_git_failure_is_reported_as_an_error(tmp_path, capsys):
     content = tmp_path / "content"
     assert publish(write_work(tmp_path / "work", [judged(1)]), content, "--commit") == 1
     assert "publish: git" in capsys.readouterr().err
+
+
+def test_without_now_the_current_utc_time_is_used(tmp_path):
+    content = tmp_path / "content"
+    content.mkdir()
+    work = write_work(tmp_path / "work", [judged(1)])
+
+    assert main(["publish", "--work", str(work), "--content", str(content)]) == 0
+
+    added_at = read_json(content / "feed/v1/chunks/000001.json")["items"][0]["added_at"]
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", added_at)
+    assert read_json(content / "feed/v1/head.json")["updated_at"] == added_at
+
+
+def test_now_with_an_offset_is_converted_to_utc(tmp_path):
+    content = tmp_path / "content"
+    publish(write_work(tmp_path / "work", [judged(1)]), content, now="2026-11-12T03:00:00-05:00")
+    assert read_json(content / "feed/v1/head.json")["updated_at"] == NOW

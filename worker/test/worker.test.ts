@@ -233,3 +233,23 @@ describe("cache lifetimes", () => {
     expect(hit.headers.get("cache-control")).toBe(expected);
   });
 });
+
+describe("content types", () => {
+  it.each([
+    ["/feed/v1/head.json", "application/json; charset=utf-8"],
+    ["/papers/arxiv-1/index.html", "text/html; charset=utf-8"],
+    ["/papers/arxiv-1/meta.json", "application/json; charset=utf-8"],
+    ["/papers/arxiv-1/hero.webp", "image/webp"],
+    ["/papers/arxiv-1/figure.png", "image/png"],
+    ["/papers/arxiv-1/figure.jpg", "image/jpeg"],
+    ["/papers/arxiv-1/figure.svg", "image/svg+xml"],
+  ])("%s is served as %s, on a miss and on a hit", async (path, expected) => {
+    const { get } = setup({ [path.slice(1)]: "content" });
+
+    const miss = await get(path);
+    const hit = await get(path);
+
+    expect(miss.headers.get("content-type")).toBe(expected);
+    expect(hit.headers.get("content-type")).toBe(expected);
+  });
+});

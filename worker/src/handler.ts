@@ -8,6 +8,17 @@ const CHUNK = /^feed\/v1\/chunks\/(\d{6})\.json$/;
 const LONG_CACHE = "public, max-age=31536000, immutable";
 const SHORT_CACHE = "public, max-age=60";
 
+// The raw host labels every file text/plain, so types come from the file name.
+const TYPES: Record<string, string> = {
+  html: "text/html; charset=utf-8",
+  json: "application/json; charset=utf-8",
+  webp: "image/webp",
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  svg: "image/svg+xml",
+};
+
 // Every closed chunk holds exactly this many items (chunk_size in schema/head.schema.json).
 const CHUNK_SIZE = 40;
 
@@ -76,14 +87,14 @@ export function createHandler(deps: Deps) {
         // edits, so it keeps being refreshed until a copy is fetched after it stopped.
         const storedChanging = stored.customMetadata?.changing === "true";
         const due = (changing || storedChanging) && age > REFRESH_MS;
-        if (!due) return serve(stored.body, storedChanging);
+        if (!due) return serve(key, stored.body, storedChanging);
         const fresh = await fill(env, key, changing);
-        return fresh ? serve(fresh.body, fresh.changing) : serve(stored.body, storedChanging);
+        return fresh ? serve(key, fresh.body, fresh.changing) : serve(key, stored.body, storedChanging);
       }
 
       const filled = await fill(env, key, changing);
       if (!filled) return notFound();
-      return serve(filled.body, filled.changing);
+      return serve(key, filled.body, filled.changing);
     },
   };
 }
@@ -93,8 +104,12 @@ interface Filled {
   changing: boolean;
 }
 
-function serve(body: BodyInit, changing: boolean): Response {
-  const headers = new Headers({ "cache-control": changing ? SHORT_CACHE : LONG_CACHE });
+function serve(key: string, body: BodyInit, changing: boolean): Response {
+  const extension = key.slice(key.lastIndexOf(".") + 1).toLowerCase();
+  const headers = new Headers({
+    "content-type": TYPES[extension] ?? "application/octet-stream",
+    "cache-control": changing ? SHORT_CACHE : LONG_CACHE,
+  });
   return new Response(body, { headers });
 }
 

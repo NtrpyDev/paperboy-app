@@ -76,6 +76,12 @@ data class FeedItem(
     @SerialName("added_at") val addedAt: String,
 ) {
     val isPeerReviewed: Boolean get() = status == "peer_reviewed"
+
+    /**
+     * True when the paper has an explainer page to open, from its chunk or an upgrade. Only
+     * these papers are shown in the feed.
+     */
+    val hasPage: Boolean get() = hasExplainer && explainer != null
 }
 
 /** The card's plate: the explainer's hero at rest, as a day still with an optional night still. */

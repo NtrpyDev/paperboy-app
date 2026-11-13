@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -76,13 +77,25 @@ class RatingTest {
 
     /**
      * The first [n] of the ten weaker papers in the order the feed shows them. They all come
-     * after the four strong ones, whether all four fit on the screen or not.
+     * after the four strong ones, whether all four fit on the screen or not. An explained card
+     * is tall, so this scrolls on one card at a time until it has [n].
      */
     private fun firstCardsBelow(onScreen: List<String>, n: Int): List<String> {
-        compose.onNodeWithTag("feed").performScrollToIndex(maxOf(onScreen.size, STRONG.size))
-        compose.waitForIdle()
-        return compose.cardsOnScreen().filter { it !in onScreen && it !in STRONG }.take(n)
+        val found = mutableListOf<String>()
+        var index = maxOf(onScreen.size, STRONG.size)
+        while (found.size < n && index < STRONG.size + 10) {
+            compose.onNodeWithTag("feed").performScrollToIndex(index++)
+            compose.waitForIdle()
+            compose.cardsOnScreen().filter { it !in onScreen && it !in STRONG && it !in found }.forEach { found += it }
+        }
+        return found.take(n)
     }
+
+    /** The composed cards in the order they are laid out, top to bottom. */
+    private fun cardOrder(): List<String> =
+        compose.onAllNodes(isCard).fetchSemanticsNodes()
+            .sortedBy { it.boundsInRoot.top }
+            .map { it.config[androidx.compose.ui.semantics.SemanticsProperties.TestTag].removePrefix("card:") }
 
     @Test fun withoutRatingsTheNewerBiologyPapersComeFirstBelowTheScreen() {
         launch()
@@ -111,7 +124,9 @@ class RatingTest {
             assertEquals("GET", request.method)
             assertTrue(request.bodySize <= 0)
             assertNull(request.url.query)
-            assertTrue(request.url.encodedPath, request.url.encodedPath.startsWith("/feed/v1/") || request.url.encodedPath.startsWith("/papers/"))
+            // Feed files, explainers, and plate stills (the shared fixture stills live in /fixture-plates/).
+            val path = request.url.encodedPath
+            assertTrue(path, path.startsWith("/feed/v1/") || path.startsWith("/papers/") || path.startsWith("/fixture-plates/"))
         }
     }
 
@@ -128,7 +143,8 @@ class RatingTest {
     @Test fun lessLikeThisRemovesTheCardAndUndoBringsItBack() {
         launch()
 
-        button("arxiv-p1", "Less like this").performClick()
+        // The second card is tall, so its buttons may be below the screen.
+        button("arxiv-p1", "Less like this").performScrollTo().performClick()
         button("arxiv-p1", "Less like this").assertIsSelected()
 
         compose.waitUntil(TIMEOUT_MS) { compose.onAllNodes(hasTestTag("card:arxiv-p1")).fetchSemanticsNodes().isEmpty() }
@@ -136,7 +152,11 @@ class RatingTest {
         compose.onNodeWithText("Undo").performClick()
 
         compose.waitUntil(TIMEOUT_MS) { compose.onAllNodes(hasTestTag("card:arxiv-p1")).fetchSemanticsNodes().isNotEmpty() }
-        assertEquals("arxiv-p1", compose.cardsOnScreen()[1])
+        compose.waitForIdle()
+        // Back in its place: right below the top card.
+        compose.onNodeWithTag("feed").performScrollToIndex(0)
+        compose.waitForIdle()
+        assertEquals(listOf("arxiv-m0", "arxiv-p1"), cardOrder().take(2))
         button("arxiv-p1", "Less like this").assertIsNotSelected()
     }
 

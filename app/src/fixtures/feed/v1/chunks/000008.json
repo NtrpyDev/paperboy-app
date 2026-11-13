@@ -17,7 +17,19 @@
       "published": "2026-10-31",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10280",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10280/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 5.5,
       "added_at": "2026-10-31T16:00:00Z"
     },
@@ -35,7 +47,20 @@
       "published": "2026-10-31",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10281",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10281/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 6.2,
       "added_at": "2026-10-31T20:00:00Z",
       "readout": {
@@ -57,7 +82,19 @@
       "published": "2026-11-01",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10282",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10282/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 6.9,
       "added_at": "2026-11-01T00:00:00Z",
       "readout": {
@@ -80,7 +117,20 @@
       "published": "2026-11-01",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10283",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10283/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 3.1,
       "added_at": "2026-11-01T04:00:00Z",
       "readout": {
@@ -104,7 +154,19 @@
       "published": "2026-11-01",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10284",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10284/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 3.8,
       "added_at": "2026-11-01T08:00:00Z"
     },
@@ -123,7 +185,20 @@
       "published": "2026-11-01",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10285",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10285/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 4.5,
       "added_at": "2026-11-01T12:00:00Z",
       "readout": {
@@ -145,7 +220,19 @@
       "published": "2026-11-01",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10286",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10286/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 5.2,
       "added_at": "2026-11-01T16:00:00Z",
       "readout": {
@@ -168,7 +255,20 @@
       "published": "2026-11-01",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10287",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10287/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 5.9,
       "added_at": "2026-11-01T20:00:00Z",
       "readout": {
@@ -192,7 +292,19 @@
       "published": "2026-11-02",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10288",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10288/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 6.6,
       "added_at": "2026-11-02T00:00:00Z"
     },
@@ -210,7 +322,20 @@
       "published": "2026-11-02",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10289",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10289/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 7.3,
       "added_at": "2026-11-02T04:00:00Z",
       "readout": {
@@ -233,7 +358,19 @@
       "published": "2026-11-02",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10290",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10290/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 3.5,
       "added_at": "2026-11-02T08:00:00Z",
       "readout": {
@@ -256,7 +393,20 @@
       "published": "2026-11-02",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10291",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10291/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 4.2,
       "added_at": "2026-11-02T12:00:00Z",
       "readout": {
@@ -280,7 +430,19 @@
       "published": "2026-11-02",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10292",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10292/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 4.9,
       "added_at": "2026-11-02T16:00:00Z"
     },
@@ -298,7 +460,20 @@
       "published": "2026-11-02",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10293",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10293/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 5.6,
       "added_at": "2026-11-02T20:00:00Z",
       "readout": {
@@ -320,7 +495,19 @@
       "published": "2026-11-03",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10294",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10294/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 6.3,
       "added_at": "2026-11-03T00:00:00Z",
       "readout": {
@@ -344,7 +531,20 @@
       "published": "2026-11-03",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10295",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10295/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 7.0,
       "added_at": "2026-11-03T04:00:00Z",
       "readout": {
@@ -368,7 +568,19 @@
       "published": "2026-11-03",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10296",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10296/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 3.2,
       "added_at": "2026-11-03T08:00:00Z"
     },
@@ -408,7 +620,19 @@
       "published": "2026-11-03",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10298",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10298/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 4.6,
       "added_at": "2026-11-03T16:00:00Z",
       "readout": {
@@ -431,7 +655,20 @@
       "published": "2026-11-03",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10299",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10299/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 5.3,
       "added_at": "2026-11-03T20:00:00Z",
       "readout": {
@@ -519,7 +756,20 @@
       "published": "2026-11-04",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10303",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10303/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 3.6,
       "added_at": "2026-11-04T12:00:00Z",
       "readout": {
@@ -543,7 +793,19 @@
       "published": "2026-11-04",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10304",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10304/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 4.3,
       "added_at": "2026-11-04T16:00:00Z"
     },
@@ -562,7 +824,20 @@
       "published": "2026-11-04",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10305",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10305/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 5.0,
       "added_at": "2026-11-04T20:00:00Z",
       "readout": {
@@ -584,7 +859,19 @@
       "published": "2026-11-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10306",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10306/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 5.7,
       "added_at": "2026-11-05T00:00:00Z",
       "readout": {
@@ -607,7 +894,20 @@
       "published": "2026-11-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10307",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10307/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 6.4,
       "added_at": "2026-11-05T04:00:00Z",
       "readout": {
@@ -631,7 +931,19 @@
       "published": "2026-11-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10308",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10308/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 7.1,
       "added_at": "2026-11-05T08:00:00Z"
     },
@@ -649,7 +961,20 @@
       "published": "2026-11-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10309",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10309/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 3.3,
       "added_at": "2026-11-05T12:00:00Z",
       "readout": {
@@ -672,7 +997,19 @@
       "published": "2026-11-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10310",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10310/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 4.0,
       "added_at": "2026-11-05T16:00:00Z",
       "readout": {
@@ -695,7 +1032,20 @@
       "published": "2026-11-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10311",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10311/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 4.7,
       "added_at": "2026-11-05T20:00:00Z",
       "readout": {
@@ -719,7 +1069,19 @@
       "published": "2026-11-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10312",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10312/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 5.4,
       "added_at": "2026-11-06T00:00:00Z"
     },
@@ -737,7 +1099,20 @@
       "published": "2026-11-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10313",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10313/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 6.1,
       "added_at": "2026-11-06T04:00:00Z",
       "readout": {
@@ -759,7 +1134,19 @@
       "published": "2026-11-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10314",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10314/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 6.8,
       "added_at": "2026-11-06T08:00:00Z",
       "readout": {
@@ -783,7 +1170,20 @@
       "published": "2026-11-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10315",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10315/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 3.0,
       "added_at": "2026-11-06T12:00:00Z",
       "readout": {
@@ -807,7 +1207,19 @@
       "published": "2026-11-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10316",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10316/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 3.7,
       "added_at": "2026-11-06T16:00:00Z"
     },
@@ -825,7 +1237,20 @@
       "published": "2026-11-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10317",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10317/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 4.4,
       "added_at": "2026-11-06T20:00:00Z",
       "readout": {
@@ -847,7 +1272,19 @@
       "published": "2026-11-07",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10318",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10318/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 5.1,
       "added_at": "2026-11-07T00:00:00Z",
       "readout": {
@@ -870,7 +1307,20 @@
       "published": "2026-11-07",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10319",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10319/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 5.8,
       "added_at": "2026-11-07T04:00:00Z",
       "readout": {

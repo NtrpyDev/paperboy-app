@@ -128,6 +128,58 @@ class EndlessFeedTest {
         compose.onNodeWithText(TOP_HOOK).assertIsDisplayed()
     }
 
+    @Test fun aFeedWithOnlyTwoPapersToShowInTwelveChunksShowsTheTwoAndThenTheEnd() {
+        // The live feed's shape when 0.1.1 was made: 12 chunks, 461 papers, two explained by upgrades.
+        val now = System.currentTimeMillis()
+        fixtures.override("feed/v1/head.json") { jsonResponse(headJson(chunkCount = 12)) }
+        var k = 0
+        for (number in 1..12) {
+            val items = (0 until if (number == 12) 21 else 40).map {
+                val id = "arxiv-2611.%05d".format(10000 + k++)
+                itemJson(id, "A paper with no page, number $k", "physics", "optics", 5.0, now - k * 60_000L, explained = false)
+            }
+            fixtures.override("feed/v1/chunks/%06d.json".format(number)) { jsonResponse(chunkJson(number, items)) }
+        }
+        val upgrade = { id: String ->
+            """"$id":{"explainer":"papers/$id/","hero":{"path":"fixture-plates/1/hero.webp","width":1200,"height":708},"explained_at":"2026-11-13T12:00:00Z"}"""
+        }
+        // Paper 290 is in chunk 8, paper 410 in chunk 11.
+        fixtures.override("feed/v1/upgrades.json") {
+            jsonResponse("""{"v":1,"upgrades":{${upgrade("arxiv-2611.10290")},${upgrade("arxiv-2611.10410")}}}""")
+        }
+        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
+        compose.setContent { PaperboyTheme { PaperboyRoot(graph) } }
+
+        compose.waitUntil(TIMEOUT_MS) { exists("card:arxiv-2611.10290") }
+        val deadline = System.currentTimeMillis() + 2 * TIMEOUT_MS
+        while (!exists("end-of-feed")) {
+            assertTrue("the end of the feed never appeared", System.currentTimeMillis() < deadline)
+            compose.onNodeWithTag("feed").performScrollToKey("footer")
+            compose.waitForIdle()
+        }
+
+        // The list is the two cards and the footer: walking it item by item finds only those two.
+        val cards = mutableSetOf<String>()
+        for (index in 0..2) {
+            compose.onNodeWithTag("feed").performScrollToIndex(index)
+            compose.waitForIdle()
+            cards += compose.cardsOnScreen()
+        }
+        assertEquals(setOf("arxiv-2611.10290", "arxiv-2611.10410"), cards)
+        compose.onNodeWithText("You have reached the end of the feed.").assertExists()
+        // Every chunk was asked for once, and scrolling on at the end asks for nothing more.
+        assertEquals((12 downTo 1).toList(), chunksRequested())
+        val feedRequests = { fixtures.requested.count { it.startsWith("feed/") } }
+        val before = feedRequests()
+        repeat(3) {
+            compose.onNodeWithTag("feed").performScrollToIndex(0)
+            compose.waitForIdle()
+            compose.onNodeWithTag("feed").performScrollToKey("footer")
+            compose.waitForIdle()
+        }
+        assertEquals(before, feedRequests())
+    }
+
     private companion object {
         const val TIMEOUT_MS = 20_000L
         const val TOP_ID = "arxiv-2611.04821"

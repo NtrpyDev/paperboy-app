@@ -244,7 +244,7 @@ fun SlabButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier,
     }
 }
 
-/** The outline button: the slab's box with a 1 dp outline, for "Read the paper" and footer actions. */
+/** The outline button: the slab's box with a 1 dp outline, for footer and cover actions and About's source link. */
 @Composable
 fun OutlineButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, icon: StrokeIcon = Icons.OutArrow) {
     val c = Paperboy.colors

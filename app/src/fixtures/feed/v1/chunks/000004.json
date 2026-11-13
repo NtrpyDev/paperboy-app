@@ -12,12 +12,24 @@
       "tags": [
         "economics"
       ],
-      "status": "preprint",
-      "venue": "arXiv",
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
       "published": "2026-10-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10120",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10120/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 6.0,
       "added_at": "2026-10-05T00:00:00Z"
     },
@@ -30,12 +42,25 @@
       "tags": [
         "superconductors"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10121",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10121/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 6.7,
       "added_at": "2026-10-05T04:00:00Z",
       "readout": {
@@ -57,7 +82,19 @@
       "published": "2026-10-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10122",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10122/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 7.4,
       "added_at": "2026-10-05T08:00:00Z",
       "readout": {
@@ -75,12 +112,25 @@
       "tags": [
         "combinatorics"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10123",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10123/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 3.6,
       "added_at": "2026-10-05T12:00:00Z",
       "readout": {
@@ -104,7 +154,19 @@
       "published": "2026-10-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10124",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10124/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 4.3,
       "added_at": "2026-10-05T16:00:00Z"
     },
@@ -123,7 +185,20 @@
       "published": "2026-10-05",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10125",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10125/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 5.0,
       "added_at": "2026-10-05T20:00:00Z",
       "readout": {
@@ -145,7 +220,19 @@
       "published": "2026-10-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10126",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10126/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 5.7,
       "added_at": "2026-10-06T00:00:00Z",
       "readout": {
@@ -163,12 +250,25 @@
       "tags": [
         "vaccines"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10127",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10127/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 6.4,
       "added_at": "2026-10-06T04:00:00Z",
       "readout": {
@@ -192,7 +292,19 @@
       "published": "2026-10-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10128",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10128/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 7.1,
       "added_at": "2026-10-06T08:00:00Z"
     },
@@ -205,12 +317,25 @@
       "tags": [
         "climate"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10129",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10129/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 3.3,
       "added_at": "2026-10-06T12:00:00Z",
       "readout": {
@@ -228,12 +353,24 @@
       "tags": [
         "materials"
       ],
-      "status": "preprint",
-      "venue": "arXiv",
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
       "published": "2026-10-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10130",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10130/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 4.0,
       "added_at": "2026-10-06T16:00:00Z",
       "readout": {
@@ -251,12 +388,25 @@
       "tags": [
         "education"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-06",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10131",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10131/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 4.7,
       "added_at": "2026-10-06T20:00:00Z",
       "readout": {
@@ -280,7 +430,19 @@
       "published": "2026-10-07",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10132",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10132/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 5.4,
       "added_at": "2026-10-07T00:00:00Z"
     },
@@ -293,12 +455,25 @@
       "tags": [
         "black holes"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-07",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10133",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10133/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 6.1,
       "added_at": "2026-10-07T04:00:00Z",
       "readout": {
@@ -320,7 +495,19 @@
       "published": "2026-10-07",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10134",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10134/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 6.8,
       "added_at": "2026-10-07T08:00:00Z",
       "readout": {
@@ -344,7 +531,20 @@
       "published": "2026-10-07",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10135",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10135/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 3.0,
       "added_at": "2026-10-07T12:00:00Z",
       "readout": {
@@ -368,7 +568,19 @@
       "published": "2026-10-07",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10136",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10136/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 3.7,
       "added_at": "2026-10-07T16:00:00Z"
     },
@@ -381,8 +593,8 @@
       "tags": [
         "vision"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-07",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10137",
@@ -408,7 +620,19 @@
       "published": "2026-10-08",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10138",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10138/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 5.1,
       "added_at": "2026-10-08T00:00:00Z",
       "readout": {
@@ -426,12 +650,25 @@
       "tags": [
         "batteries"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-08",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10139",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10139/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 5.8,
       "added_at": "2026-10-08T04:00:00Z",
       "readout": {
@@ -451,12 +688,24 @@
       "tags": [
         "oceans"
       ],
-      "status": "preprint",
-      "venue": "arXiv",
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
       "published": "2026-10-08",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10140",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10140/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 6.5,
       "added_at": "2026-10-08T08:00:00Z"
     },
@@ -469,12 +718,25 @@
       "tags": [
         "robotics"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-08",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10141",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10141/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 7.2,
       "added_at": "2026-10-08T12:00:00Z",
       "readout": {
@@ -496,7 +758,19 @@
       "published": "2026-10-08",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10142",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10142/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 3.4,
       "added_at": "2026-10-08T16:00:00Z",
       "readout": {
@@ -514,12 +788,25 @@
       "tags": [
         "lasers"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-08",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10143",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10143/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 4.1,
       "added_at": "2026-10-08T20:00:00Z",
       "readout": {
@@ -543,7 +830,19 @@
       "published": "2026-10-09",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10144",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10144/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 4.8,
       "added_at": "2026-10-09T00:00:00Z"
     },
@@ -562,7 +861,20 @@
       "published": "2026-10-09",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10145",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10145/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 5.5,
       "added_at": "2026-10-09T04:00:00Z",
       "readout": {
@@ -584,7 +896,19 @@
       "published": "2026-10-09",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10146",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10146/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 6.2,
       "added_at": "2026-10-09T08:00:00Z",
       "readout": {
@@ -602,12 +926,25 @@
       "tags": [
         "genetics"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-09",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10147",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10147/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 6.9,
       "added_at": "2026-10-09T12:00:00Z",
       "readout": {
@@ -631,7 +968,19 @@
       "published": "2026-10-09",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10148",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10148/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 3.1,
       "added_at": "2026-10-09T16:00:00Z"
     },
@@ -644,12 +993,25 @@
       "tags": [
         "cancer"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-09",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10149",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10149/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 3.8,
       "added_at": "2026-10-09T20:00:00Z",
       "readout": {
@@ -667,12 +1029,24 @@
       "tags": [
         "catalysis"
       ],
-      "status": "preprint",
-      "venue": "arXiv",
+      "status": "peer_reviewed",
+      "venue": "Fixture Journal",
       "published": "2026-10-10",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10150",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10150/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 4.5,
       "added_at": "2026-10-10T00:00:00Z",
       "readout": {
@@ -690,12 +1064,25 @@
       "tags": [
         "earthquakes"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-10",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10151",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10151/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 5.2,
       "added_at": "2026-10-10T04:00:00Z",
       "readout": {
@@ -719,7 +1106,19 @@
       "published": "2026-10-10",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10152",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10152/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 5.9,
       "added_at": "2026-10-10T08:00:00Z"
     },
@@ -732,12 +1131,25 @@
       "tags": [
         "economics"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-10",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10153",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10153/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 6.6,
       "added_at": "2026-10-10T12:00:00Z",
       "readout": {
@@ -759,7 +1171,19 @@
       "published": "2026-10-10",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10154",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10154/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 7.3,
       "added_at": "2026-10-10T16:00:00Z",
       "readout": {
@@ -783,7 +1207,20 @@
       "published": "2026-10-10",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10155",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10155/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 3.5,
       "added_at": "2026-10-10T20:00:00Z",
       "readout": {
@@ -807,7 +1244,19 @@
       "published": "2026-10-11",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10156",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10156/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 4.2,
       "added_at": "2026-10-11T00:00:00Z"
     },
@@ -820,12 +1269,25 @@
       "tags": [
         "cryptography"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-11",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10157",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10157/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
       "significance": 4.9,
       "added_at": "2026-10-11T04:00:00Z",
       "readout": {
@@ -847,7 +1309,19 @@
       "published": "2026-10-11",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10158",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10158/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 5.6,
       "added_at": "2026-10-11T08:00:00Z",
       "readout": {
@@ -865,12 +1339,25 @@
       "tags": [
         "memory"
       ],
-      "status": "peer_reviewed",
-      "venue": "Fixture Journal",
+      "status": "preprint",
+      "venue": "arXiv",
       "published": "2026-10-11",
       "authors_short": "Fixture et al.",
       "url": "https://arxiv.org/abs/2609.10159",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2609.10159/",
+      "hero": {
+        "path": "fixture-plates/3/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/3/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
+      },
       "significance": 6.3,
       "added_at": "2026-10-11T12:00:00Z",
       "readout": {

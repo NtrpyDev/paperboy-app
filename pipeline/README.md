@@ -147,7 +147,7 @@ Routes by `fulltext.kind`:
 - `biorxiv` (bioRxiv and medRxiv): the JATS XML the bioRxiv API lists as `jatsxml` (looked up by DOI when the candidate gives no `.xml` link). Equations and tables that the XML holds only as images are marked in place, not transcribed.
 - `europepmc`: `https://www.ebi.ac.uk/europepmc/webservices/rest/<PMCID>/fullTextXML` (the PMCID is found by DOI when the candidate gives none).
 
-Exit codes: 0 fetched; 3 no lawful full text is reachable (a missing rendering, a 404, a 403, or a bot challenge page, which is never bypassed): `source.json` then holds `"available": false` and the reason, and no `fulltext.md` is left; 1 a real error (bad candidate, a server that kept failing).
+Exit codes: 0 fetched; 3 no lawful full text is reachable (a missing rendering, a 404, JATS XML with front matter only, a 403, or a bot challenge page, which is never bypassed): `source.json` then holds `"available": false` and the reason, and no `fulltext.md` is left; 1 a real error (bad candidate, a server that kept failing).
 
 Requests send only the User-Agent `paperboy-pipeline/0.1 (+https://github.com/NtrpyDev/paperboy-app)`, retry 429 and 5xx with backoff and Retry-After, and wait between requests to one host for the Crawl-delay its robots.txt sets (arxiv.org 15 s, biorxiv.org and medrxiv.org 7 s, ebi.ac.uk 10 s). The last request time per host is kept in `WORK/.fetch-hosts/` so the wait holds across fetch commands.
 

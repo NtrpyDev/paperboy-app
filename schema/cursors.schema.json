@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Cursors",
-  "description": "state/cursors.json. For each source, the newest published date among the papers publish has added to the feed from it. Publish only moves a cursor forward.",
+  "description": "state/cursors.json. For each source, the last day (UTC) it has been processed through: discovered, judged, and published. Discover starts the day after. Only the cursors command writes it, and only forward.",
   "type": "object",
   "additionalProperties": false,
   "required": [

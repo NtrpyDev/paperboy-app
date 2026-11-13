@@ -124,7 +124,27 @@
     },
     "made_by": {
       "type": "object",
-      "description": "Model ids for the expert, visualizer, and checker."
+      "description": "Model ids the expert, visualizer, and checker ran as. Present only on explained papers whose run recorded them.",
+      "additionalProperties": false,
+      "required": [
+        "expert",
+        "visualizer",
+        "checker"
+      ],
+      "properties": {
+        "expert": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visualizer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checker": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     },
     "check": {
       "type": "object",

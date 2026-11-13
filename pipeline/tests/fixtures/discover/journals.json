@@ -1,0 +1,33 @@
+[
+  {
+    "title": "Journal of the American Chemical Society",
+    "issn": [
+      "0002-7863",
+      "1520-5126"
+    ],
+    "field_hint": "chemistry"
+  },
+  {
+    "title": "The Lancet",
+    "issn": [
+      "0140-6736",
+      "1474-547X"
+    ],
+    "field_hint": "medicine"
+  },
+  {
+    "title": "Angewandte Chemie International Edition",
+    "issn": [
+      "1433-7851",
+      "1521-3773"
+    ],
+    "field_hint": "chemistry"
+  },
+  {
+    "title": "eLife",
+    "issn": [
+      "2050-084X"
+    ],
+    "field_hint": "biology"
+  }
+]

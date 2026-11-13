@@ -2,7 +2,8 @@
 
 Each Judged record in WORK/judged.jsonl becomes one feed item. It is an explained card when
 WORK/papers/<id>/explainer/ holds index.html and hero.webp and both check.json and
-review.json say {"pass": true}; otherwise it is a short card. A paper already in the feed is
+review.json say {"pass": true}; otherwise it is a short card. An explained paper's meta.json gets
+"made_by" from WORK/papers/<id>/made_by.json when that file exists. A paper already in the feed is
 not added again, but a short card gains its explainer once one passes. See content_repo for
 the layout and the rules that keep closed chunks unchanged.
 """
@@ -23,7 +24,7 @@ from ..content_repo import KIT, ContentRepo, PublishError
 COMMIT_SUBJECTS = {
     "papers": "Published papers: explainer page, card image, and record for each",
     "feed": "Feed head and chunks the app reads",
-    "state": "Pipeline bookkeeping: which papers are already in the feed",
+    "state": "Pipeline bookkeeping: papers in the feed, source cursors, and the explain queue",
 }
 
 FEED_FIELDS = ("id", "title", "hook", "summary", "field", "tags", "status", "venue", "published", "url", "significance")
@@ -136,6 +137,8 @@ def _explain_meta(meta: dict, record: dict, explained: dict, now: str) -> dict[s
         fulltext_source=record["fulltext"].get("url"),
         check={"render": explained["check"], "review": explained["review"]},
     )
+    if explained["made_by"] is not None:
+        meta["made_by"] = explained["made_by"]
     return {"index.html": explained["index_html"], "hero.webp": explained["hero_bytes"]}
 
 
@@ -154,6 +157,12 @@ def _explainer(paper_id: str, folder: Path) -> dict | None:
             raise PublishError(f"{folder / (name + '.json')} is not a JSON object")
     if verdicts["check"].get("pass") is not True or verdicts["review"].get("pass") is not True:
         return None
+    made_by = None
+    if (folder / "made_by.json").is_file():
+        try:
+            made_by = json.loads((folder / "made_by.json").read_text())
+        except json.JSONDecodeError as error:
+            raise PublishError(f"{folder / 'made_by.json'} is not valid JSON: {error}")
     hero_bytes = hero.read_bytes()
     try:
         with Image.open(io.BytesIO(hero_bytes)) as image:
@@ -168,6 +177,7 @@ def _explainer(paper_id: str, folder: Path) -> dict | None:
         "hero_bytes": hero_bytes,
         "check": verdicts["check"],
         "review": verdicts["review"],
+        "made_by": made_by,
     }
 
 

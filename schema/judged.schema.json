@@ -164,7 +164,7 @@
     },
     "explain": {
       "type": "boolean",
-      "description": "True when this paper is queued for an explainer."
+      "description": "Set by select: true when the paper is worth an explainer (full text of a kind listed in pipeline/config.json, significance at least the explain floor). queue add queues these."
     }
   }
 }

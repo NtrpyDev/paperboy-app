@@ -120,6 +120,31 @@ def test_paper_with_a_passing_explainer_is_published_as_an_explained_card(tmp_pa
     assert meta["check"]["review"]["pass"] is True
 
 
+MADE_BY = {"expert": "claude-opus-5-5", "visualizer": "claude-opus-5-5", "checker": "claude-sonnet-5-5"}
+
+
+def test_explained_paper_records_which_models_made_it(tmp_path):
+    work = write_work(tmp_path / "work", [judged(1), judged(2)], explained={"arxiv-2611.00001": {}, "arxiv-2611.00002": {}})
+    (work / "papers/arxiv-2611.00001/made_by.json").write_text(json.dumps(MADE_BY))
+    content = tmp_path / "content"
+
+    assert publish(work, content) == 0
+
+    assert read_json(content / "papers/arxiv-2611.00001/meta.json")["made_by"] == MADE_BY
+    assert "made_by" not in read_json(content / "papers/arxiv-2611.00002/meta.json")
+
+
+def test_made_by_without_every_role_aborts_with_nothing_written(tmp_path, capsys):
+    work = write_work(tmp_path / "work", [judged(1)], explained={"arxiv-2611.00001": {}})
+    (work / "papers/arxiv-2611.00001/made_by.json").write_text(json.dumps({"expert": "claude-opus-5-5"}))
+    content = tmp_path / "content"
+
+    assert publish(work, content) == 1
+
+    assert not (content / "papers").exists()
+    assert "made_by" in capsys.readouterr().err
+
+
 @pytest.mark.parametrize(
     "opts",
     [{"check": False}, {"review": False}, {"files": False}],
@@ -283,24 +308,14 @@ def test_seen_state_records_each_paper_by_month_added(tmp_path):
     assert json.loads(december)["id"] == "arxiv-2611.00002"
 
 
-def test_cursors_hold_the_newest_published_date_per_source(tmp_path):
+def test_publish_never_touches_the_cursors(tmp_path):
     content = tmp_path / "content"
-    publish(
-        write_work(
-            tmp_path / "w1",
-            [
-                judged(1, published="2026-11-09"),
-                judged(2, published="2026-11-11"),
-                judged(3, published="2026-11-10"),
-                judged(4, id="doi-10.1101-1", arxiv_id=None, doi="10.1101/1", source="biorxiv", published="2026-11-08"),
-            ],
-        ),
-        content,
-    )
-    assert read_json(content / "state/cursors.json") == {"v": 1, "cursors": {"arxiv": "2026-11-11", "biorxiv": "2026-11-08"}}
+    publish(write_work(tmp_path / "w1", [judged(1, published="2026-11-11")]), content)
+    assert not (content / "state/cursors.json").exists()
 
-    publish(write_work(tmp_path / "w2", [judged(5, published="2026-11-01")]), content)
-    assert read_json(content / "state/cursors.json")["cursors"]["arxiv"] == "2026-11-11"
+    (content / "state/cursors.json").write_text('{"v": 1, "cursors": {"arxiv": "2026-11-01"}}\n')
+    publish(write_work(tmp_path / "w2", [judged(2, published="2026-11-11")]), content)
+    assert (content / "state/cursors.json").read_text() == '{"v": 1, "cursors": {"arxiv": "2026-11-01"}}\n'
 
 
 SCHEMA_FOR = [
@@ -386,13 +401,14 @@ def test_unreadable_explainer_files_abort_with_nothing_changed(tmp_path):
 
 def test_output_that_fails_its_schema_aborts_with_nothing_changed(tmp_path, capsys):
     content = published_repo(tmp_path)
-    (content / "state/cursors.json").write_text('{"v": 1, "cursors": {"nature": "2026-01-01"}}\n')
+    with (content / "state/seen/2026-11.jsonl").open("a") as f:
+        f.write('{"id": "arxiv-2611.99999", "title_key": "not a key"}\n')
     before = tree(content)
 
     assert publish(write_work(tmp_path / "work", [judged(60)]), content) == 1
 
     assert tree(content) == before
-    assert "state/cursors.json" in capsys.readouterr().err
+    assert "state/seen/2026-11.jsonl" in capsys.readouterr().err
 
 
 def test_bad_now_aborts(tmp_path):
@@ -421,7 +437,7 @@ def git_repo(path: Path) -> Path:
 SUBJECTS = {
     "feed": "Feed head and chunks the app reads",
     "papers": "Published papers: explainer page, card image, and record for each",
-    "state": "Pipeline bookkeeping: which papers are already in the feed",
+    "state": "Pipeline bookkeeping: papers in the feed, source cursors, and the explain queue",
 }
 
 
@@ -455,6 +471,25 @@ def test_commit_skips_folders_that_did_not_change(tmp_path):
     subjects = git(content, "log", "--format=%s").splitlines()
     assert sorted(subjects[:2]) == sorted([SUBJECTS["feed"], SUBJECTS["papers"]])
     assert len(subjects) == count + 2
+
+
+def test_state_commit_carries_the_explain_queue_and_its_removals(tmp_path):
+    content = git_repo(tmp_path / "content")
+    work = write_work(tmp_path / "work", [judged(1)])
+    (content / "state/queue").mkdir(parents=True)
+    (content / "state/queue/arxiv-2611.00002.json").write_text("{}\n")
+    (content / "state/queue/arxiv-2611.00003.json").write_text("{}\n")
+    (content / "state/queue-failed.jsonl").write_text('{"id": "arxiv-2611.00004", "reason": "x", "at": "%s"}\n' % NOW)
+
+    assert publish(work, content, "--commit") == 0
+    committed = git(content, "show", "--name-only", "--format=", git(content, "log", "-1", "--format=%H", "--", "state").strip()).split()
+    assert {"state/queue/arxiv-2611.00002.json", "state/queue/arxiv-2611.00003.json", "state/queue-failed.jsonl"} <= set(committed)
+
+    (content / "state/queue/arxiv-2611.00002.json").unlink()
+    assert publish(work, content, "--commit") == 0
+    assert git(content, "status", "--porcelain").strip() == ""
+    assert git(content, "log", "-1", "--format=%s").strip() == SUBJECTS["state"]
+    assert "state/queue/arxiv-2611.00002.json" not in git(content, "ls-files", "state")
 
 
 def test_without_commit_nothing_is_committed(tmp_path):

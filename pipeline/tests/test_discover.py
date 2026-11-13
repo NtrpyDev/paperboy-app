@@ -10,8 +10,9 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 import httpx
+import pytest
 
-from paperboy_pipeline import ids, schemas
+from paperboy_pipeline import ids, journals, schemas
 from paperboy_pipeline.cli import build_parser
 from paperboy_pipeline.commands import discover
 
@@ -20,6 +21,13 @@ TODAY = date(2026, 11, 13)
 FIRST_ARXIV_TOKEN = "verb%3DListRecords%26metadataPrefix%3DarXivRaw%26from%3D2026-11-11%26skip%3D1300"
 EPMC_SECOND_CURSOR = "AoJwwKSw4aEDKDU2ODk1ODYz"
 CROSSREF_SECOND_CURSOR = "MTc5NDUzOTYyOTAwMCwxMC42Mjk1MSUyRnNvbHVzaWJlcnNhbWEudjNpNC4zNzE4"
+EPMC_JOURNALS_SECOND_CURSOR = "AoJwgPD546EDKDU2ODk5NDcx"
+
+
+@pytest.fixture(autouse=True)
+def four_journals(monkeypatch):
+    """Tests follow four real journals (JACS, The Lancet, Angewandte, eLife) unless they say otherwise."""
+    monkeypatch.setattr(journals, "PATH", FIXTURES / "journals.json")
 
 
 class FakeClock:
@@ -47,6 +55,8 @@ def default_route(request: httpx.Request) -> str | None:
             return {"0": "biorxiv/page0.json", "3": "biorxiv/page1.json"}[cursor]
         return "medrxiv/page0.json"
     if url.hostname == "www.ebi.ac.uk":
+        if "ISSN:" in q["query"]:
+            return "journals/europepmc_empty.json"
         return {"*": "europepmc/page1.json", EPMC_SECOND_CURSOR: "europepmc/page2.json"}[q["cursorMark"]]
     if url.hostname == "api.crossref.org":
         return "crossref/page1.json" if q["cursor"] == "*" else "crossref/page2.json"
@@ -129,7 +139,7 @@ def test_arxiv_requests_are_three_seconds_apart_and_follow_the_resumption_token(
     times = sources.times("oaipmh.arxiv.org")
     assert len(times) == 2
     assert times[1] - times[0] >= 3.0
-    assert "from=2026-11-11" in sources.urls("oaipmh.arxiv.org")[0]
+    assert "from=2026-11-11&until=2026-11-12" in sources.urls("oaipmh.arxiv.org")[0]
     assert "resumptionToken=" in sources.urls("oaipmh.arxiv.org")[1]
 
 
@@ -204,9 +214,9 @@ def test_biorxiv_and_medrxiv_first_versions_become_candidates(tmp_path):
     assert by_id(records)["doi-10.64898-2026.11.09.26367690"]["fulltext"]["kind"] == "biorxiv"
     assert by_id(records)["doi-10.64898-2026.11.08.765212"]["license"] == "other"
     assert sources.urls("api.biorxiv.org") == [
-        "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-13/0/json",
-        "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-13/3/json",
-        "https://api.biorxiv.org/details/medrxiv/2026-11-11/2026-11-13/0/json",
+        "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-12/0/json",
+        "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-12/3/json",
+        "https://api.biorxiv.org/details/medrxiv/2026-11-11/2026-11-12/0/json",
     ]
 
 
@@ -250,10 +260,10 @@ def test_europepmc_open_access_articles_and_preprints_become_candidates(tmp_path
     assert (preprint["status"], preprint["venue"], preprint["license"]) == ("preprint", "medRxiv", "cc-by-nc")
     assert preprint["fulltext"]["url"] == "https://www.ebi.ac.uk/europepmc/webservices/rest/PPR1334369/fullTextXML"
     query = parse_qs(urlsplit(sources.urls("www.ebi.ac.uk")[0]).query)
-    assert query["query"] == ["OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[2026-11-10 TO 2026-11-13]"]
+    assert query["query"] == ["OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[2026-11-10 TO 2026-11-12]"]
     assert query["sort"] == ["FIRST_PDATE_D desc"]
-    # The second page repeats the cursor it was asked with, which marks the end.
-    assert len(sources.urls("www.ebi.ac.uk")) == 2
+    # The second page repeats the cursor it was asked with, which marks the end. Then the journal query.
+    assert len(sources.urls("www.ebi.ac.uk")) == 3
 
 
 def test_europepmc_service_unavailable_body_is_retried(tmp_path):
@@ -296,7 +306,9 @@ def test_crossref_journal_articles_become_candidates_without_full_text(tmp_path)
     other = by_id(records)["doi-10.22335-rlct.v18i3.2411"]
     assert (other["venue"], other["license"], other["published"]) == ("Revista Logos Ciencia & Tecnología", None, "2026-11-12")
     query = parse_qs(urlsplit(sources.urls("api.crossref.org")[0]).query)
-    assert query["filter"] == ["from-created-date:2026-11-11,type:journal-article,has-abstract:true"]
+    assert query["filter"] == [
+        "from-created-date:2026-11-11,until-created-date:2026-11-12,type:journal-article,"
+        "issn:0002-7863,issn:1520-5126,issn:0140-6736,issn:1474-547X,issn:1433-7851,issn:1521-3773,issn:2050-084X"]
     assert (query["sort"], query["order"], query["cursor"]) == (["created"], ["desc"], ["*"])
     assert "mailto" not in query
 
@@ -380,11 +392,11 @@ def test_every_source_together_writes_valid_unique_candidates_newest_first(tmp_p
     dates = [r["published"] for r in records]
     assert dates == sorted(dates, reverse=True)
     assert capsys.readouterr().out.splitlines() == [
-        "arxiv: 5 found, 5 written",
-        "biorxiv: 3 found, 3 written",
-        "medrxiv: 2 found, 2 written",
-        "europepmc: 4 found, 4 written",
-        "crossref: 3 found, 3 written",
+        "arxiv: 5 found, 5 written, 0 dropped without abstract",
+        "biorxiv: 3 found, 3 written, 0 dropped without abstract",
+        "medrxiv: 2 found, 2 written, 0 dropped without abstract",
+        "europepmc: 4 found, 4 written, 0 dropped without abstract",
+        "crossref: 3 found, 3 written, 0 dropped without abstract",
     ]
 
 
@@ -430,27 +442,59 @@ def test_journal_article_of_a_preprint_already_in_the_feed_is_skipped(tmp_path):
     assert records == []
 
 
-def test_cursors_set_each_source_start_and_a_missing_cursor_means_two_days(tmp_path):
+def test_each_source_starts_the_day_after_its_cursor_and_ends_yesterday(tmp_path):
     content = tmp_path / "content"
     write_state(content, cursors={"arxiv": "2026-11-05", "crossref": "2026-11-09"})
     _, _, sources = run(tmp_path, content=content)
-    assert "from=2026-11-05" in sources.urls("oaipmh.arxiv.org")[0]
-    assert "from-created-date%3A2026-11-09" in sources.urls("api.crossref.org")[0]
-    assert sources.urls("api.biorxiv.org")[0] == "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-13/0/json"
+    assert "from=2026-11-06&until=2026-11-12" in sources.urls("oaipmh.arxiv.org")[0]
+    assert "from-created-date%3A2026-11-10%2Cuntil-created-date%3A2026-11-12" in sources.urls("api.crossref.org")[0]
+    # No cursor: the last two finished days.
+    assert sources.urls("api.biorxiv.org")[0] == "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-12/0/json"
 
 
-def test_missing_state_folder_means_nothing_seen_and_the_last_two_days(tmp_path):
+def test_missing_state_folder_means_nothing_seen_and_the_last_two_finished_days(tmp_path):
     code, records, sources = run(tmp_path, "--sources", "arxiv", content=tmp_path / "no-such-checkout")
     assert code == 0
     assert len(records) == 5
-    assert "from=2026-11-11" in sources.urls("oaipmh.arxiv.org")[0]
+    assert "from=2026-11-11&until=2026-11-12" in sources.urls("oaipmh.arxiv.org")[0]
+
+
+def test_until_sets_the_last_day_of_every_window(tmp_path):
+    content = tmp_path / "content"
+    write_state(content, cursors={"biorxiv": "2026-11-07"})
+    _, _, sources = run(tmp_path, "--sources", "biorxiv,medrxiv,europepmc", "--until", "2026-11-09", content=content)
+    assert sources.urls("api.biorxiv.org") == [
+        "https://api.biorxiv.org/details/biorxiv/2026-11-08/2026-11-09/0/json",
+        "https://api.biorxiv.org/details/biorxiv/2026-11-08/2026-11-09/3/json",
+        "https://api.biorxiv.org/details/medrxiv/2026-11-08/2026-11-09/0/json",
+    ]
+    query = parse_qs(urlsplit(sources.urls("www.ebi.ac.uk")[0]).query)
+    assert query["query"] == ["OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[2026-11-08 TO 2026-11-09]"]
+
+
+def test_a_source_already_processed_through_the_last_day_is_skipped(tmp_path, capsys):
+    content = tmp_path / "content"
+    write_state(content, cursors={"arxiv": "2026-11-12", "biorxiv": "2026-11-11"})
+    code, records, sources = run(tmp_path, "--sources", "arxiv,biorxiv", content=content)
+    assert code == 0
+    assert sources.urls("oaipmh.arxiv.org") == []
+    assert sources.urls("api.biorxiv.org")[0] == "https://api.biorxiv.org/details/biorxiv/2026-11-12/2026-11-12/0/json"
+    assert {r["source"] for r in records} == {"biorxiv"}
+    assert capsys.readouterr().out.splitlines()[0] == "arxiv: skipped, processed through 2026-11-12"
+
+
+def test_since_after_until_is_refused(tmp_path, capsys):
+    code, records, sources = run(tmp_path, "--since", "2026-11-13")
+    assert code == 2
+    assert sources.requests == []
+    assert "--since 2026-11-13 is after --until 2026-11-12" in capsys.readouterr().err
 
 
 def test_since_overrides_cursors(tmp_path):
     content = tmp_path / "content"
     write_state(content, cursors={"arxiv": "2026-11-05"})
     _, _, sources = run(tmp_path, "--sources", "arxiv", "--since", "2026-11-12", content=content)
-    assert "from=2026-11-12" in sources.urls("oaipmh.arxiv.org")[0]
+    assert "from=2026-11-12&until=2026-11-12" in sources.urls("oaipmh.arxiv.org")[0]
 
 
 def test_rate_limited_answer_is_retried_after_the_time_the_server_asks(tmp_path):
@@ -472,7 +516,7 @@ def test_a_failing_source_is_reported_and_the_others_are_still_written(tmp_path,
     assert len(sources.times("oaipmh.arxiv.org")) == 5
     out = capsys.readouterr().out.splitlines()
     assert out[0].startswith("arxiv: failed: ")
-    assert out[1] == "biorxiv: 3 found, 3 written"
+    assert out[1] == "biorxiv: 3 found, 3 written, 0 dropped without abstract"
 
 
 def test_requests_carry_the_pipeline_user_agent_and_no_contact_details(tmp_path):
@@ -493,3 +537,108 @@ def test_short_generic_titles_do_not_merge_different_papers(tmp_path):
     _, records, _ = run(tmp_path, "--sources", "crossref", "--since", "2026-11-11",
                         overrides={"api.crossref.org": first_page_only(str(tmp_path / "editorials.json"))})
     assert len(records) == 3
+
+
+def journal_crossref(request):
+    q = parse_qs(urlsplit(str(request.url)).query)
+    return "journals/crossref_page1.json" if q["cursor"] == ["*"] else "crossref/page2.json"
+
+
+def journal_europepmc(request):
+    q = parse_qs(urlsplit(str(request.url)).query)
+    if "ISSN:" not in q["query"][0]:
+        return "journals/europepmc_empty.json"
+    return {"*": "journals/europepmc_page1.json", EPMC_JOURNALS_SECOND_CURSOR: "journals/europepmc_empty.json"}[q["cursorMark"][0]]
+
+
+def test_crossref_papers_from_followed_journals_carry_the_journal_name_and_one_without_abstract_is_dropped(tmp_path, capsys):
+    code, records, _ = run(tmp_path, "--sources", "crossref", "--since", "2026-11-12",
+                           overrides={"api.crossref.org": journal_crossref})
+    assert code == 0
+    assert sorted(by_id(records)) == ["doi-10.1021-jacs.6c14033", "doi-10.1021-jacs.6c16409"]
+    assert {r["venue"] for r in records} == {"Journal of the American Chemical Society"}
+    assert all(r["abstract"] for r in records)
+    # The Lancet record has no abstract in Crossref, so no honest summary can be written from it.
+    assert capsys.readouterr().out.splitlines() == ["crossref: 3 found, 2 written, 1 dropped without abstract"]
+
+
+def test_crossref_record_without_abstract_is_kept_when_another_source_has_the_abstract(tmp_path):
+    lancet = json.loads((FIXTURES / "journals/crossref_page1.json").read_text())["message"]["items"][2]
+    page = json.loads((FIXTURES / "journals/europepmc_page1.json").read_text())
+    page["resultList"]["result"][0].update(doi=lancet["DOI"], title=lancet["title"][0])
+    (tmp_path / "epmc.json").write_text(json.dumps(page))
+
+    def europepmc(request):
+        name = journal_europepmc(request)
+        return str(tmp_path / "epmc.json") if name == "journals/europepmc_page1.json" else name
+
+    _, records, _ = run(tmp_path, "--sources", "crossref,europepmc", "--since", "2026-11-11",
+                        overrides={"api.crossref.org": journal_crossref, "www.ebi.ac.uk": europepmc})
+    merged = by_id(records)[ids.paper_id(doi=lancet["DOI"])]
+    assert merged["abstract"]
+    assert merged["source"] == "europepmc"
+
+
+def test_europepmc_asks_for_followed_journals_whether_or_not_they_are_open_access(tmp_path):
+    code, records, sources = run(tmp_path, "--sources", "europepmc", "--since", "2026-11-11",
+                                 overrides={"www.ebi.ac.uk": journal_europepmc})
+    assert code == 0
+    queries = [parse_qs(urlsplit(url).query)["query"][0] for url in sources.urls("www.ebi.ac.uk")]
+    assert queries[0] == "OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[2026-11-11 TO 2026-11-12]"
+    assert queries[1] == (
+        '(ISSN:"0002-7863" OR ISSN:"1520-5126" OR ISSN:"0140-6736" OR ISSN:"1474-547X" OR ISSN:"1433-7851" '
+        'OR ISSN:"1521-3773" OR ISSN:"2050-084X") AND HAS_DOI:y AND FIRST_PDATE:[2026-11-11 TO 2026-11-12]')
+    closed = by_id(records)["doi-10.1002-anie.9539988"]
+    assert closed["venue"] == "Angewandte Chemie International Edition"
+    assert closed["status"] == "peer_reviewed"
+    assert closed["abstract"]
+    assert closed["fulltext"] == {"available": False, "kind": None, "url": None}
+    assert closed["url"] == "https://doi.org/10.1002/anie.9539988"
+    open_access = by_id(records)["doi-10.7554-elife.109761"]
+    assert open_access["venue"] == "eLife"
+    assert open_access["fulltext"]["available"] is True
+    assert open_access["fulltext"]["kind"] == "europepmc"
+
+
+def test_a_paper_both_europepmc_queries_return_is_counted_once(tmp_path, capsys):
+    def both(request):
+        q = parse_qs(urlsplit(str(request.url)).query)
+        return "journals/europepmc_page1.json" if q["cursorMark"] == ["*"] else "journals/europepmc_empty.json"
+
+    run(tmp_path, "--sources", "europepmc", "--since", "2026-11-11", overrides={"www.ebi.ac.uk": both})
+    assert capsys.readouterr().out.splitlines() == ["europepmc: 3 found, 3 written, 0 dropped without abstract"]
+
+
+def test_the_followed_journal_list_is_split_across_requests_of_sane_length(tmp_path, monkeypatch):
+    monkeypatch.setattr(journals, "PATH", journals.DEFAULT_PATH)
+    empty = {"api.crossref.org": "crossref/page2.json", "www.ebi.ac.uk": "journals/europepmc_empty.json"}
+    _, _, sources = run(tmp_path, "--sources", "crossref,europepmc", "--since", "2026-11-12", overrides=empty)
+    followed = [issn for journal in journals.load() for issn in journal["issn"]]
+
+    crossref = [parse_qs(urlsplit(url).query)["filter"][0] for url in sources.urls("api.crossref.org")]
+    asked = [part[5:] for f in crossref for part in f.split(",") if part.startswith("issn:")]
+    assert sorted(asked) == sorted(followed)
+    europepmc = [parse_qs(urlsplit(url).query)["query"][0] for url in sources.urls("www.ebi.ac.uk")][1:]
+    asked = [part.split('"')[1] for q in europepmc for part in q.split(" OR ") if 'ISSN:"' in part]
+    assert sorted(asked) == sorted(followed)
+    assert len(crossref) > 1 and len(europepmc) > 1
+    for url in sources.urls("api.crossref.org") + sources.urls("www.ebi.ac.uk"):
+        assert len(url) <= 2000
+    # A journal's ISSNs travel together, so one article never arrives from two requests.
+    for journal in journals.load():
+        assert sum(any(f"issn:{i}" in f.split(",") for i in journal["issn"]) for f in crossref) == 1
+
+
+def test_followed_journal_list_is_well_formed_and_has_no_repeated_issn(monkeypatch):
+    monkeypatch.setattr(journals, "PATH", journals.DEFAULT_PATH)
+    listed = journals.load()
+    assert len(listed) >= 40
+    fields = {"physics", "space", "math", "cs", "biology", "neuroscience", "medicine", "chemistry", "earth", "engineering", "social"}
+    seen = set()
+    for journal in listed:
+        assert set(journal) == {"title", "issn", "field_hint"}
+        assert journal["field_hint"] in fields | {None}
+        for issn in journal["issn"]:
+            assert issn not in seen
+            seen.add(issn)
+            assert len(issn) == 9 and issn[4] == "-"

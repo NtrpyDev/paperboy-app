@@ -25,15 +25,21 @@ Commands read and write one work folder (never committed):
 ```
 work/
   candidates.jsonl                 discover writes; one Candidate per line
-  judged.jsonl                     the scout writes; one Judged per line
+  triage/NNN.tsv                   batch --triage writes; one title line per paper
+  triage-picks/NNN.txt             the triage agent writes; picked ids, one per line
+  batches/NNN.jsonl                batch writes; the scout's input
+  judged/NNN.jsonl                 the scout writes; one Judged per line
+  judged.jsonl                     select writes; queue take appends the papers it takes
+  explain-queue.txt                queue take writes; this run's papers to explain, best first
   papers/<paper id>/
-    candidate.json                 the paper's Judged record
+    candidate.json                 queue take writes; the paper's Judged record
     fulltext.md  source.json       fetch writes
     brief.md                       the expert writes
     explainer/index.html           the visualizer writes
     explainer/hero.webp            check writes
     check.json  shots/             check writes
     review.json                    the checker writes: {"pass": true|false, "problems": [...]}
+    made_by.json                   the orchestrator writes: {"expert", "visualizer", "checker"} model ids
 ```
 
 `publish` takes the work folder and a content repo checkout. A paper is published with its explainer only when `check.json` and `review.json` both pass; otherwise it is published as a short card.
@@ -48,6 +54,7 @@ Reads every Judged record in `WORK/judged.jsonl` and writes it into the content 
 
 - **Explained card**: when `WORK/papers/<id>/explainer/index.html` and `explainer/hero.webp` exist and both `check.json` and `review.json` hold `"pass": true`, publish writes `papers/<id>/index.html`, `hero.webp`, and `meta.json`, and the feed item gets `has_explainer: true`, `explainer: "papers/<id>/"`, and `hero` with the image's pixel size.
 - **Short card**: otherwise only `papers/<id>/meta.json` is written and the item has `has_explainer: false`.
+- **Who made it**: an explained paper's `meta.json` gets `made_by` from `WORK/papers/<id>/made_by.json` (`{"expert", "visualizer", "checker"}`, each a model id) when that file exists. Without the file the field is left out.
 
 What it writes in the content repo (schemas in `schema/`):
 
@@ -57,22 +64,22 @@ feed/v1/chunks/000001.json    Chunk: up to 40 items, oldest first
 feed/v1/upgrades.json         Upgrades: explainers added to items in closed chunks
 papers/<id>/meta.json         PaperMeta (plus index.html and hero.webp when explained)
 state/seen/<YYYY-MM>.jsonl    Seen: one line per paper in the feed, by the month it was added
-state/cursors.json            Cursors: per source, the newest published date publish has added
 ```
+
+Publish never writes `state/cursors.json` (the `cursors` command does) or `state/queue/` (the `queue` command does), but `--commit` commits whatever changed under `state/`, so cursor moves, queue additions, and queue removals go out in the state commit.
 
 Rules:
 
 - **Chunks.** New items append to the open chunk, the highest numbered chunk while it holds fewer than 40 items. When it is full the next item starts a new chunk. A full chunk is closed and is never written again.
 - **No duplicates.** A paper whose id, DOI, arXiv id, or title key matches a line in `state/seen/` is not added again. Discover reads the same files.
 - **Upgrades.** When a paper already in the feed as a short card now has a passing explainer, publish writes its explainer files and an updated `meta.json`. If the item is in the open chunk, it is updated in place. If its chunk is closed, the chunk is left alone and the paper is added to `feed/v1/upgrades.json` as `{"explainer", "hero", "explained_at"}`; the app merges that entry over the item.
-- **Cursors.** Each source's cursor moves forward to the newest `published` date among the papers added from it. It never moves back.
 - **All or nothing.** Every file is checked against its schema before anything is written. Invalid input or invalid output exits with status 1 and leaves the repo unchanged.
 - **Reruns change nothing.** JSON is written with sorted keys, two-space indent, and a trailing newline, and a file is only written when its bytes change. The head is rewritten only in a run that changes something else. A second run with the same work folder leaves the tree byte-identical.
 - **`--now`** fixes the clock (for tests). Without it the current UTC time is used.
 - **`--commit`** makes one commit per changed top-level folder, each containing only that folder, so each folder's last commit subject describes it:
   - `feed/`: "Feed head and chunks the app reads"
   - `papers/`: "Published papers: explainer page, card image, and record for each"
-  - `state/`: "Pipeline bookkeeping: which papers are already in the feed"
+  - `state/`: "Pipeline bookkeeping: papers in the feed, source cursors, and the explain queue"
 
   Other changes in the checkout are left uncommitted. A run that changes nothing makes no commit.
 - **`--push`** runs `git push origin main`. It never forces.
@@ -80,24 +87,26 @@ Rules:
 ## discover
 
 ```
-paperboy-pipeline discover --work WORK --content CONTENT_REPO [--since YYYY-MM-DD] [--sources arxiv,biorxiv,medrxiv,europepmc,crossref] [--limit N]
+paperboy-pipeline discover --work WORK --content CONTENT_REPO [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--sources arxiv,biorxiv,medrxiv,europepmc,crossref] [--limit N]
 ```
 
-Lists newly released papers and writes them to `WORK/candidates.jsonl`, one Candidate per line (`schema/candidate.schema.json`), newest first. Prints one line per source: how many new papers it returned and how many candidates were written with that source.
+Lists newly released papers and writes them to `WORK/candidates.jsonl`, one Candidate per line (`schema/candidate.schema.json`), newest first. Prints one line per source: `<source>: N found, N written, N dropped without abstract`, or `<source>: skipped, processed through <date>`, or `<source>: failed: <error>`.
 
-- **Start date.** `--since` for every source when given. Otherwise each source's cursor in `CONTENT_REPO/state/cursors.json`. A source without a cursor, or a checkout without `state/`, starts two days before today (UTC). The window always ends today.
-- **Sources.** One adapter per source in `src/paperboy_pipeline/sources/`, each a function `fetch(since, limit, http)`:
-  - arXiv: OAI-PMH at `https://oaipmh.arxiv.org/oai`, format `arXivRaw` (the only arXiv interface that states the license). All categories. A paper counts as new when its first version is at most 7 days older than the start date; older records that changed in the window (revisions, added DOIs) are context only.
+- **Window.** Whole days, both ends inclusive, UTC. It ends on `--until`, by default yesterday. It starts on `--since` when given; otherwise the day after the source's cursor in `CONTENT_REPO/state/cursors.json` (the last day already processed, see `cursors`); otherwise the day before `--until`, so a source without a cursor, or a checkout without `state/`, reads the last two finished days. A source whose cursor is already `--until` or later is skipped. `--since` after `--until` exits with status 2.
+- **Sources.** One adapter per source in `src/paperboy_pipeline/sources/`, each a function `fetch(since, until, limit, http)` that puts the window into its query on the date that source uses to decide newness:
+  - arXiv: OAI-PMH at `https://oaipmh.arxiv.org/oai`, format `arXivRaw` (the only arXiv interface that states the license), `from` and `until` on the record datestamp (day granularity). All categories. A paper counts as new when its first version is at most 7 days older than the start date; older records that changed in the window (revisions, added DOIs) are context only.
   - bioRxiv and medRxiv: `https://api.biorxiv.org/details/<server>/<from>/<to>/<cursor>/json`. Only first versions are new; later versions are context only.
-  - Europe PMC: REST search for `OPEN_ACCESS:y AND HAS_DOI:y` first published in the window, newest first. Records marked as preprints keep status `preprint`.
-  - Crossref: journal articles with an abstract created in the window, newest first, public pool (no mailto).
+  - Europe PMC: two REST searches, both with a DOI and first published in the window (`FIRST_PDATE`), newest first: `OPEN_ACCESS:y` from anywhere, and every record from the followed journals (`ISSN:"..." OR ...`) whether or not it is open access, so a paywalled paper still arrives with its PubMed abstract. A paper both return is kept once. `fulltext.available` is true only for an open access record with a full text id. Records marked as preprints keep status `preprint`.
+  - Crossref: journal articles from the followed journals created in the window (`from-created-date`, `until-created-date`), newest first, public pool (no mailto). Crossref ORs repeated `issn:` filters and ANDs different ones.
+- **Followed journals.** `pipeline/journals.json` lists the peer-reviewed journals the feed follows as `{"title", "issn": [...], "field_hint"}`. Every ISSN was looked up from Crossref's journals endpoint on 2026-11-13 (print and electronic ISSNs only). The ISSNs are split across requests, at most 40 per request and never splitting a journal, so each URL stays under 2,000 characters. A Crossref or Europe PMC record whose ISSN belongs to a followed journal takes that journal's `title` as its venue, so `batch` can recognize it.
+- **No abstract, no candidate.** After duplicates are merged, a paper that still has no abstract is dropped and counted in its source's line: an honest summary cannot be written from a title.
 - **Duplicates.** Records of one paper (same DOI, arXiv id, or title key; or a journal DOI the preprint server names) become one candidate. A journal record supplies the metadata and status; a preprint lends its full text pointer and that text's license when the journal record has none. See `src/paperboy_pipeline/dedupe.py`.
 - **Already published.** A paper whose id, DOI, arXiv id, or title key matches a line in `CONTENT_REPO/state/seen/` is skipped. Discover never writes to the content repo.
 - **Requests.** One shared client with User-Agent `paperboy-pipeline/0.1 (+https://github.com/NtrpyDev/paperboy-app)` and no email or other personal detail. arXiv requests start at least 3 seconds apart, Crossref requests at least 1 second apart. 429, 5xx, and connection errors are retried up to 4 times with doubling backoff, waiting at least as long as `Retry-After` asks.
 - **Abstracts** are pipeline input only. JATS and HTML tags are removed; LaTeX is kept as written.
 - **Exit status** is 1 when a source failed after retries or a record did not match the schema. The candidates from the other sources are still written.
 
-Live smoke run (not part of the test suite; makes one request per source and took about 20 seconds on 2026-11-13):
+Live smoke run (not part of the test suite; makes one request per source):
 
 ```
 cd pipeline
@@ -105,7 +114,7 @@ mkdir -p work/smoke-content
 uv run paperboy-pipeline discover --work work/smoke --content work/smoke-content --limit 5
 ```
 
-Every source should print `5 found, 5 written`. The empty content folder means nothing is seen yet and the window is the last two days. `work/` is ignored by git.
+Every source should print `5 found`; Crossref may drop some of its five for having no abstract. The empty content folder means nothing is seen yet and the window is the last two finished days. `work/` is ignored by git.
 
 ## check
 
@@ -185,3 +194,58 @@ done
 ```
 
 Each line reports the characters, section count, and license; read `$WORK/papers/*/fulltext.md` to judge the result.
+
+## batch
+
+```
+paperboy-pipeline batch --work WORK --triage
+paperboy-pipeline batch --work WORK [--size 15]
+paperboy-pipeline batch --work WORK --all [--size 15]
+```
+
+Judging every abstract with a model is wasteful, so judging starts with titles.
+
+- **`--triage`** writes `WORK/triage/NNN.tsv`, at most 150 lines each and split evenly (so no file is a short tail), one paper per line: `id`, `source`, `venue`, the categories joined by a space, and `title`, separated by tabs, with any tab or line break inside a field turned into a space. A `paperboy-triage` agent reads one file and writes the ids worth a closer look to `WORK/triage-picks/NNN.txt`, at most 15 percent of its lines.
+- **Followed journals skip triage.** A paper with source `crossref` or `europepmc` whose venue is a `title` in `pipeline/journals.json` is never put in a triage file; it goes straight to the abstract batches.
+- **Plain `batch`** writes `WORK/batches/NNN.jsonl`, `--size` candidates each (default 15): the picked ids plus the followed-journal papers, in `candidates.jsonl` order. Without `WORK/triage-picks/` it exits with status 1 and writes nothing. Its JSON summary lists `triage_files_without_picks`, the triage files no agent answered.
+- **`--all`** batches every candidate without triage.
+
+## select
+
+```
+paperboy-pipeline select --work WORK [--floor 5.0] [--explain-floor 6.5]
+```
+
+Merges the scout's `WORK/judged/*.jsonl`, drops lines that are not valid Judged records (printed as `rejected_lines`), keeps the first record of each id, drops papers below `--floor`, and writes `WORK/judged.jsonl`. It sets `explain` to true on a paper worth an explainer: full text available, its `fulltext.kind` listed in `pipeline/config.json`, and significance at least `--explain-floor`. The default floor is defined once, in `src/paperboy_pipeline/explaining.py`, and `queue add` uses the same rule. Select does not choose which papers to explain this run; `queue take` does.
+
+## cursors
+
+```
+paperboy-pipeline cursors --content CONTENT_REPO --set-through YYYY-MM-DD [--sources arxiv,biorxiv,medrxiv,europepmc,crossref]
+```
+
+A cursor is the last day (UTC) a source has been processed through: discovered, judged, and published. This command writes `CONTENT_REPO/state/cursors.json` (`{"v": 1, "cursors": {"<source>": "YYYY-MM-DD"}}`) for the named sources, all five by default. A cursor never moves backward: a date before the current cursor leaves it and prints `already through <date>`. It does not commit; `publish --commit` commits it with `state/`.
+
+## queue
+
+```
+paperboy-pipeline queue add   --content CONTENT_REPO --work WORK [--explain-floor 6.5] [--kinds arxiv_html,europepmc]
+paperboy-pipeline queue take  --content CONTENT_REPO --work WORK --n K
+paperboy-pipeline queue done  --content CONTENT_REPO --id PAPER_ID
+paperboy-pipeline queue fail  --content CONTENT_REPO --id PAPER_ID --reason TEXT
+paperboy-pipeline queue prune --content CONTENT_REPO [--days 21]
+paperboy-pipeline queue list  --content CONTENT_REPO
+```
+
+A paper worth an explainer waits in the content repo until a run gets to it, so the explain phase of each run takes the best papers found so far rather than only that hour's.
+
+- **`add`** writes `CONTENT_REPO/state/queue/<id>.json` for every record in `WORK/judged.jsonl` with full text available, a `fulltext.kind` in the allowlist, and significance at least `--explain-floor`: the Judged record plus `"queued_at"` (UTC, RFC 3339). It never overwrites a waiting paper and never queues a paper listed in `state/queue-failed.jsonl`.
+- **`take`** chooses the K best waiting papers, highest significance first, then newest `published`, then id, skipping failed ones. For each it writes `WORK/papers/<id>/candidate.json` and appends its record to `WORK/judged.jsonl` when that file does not hold it yet, so publish gives it its explainer. It prints the ids, one per line, and writes them to `WORK/explain-queue.txt`. Taking a paper leaves it in the queue until `done` or `fail`.
+- **`done`** deletes the paper's queue file once its explainer is published. Exit 1 when it is not waiting.
+- **`fail`** deletes the queue file and appends `{"id", "reason", "at"}` to `state/queue-failed.jsonl` (`schema/queue-failed.schema.json`), so a paper that cannot be explained is not retried forever.
+- **`prune`** deletes queue files whose `queued_at` is more than `--days` days old.
+- **`list`** prints the number of papers waiting, then the top ten as `significance`, `id`, `published`, `hook`, separated by tabs.
+
+The queue commands only change files in the checkout; `publish --commit` commits them with `state/`.
+
+**Full text kinds.** `pipeline/config.json` holds `explain_fulltext_kinds`, the full text kinds a paper may be explained from: `arxiv_html` and `europepmc`. The kind `biorxiv`, which covers both bioRxiv and medRxiv, is left out on purpose: bioRxiv's robots.txt (`https://www.biorxiv.org/robots.txt`, read 2026-11-13) disallows ClaudeBot, GPTBot, and CCBot by name, and the owner has not yet decided whether to fetch full text from bioRxiv and medRxiv. Their papers still become cards. `queue add --kinds` overrides the list for one call; `select` always reads the file.

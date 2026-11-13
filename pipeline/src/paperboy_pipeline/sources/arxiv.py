@@ -1,8 +1,8 @@
 """arXiv through OAI-PMH (https://oaipmh.arxiv.org/oai), metadata format arXivRaw.
 
 OAI-PMH is the only arXiv interface that states each paper's license, and arXivRaw carries the
-date of every version. `from` selects records by datestamp (the last change), so a revision of
-an old paper shows up too. A record counts as new when its first version is at most
+date of every version. `from` and `until` select records by datestamp (the last change), so a
+revision of an old paper shows up too. A record counts as new when its first version is at most
 NEW_GRACE_DAYS older than `since` (announcement trails submission by a few days). Older records
 are kept as context only: they can lend their full text to a journal record of the same paper
 but never become a candidate on their own.
@@ -21,8 +21,8 @@ OAI = "{http://www.openarchives.org/OAI/2.0/}"
 RAW = "{http://arxiv.org/OAI/arXivRaw/}"
 
 
-def fetch(since: date, limit: int | None, http: Http) -> list[dict]:
-    params = {"verb": "ListRecords", "metadataPrefix": "arXivRaw", "from": since.isoformat()}
+def fetch(since: date, until: date, limit: int | None, http: Http) -> list[dict]:
+    params = {"verb": "ListRecords", "metadataPrefix": "arXivRaw", "from": since.isoformat(), "until": until.isoformat()}
     oldest_new = since - timedelta(days=NEW_GRACE_DAYS)
     records, new_count = [], 0
     while True:

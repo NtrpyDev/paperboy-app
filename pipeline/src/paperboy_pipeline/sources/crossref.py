@@ -1,33 +1,47 @@
-"""Crossref journal articles through the REST API (https://api.crossref.org/works).
+"""Crossref journal articles from the followed journals, through the REST API (https://api.crossref.org/works).
 
-Filter: created on or after `since`, type journal-article, has an abstract; newest created
-first, paged with a deep-paging cursor. No mailto is sent, so requests use the public pool,
-which allows one list request per second (spacing lives in sources.http). Crossref records carry
+Filter: created from `since` through `until`, type journal-article, and one `issn:` filter per
+followed ISSN (paperboy_pipeline.journals). Crossref ORs repeated filters of the same name and
+ANDs different ones. The ISSNs are split across requests (journals.issn_groups) so each URL stays
+a sane length; each request is newest created first, paged with a deep-paging cursor. No mailto
+is sent, so requests use the public pool, which allows one list request per second (spacing
+lives in sources.http). A record with no abstract is kept with an empty one, since another
+source may supply it; discover drops what is still empty after dedupe. Crossref records carry
 no full text pointer here.
 """
 from datetime import date
 
 import httpx
 
-from .. import ids
+from .. import ids, journals
 from .http import Http, SourceError
 from .text import license_from_url, squash, strip_markup
 
 BASE = "https://api.crossref.org/works"
 PAGE = 1000
-FIELDS = "DOI,type,title,author,abstract,container-title,created,published-online,published-print,issued,license,URL"
+FIELDS = "DOI,type,title,author,abstract,container-title,ISSN,created,published-online,published-print,issued,license,URL"
 # License entries by content version, most relevant first: the version of record, then the rest.
 VERSION_ORDER = {"vor": 0, "unspecified": 1, "am": 2, "tdm": 3}
 
 
-def fetch(since: date, limit: int | None, http: Http) -> list[dict]:
-    records, cursor = [], "*"
+def fetch(since: date, until: date, limit: int | None, http: Http) -> list[dict]:
+    records: list[dict] = []
+    window = f"from-created-date:{since.isoformat()},until-created-date:{until.isoformat()},type:journal-article"
+    for issns in journals.issn_groups():
+        if _fetch_group(window + "".join(f",issn:{issn}" for issn in issns), limit, http, records):
+            break
+    return records
+
+
+def _fetch_group(filters: str, limit: int | None, http: Http, records: list[dict]) -> bool:
+    """Append this filter's records to `records`; True when `limit` is reached."""
+    cursor = "*"
     while True:
         params = {
-            "filter": f"from-created-date:{since.isoformat()},type:journal-article,has-abstract:true",
+            "filter": filters,
             "sort": "created",
             "order": "desc",
-            "rows": min(PAGE, limit) if limit else PAGE,
+            "rows": min(PAGE, limit - len(records)) if limit else PAGE,
             "select": FIELDS,
             "cursor": cursor,
         }
@@ -39,10 +53,10 @@ def fetch(since: date, limit: int | None, http: Http) -> list[dict]:
                 continue
             records.append(record)
             if limit is not None and len(records) >= limit:
-                return records
+                return True
         cursor = message.get("next-cursor")
         if not items or not cursor:
-            return records
+            return False
 
 
 def _json(response: httpx.Response) -> dict:
@@ -57,7 +71,7 @@ def _record(item: dict) -> dict | None:
     title = strip_markup((item.get("title") or [""])[0])
     abstract = strip_markup(item.get("abstract"))
     published = _published(item)
-    if not doi or not title or not abstract or not published:
+    if not doi or not title or not published:
         return None
     return {
         "id": ids.paper_id(doi=doi),
@@ -66,7 +80,7 @@ def _record(item: dict) -> dict | None:
         "title": title,
         "authors": _authors(item),
         "abstract": abstract,
-        "venue": strip_markup((item.get("container-title") or [""])[0]),
+        "venue": journals.title_for(item.get("ISSN") or []) or strip_markup((item.get("container-title") or [""])[0]),
         "published": published,
         "status": "peer_reviewed",
         "license": _license(item.get("license") or []),

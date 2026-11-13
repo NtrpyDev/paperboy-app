@@ -13,7 +13,10 @@ Layout (paths relative to the content repo root):
     papers/<id>/hero.webp          the card image (explained papers only)
     papers/<id>/meta.json          PaperMeta
     state/seen/<YYYY-MM>.jsonl     one Seen line per paper in the feed, by month added
-    state/cursors.json             Cursors: newest published date per source
+    state/cursors.json             Cursors: the last day each source is processed through
+                                   (read here; only the cursors command writes it)
+    state/queue/<id>.json          papers waiting for an explainer (the queue command)
+    state/queue-failed.jsonl       papers the queue gave up on (the queue command)
 
 Rules this module keeps:
 - Only the open chunk is ever rewritten. The open chunk is the highest numbered chunk while
@@ -171,12 +174,6 @@ class ContentRepo:
         self._seen_text[rel] = self._seen_text.get(rel, "") + dump_line(entry)
         self._put(rel, self._seen_text[rel].encode(), "seen")
         self._index_seen(entry)
-
-        source = record["source"]
-        current = self.cursors["cursors"].get(source)
-        if current is None or record["published"] > current:
-            self.cursors["cursors"][source] = record["published"]
-        self._put(CURSORS, dump_json(self.cursors), "cursors")
         self._changed = True
 
     def upgrade(self, *, seen: dict, explainer: dict, meta: dict, files: dict[str, bytes]) -> None:

@@ -5,6 +5,9 @@ const REFRESH_MS = 60_000;
 
 const HEAD = "feed/v1/head.json";
 const CHUNK = /^feed\/v1\/chunks\/(\d{6})\.json$/;
+const LONG_CACHE = "public, max-age=31536000, immutable";
+const SHORT_CACHE = "public, max-age=60";
+
 // Every closed chunk holds exactly this many items (chunk_size in schema/head.schema.json).
 const CHUNK_SIZE = 40;
 
@@ -17,7 +20,7 @@ export function createHandler(deps: Deps) {
   // Fetches a file from the content repo and stores it, noting whether it was still
   // changing when fetched. Returns null when the repo does not have it or cannot be
   // reached.
-  async function fill(env: Env, key: string, changing: boolean): Promise<ArrayBuffer | null> {
+  async function fill(env: Env, key: string, changing: boolean): Promise<Filled | null> {
     let res: Response;
     try {
       res = await deps.fetch(ORIGIN + key);
@@ -32,14 +35,14 @@ export function createHandler(deps: Deps) {
     await env.CONTENT.put(key, body, {
       customMetadata: { fetched_at: String(deps.now()), changing: String(changing) },
     });
-    return body;
+    return { body, changing };
   }
 
   // The highest chunk number in the stored head, filling the head first if the
   // bucket does not have it. Null when no head can be read.
   async function openChunk(env: Env): Promise<number | null> {
     const stored = await env.CONTENT.get(HEAD);
-    const text = stored ? await stored.text() : bodyText(await fill(env, HEAD, true));
+    const text = stored ? await stored.text() : bodyText((await fill(env, HEAD, true))?.body ?? null);
     if (text === null) return null;
     try {
       const n = JSON.parse(text).chunk_count;
@@ -73,16 +76,26 @@ export function createHandler(deps: Deps) {
         // edits, so it keeps being refreshed until a copy is fetched after it stopped.
         const storedChanging = stored.customMetadata?.changing === "true";
         const due = (changing || storedChanging) && age > REFRESH_MS;
-        if (!due) return new Response(stored.body);
+        if (!due) return serve(stored.body, storedChanging);
         const fresh = await fill(env, key, changing);
-        return new Response(fresh ?? stored.body);
+        return fresh ? serve(fresh.body, fresh.changing) : serve(stored.body, storedChanging);
       }
 
-      const body = await fill(env, key, changing);
-      if (!body) return notFound();
-      return new Response(body);
+      const filled = await fill(env, key, changing);
+      if (!filled) return notFound();
+      return serve(filled.body, filled.changing);
     },
   };
+}
+
+interface Filled {
+  body: ArrayBuffer;
+  changing: boolean;
+}
+
+function serve(body: BodyInit, changing: boolean): Response {
+  const headers = new Headers({ "cache-control": changing ? SHORT_CACHE : LONG_CACHE });
+  return new Response(body, { headers });
 }
 
 function isFullChunk(body: ArrayBuffer): boolean {

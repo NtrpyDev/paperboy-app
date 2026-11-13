@@ -204,3 +204,32 @@ describe("chunks", () => {
     expect(origin.calls).toHaveLength(callsWhenFull);
   });
 });
+
+describe("cache lifetimes", () => {
+  const LONG = "public, max-age=31536000, immutable";
+  const SHORT = "public, max-age=60";
+  const files = {
+    "feed/v1/head.json": head(2),
+    "feed/v1/chunks/000001.json": JSON.stringify({ v: 1, number: 1, items: Array(40).fill({}) }),
+    "feed/v1/chunks/000002.json": JSON.stringify({ v: 1, number: 2, items: [{}] }),
+    "papers/arxiv-1/index.html": "<!doctype html><title>x</title>",
+    "papers/arxiv-1/meta.json": "{}",
+  };
+
+  it.each([
+    ["/feed/v1/head.json", SHORT],
+    ["/feed/v1/chunks/000002.json", SHORT],
+    ["/feed/v1/chunks/000001.json", LONG],
+    ["/papers/arxiv-1/index.html", LONG],
+    ["/papers/arxiv-1/meta.json", LONG],
+  ])("%s is served with cache-control %s, on a miss and on a hit", async (path, expected) => {
+    const { get } = setup({ ...files });
+    await get("/feed/v1/head.json");
+
+    const miss = await get(path);
+    const hit = await get(path);
+
+    expect(miss.headers.get("cache-control")).toBe(expected);
+    expect(hit.headers.get("cache-control")).toBe(expected);
+  });
+});

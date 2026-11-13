@@ -8,10 +8,11 @@ const ORIGIN = "https://raw.githubusercontent.com/NtrpyDev/paperboy-content/main
 // whole origin taken down between requests, and every call is recorded.
 function fakeOrigin(files: Record<string, string>) {
   const calls: string[] = [];
-  let down = false;
+  let down: false | "error" | "throw" = false;
   const fetch = async (input: RequestInfo | URL): Promise<Response> => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     calls.push(url);
+    if (down === "throw") throw new TypeError("Network connection lost.");
     if (down) return new Response("unavailable", { status: 503 });
     const path = url.startsWith(ORIGIN) ? url.slice(ORIGIN.length) : null;
     if (path === null || !(path in files)) return new Response("404: Not Found", { status: 404 });
@@ -22,8 +23,9 @@ function fakeOrigin(files: Record<string, string>) {
     fetch,
     calls,
     files,
-    takeDown() {
-      down = true;
+    // "error" answers 503; "throw" fails the way fetch does when the host is unreachable.
+    takeDown(how: "error" | "throw" = "error") {
+      down = how;
     },
   };
 }
@@ -108,4 +110,20 @@ describe("the head", () => {
     expect(JSON.parse(await late.text()).chunk_count).toBe(2);
     expect(origin.calls).toHaveLength(2);
   });
+
+  it.each(["error", "throw"] as const)(
+    "is served from the stored copy when the content repo fails during a refresh (%s)",
+    async (how) => {
+      const { origin, time, get } = setup({ "feed/v1/head.json": head(1) });
+      await get("/feed/v1/head.json");
+      origin.takeDown(how);
+      time.advance(120);
+
+      const res = await get("/feed/v1/head.json");
+
+      expect(res.status).toBe(200);
+      expect(JSON.parse(await res.text()).chunk_count).toBe(1);
+      expect(origin.calls).toHaveLength(2);
+    },
+  );
 });

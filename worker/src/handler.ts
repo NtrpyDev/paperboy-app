@@ -12,7 +12,12 @@ export function createHandler(deps: Deps) {
   // Fetches a file from the content repo and stores it. Returns null when the repo
   // does not have it or cannot be reached.
   async function fill(env: Env, key: string): Promise<ArrayBuffer | null> {
-    const res = await deps.fetch(ORIGIN + key);
+    let res: Response;
+    try {
+      res = await deps.fetch(ORIGIN + key);
+    } catch {
+      return null;
+    }
     if (!res.ok) return null;
     const body = await res.arrayBuffer();
     await env.CONTENT.put(key, body, {

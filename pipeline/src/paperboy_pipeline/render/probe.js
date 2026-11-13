@@ -7,7 +7,8 @@
 
   var SECTIONS = ["question", "method", "findings", "confidence", "matters"];
   var KINDS = ["data", "illustration", "paper"];
-  var KIT = "/kit/v1/";
+  var HERO_KINDS = ["data", "illustration"];
+  var KIT = /^\/kit\/v([1-9][0-9]*)\//;
   var MIN_TEXT_PX = 11;
   var MIN_CONTROL_PX = 40;
   var CONTROLS = 'button, input[type="button"], input[type="submit"], input[type="reset"], input[type="range"], .pb-btn';
@@ -54,10 +55,17 @@
   var assets = [];
   document.querySelectorAll("script[src]").forEach(function (n) { assets.push(n.getAttribute("src")); });
   document.querySelectorAll('link[rel~="stylesheet"][href]').forEach(function (n) { assets.push(n.getAttribute("href")); });
-  var stray = assets.filter(function (a) { return a.indexOf(KIT) !== 0; });
-  if (stray.length) s("kit-not-absolute", "scripts and stylesheets must load from " + KIT + ": " + listed(stray));
+  var stray = [], versions = [];
+  assets.forEach(function (a) {
+    var m = KIT.exec(a);
+    if (!m) stray.push(a);
+    else if (versions.indexOf(m[1]) < 0) versions.push(m[1]);
+  });
+  if (stray.length) s("kit-not-absolute", "scripts and stylesheets must load from /kit/v<N>/: " + listed(stray));
+  if (versions.length > 1) s("kit-not-absolute", "kit files must all come from one version, found " + versions.map(function (v) { return "/kit/v" + v + "/"; }).join(", "));
+  var kitBase = versions.length ? "/kit/v" + versions[0] + "/" : "/kit/v<N>/";
   ["paperboy.css", "paperboy.js"].forEach(function (name) {
-    if (assets.indexOf(KIT + name) < 0) s("kit-not-absolute", "does not load " + KIT + name);
+    if (assets.indexOf(kitBase + name) < 0) s("kit-not-absolute", "does not load " + kitBase + name);
   });
 
   var outside = [];
@@ -83,8 +91,12 @@
       [".pb-title", ".pb-dek"].forEach(function (sel) {
         if (!hero.querySelector(sel)) s("hero-incomplete", "hero has no " + sel);
       });
-      var stages = hero.querySelectorAll(".pb-stage").length;
-      if (stages !== 1) s("hero-incomplete", "hero has " + stages + " .pb-stage elements, needs exactly 1");
+      var stages = hero.querySelectorAll(".pb-stage");
+      if (stages.length !== 1) s("hero-incomplete", "hero has " + stages.length + " .pb-stage elements, needs exactly 1");
+      if (stages.length) {
+        var heroKind = stages[0].dataset.kind;
+        if (HERO_KINDS.indexOf(heroKind) < 0) s("hero-without-kind", "the hero .pb-stage needs data-kind data or illustration" + (heroKind !== undefined ? ', has data-kind="' + heroKind + '"' : ""));
+      }
     }
 
     var marked = Array.prototype.slice.call(article.querySelectorAll("[data-section]"));
@@ -197,6 +209,7 @@
     height: Math.ceil(Math.max(doc.scrollHeight, document.body ? document.body.scrollHeight : 0)),
     figures: figures.length,
     dataFigures: figures.filter(function (f) { return f.dataset.kind === "data"; }).length,
+    kit: versions.length === 1 ? parseInt(versions[0], 10) : null,
     structure: structure,
     layout: layout
   };

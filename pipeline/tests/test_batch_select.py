@@ -151,3 +151,18 @@ def test_select_rejects_invalid_lines_and_duplicates(tmp_path, capsys):
     assert main(["select", "--work", str(tmp_path)]) == 0
     report = json.loads(capsys.readouterr().out)
     assert report["judged"] == 1 and len(report["rejected_lines"]) == 1
+
+
+def test_select_keeps_the_second_voice_and_readout_and_rejects_a_hook_turn_that_is_not_a_suffix(tmp_path, capsys):
+    readout = {"value": "42", "label": "Microarcseconds across, the bright ring in galaxy M87"}
+    good = judged(1, 7.0)
+    good.update(hook_turn="finding number 1", readout=readout)
+    bad = judged(2, 7.0)
+    bad.update(hook_turn="finding number 9")
+    write_lines(tmp_path / "judged" / "001.jsonl", [good, bad])
+    assert main(["select", "--work", str(tmp_path)]) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["judged"] == 1
+    assert "hook_turn" in report["rejected_lines"][0]
+    [kept] = [json.loads(line) for line in (tmp_path / "judged.jsonl").read_text().splitlines()]
+    assert (kept["hook_turn"], kept["readout"]) == ("finding number 1", readout)

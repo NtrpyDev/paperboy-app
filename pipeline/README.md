@@ -16,7 +16,7 @@ cd pipeline && uv run paperboy-pipeline <command> --help
 
 ## How the parts fit
 
-Each command is one module in `src/paperboy_pipeline/commands/` that exposes `register(subparsers)`. The record shapes the commands pass to each other are JSON schemas in the repo's `schema/` folder; load them with `paperboy_pipeline.schemas`. Paper ids come from `paperboy_pipeline.ids`.
+Each command is one module in `src/paperboy_pipeline/commands/` that exposes `register(subparsers)`. The record shapes the commands pass to each other are JSON schemas in the repo's `schema/` folder; load them with `paperboy_pipeline.schemas`. Its `errors()` also applies the one rule a schema cannot state: a `hook_turn` must be the hook's closing clause (an exact suffix of `hook` that starts at a word and is not the whole hook). Paper ids come from `paperboy_pipeline.ids`.
 
 ## The work folder
 
@@ -35,8 +35,10 @@ work/
     candidate.json                 queue take writes; the paper's Judged record
     fulltext.md  source.json       fetch writes
     brief.md                       the expert writes
+    card.json                      the expert writes: {"readout": {...} | null} (schema/card.schema.json)
     explainer/index.html           the visualizer writes
-    explainer/hero.webp            check writes
+    explainer/hero.webp            check writes; the day plate
+    explainer/hero-night.webp      check writes; the night plate
     check.json  shots/             check writes
     review.json                    the checker writes: {"pass": true|false, "problems": [...]}
     made_by.json                   the orchestrator writes: {"expert", "visualizer", "checker"} model ids
@@ -52,17 +54,19 @@ paperboy-pipeline publish --work WORK --content CONTENT_REPO [--commit] [--push]
 
 Reads every Judged record in `WORK/judged.jsonl` and writes it into the content repo checkout at `CONTENT_REPO`, in file order.
 
-- **Explained card**: when `WORK/papers/<id>/explainer/index.html` and `explainer/hero.webp` exist and both `check.json` and `review.json` hold `"pass": true`, publish writes `papers/<id>/index.html`, `hero.webp`, and `meta.json`, and the feed item gets `has_explainer: true`, `explainer: "papers/<id>/"`, and `hero` with the image's pixel size.
+- **Explained card**: when `WORK/papers/<id>/explainer/index.html`, `explainer/hero.webp`, and `explainer/hero-night.webp` exist and both `check.json` and `review.json` hold `"pass": true`, publish writes `papers/<id>/index.html`, `hero.webp`, `hero-night.webp`, and `meta.json`, and the feed item gets `has_explainer: true`, `explainer: "papers/<id>/"`, and `hero`: the day plate's path and pixel size, `night` with the night plate's, and `kind` and `to_scale` copied from the hero in `check.json` when it has them.
 - **Short card**: otherwise only `papers/<id>/meta.json` is written and the item has `has_explainer: false`.
+- **Card text**: `hook_turn` and `readout` are copied from the Judged record (the scout writes them) to the feed item and `meta.json` when the record has them, for short and explained cards alike. Without them the fields are left out. On an explained card, `WORK/papers/<id>/card.json`, when it exists, settles the readout: an object replaces the scout's and `null` removes it, in `meta.json` and in the feed item (or its `upgrades.json` entry, see Upgrades). An invalid `card.json` exits with status 1 and writes nothing.
+- **Kit version**: an explained paper's `meta.json` `kit` is `page.kit` from `check.json`, the kit version the page loads. A passing `check.json` without it exits with status 1 and writes nothing.
 - **Who made it**: an explained paper's `meta.json` gets `made_by` from `WORK/papers/<id>/made_by.json` (`{"expert", "visualizer", "checker"}`, each a model id) when that file exists. Without the file the field is left out.
 
 What it writes in the content repo (schemas in `schema/`):
 
 ```
-feed/v1/head.json             Head: chunk count, total items, updated time, kit 1, min_app 1
+feed/v1/head.json             Head: chunk count, total items, updated time, kit 1, min_app 1 (nothing reads kit yet)
 feed/v1/chunks/000001.json    Chunk: up to 40 items, oldest first
 feed/v1/upgrades.json         Upgrades: explainers added to items in closed chunks
-papers/<id>/meta.json         PaperMeta (plus index.html and hero.webp when explained)
+papers/<id>/meta.json         PaperMeta (plus index.html, hero.webp, and hero-night.webp when explained)
 state/seen/<YYYY-MM>.jsonl    Seen: one line per paper in the feed, by the month it was added
 ```
 
@@ -72,7 +76,7 @@ Rules:
 
 - **Chunks.** New items append to the open chunk, the highest numbered chunk while it holds fewer than 40 items. When it is full the next item starts a new chunk. A full chunk is closed and is never written again.
 - **No duplicates.** A paper whose id, DOI, arXiv id, or title key matches a line in `state/seen/` is not added again. Discover reads the same files.
-- **Upgrades.** When a paper already in the feed as a short card now has a passing explainer, publish writes its explainer files and an updated `meta.json`. If the item is in the open chunk, it is updated in place. If its chunk is closed, the chunk is left alone and the paper is added to `feed/v1/upgrades.json` as `{"explainer", "hero", "explained_at"}`; the app merges that entry over the item.
+- **Upgrades.** When a paper already in the feed as a short card now has a passing explainer, publish writes its explainer files and an updated `meta.json`. If the item is in the open chunk, it is updated in place. If its chunk is closed, the chunk is left alone and the paper is added to `feed/v1/upgrades.json` as `{"explainer", "hero", "explained_at"}`, plus `"readout"` (an object, or `null` to remove the card's) when the paper has a `card.json`; the app merges that entry over the item.
 - **All or nothing.** Every file is checked against its schema before anything is written. Invalid input or invalid output exits with status 1 and leaves the repo unchanged.
 - **Reruns change nothing.** JSON is written with sorted keys, two-space indent, and a trailing newline, and a file is only written when its bytes change. The head is rewritten only in a run that changes something else. A second run with the same work folder leaves the tree byte-identical.
 - **`--now`** fixes the clock (for tests). Without it the current UTC time is used.
@@ -125,9 +129,9 @@ cd pipeline && uv run paperboy-pipeline check --explainer work/papers/<paper id>
 ```
 
 - `--explainer` is the folder holding `index.html`. `--kit` is the repo's `kit` folder. `--out` defaults to the explainer's parent.
-- It serves the explainer at `/papers/x/` and the kit at `/kit/` from a local server on a free port, then loads the page at 390 by 844 px, device scale factor 2, three times: light, dark, and light with reduced motion. Each time it waits for `data-pb-ready`, scrolls through the page once, and lets animations run for 1.5 seconds before measuring and capturing.
-- It writes `check.json` and `shots/` in the out folder, and the hero still as `explainer/hero.webp` (from the dark capture, at most 1200 px wide).
-- Exit code: 0 pass, 1 fail, 2 tool error (no `index.html`, no kit, no browser, or the browser would not start). On a tool error it writes no `check.json`.
+- It serves the explainer at `/papers/x/` and the kit at `/kit/` from a local server on a free port, then loads the page at 390 by 844 px, device scale factor 2, four times: light, dark, and with reduced motion in light and in dark. The color scheme and motion setting are the browser's emulated `prefers-color-scheme` and `prefers-reduced-motion`, so the check works with any kit version. Each time it waits for `data-pb-ready`, scrolls through the page once, and lets animations run for 1.5 seconds before measuring and capturing.
+- It writes `check.json` and `shots/` in the out folder, and the two plate stills, the hero `.pb-stage` at rest, at most 1200 px wide: `explainer/hero.webp` (the day plate, from the light capture with reduced motion) and `explainer/hero-night.webp` (the night plate, from the dark capture with reduced motion). Under kit v1 the stage is always dark, so the two look alike.
+- Exit code: 0 pass, 1 fail, 2 tool error (no `index.html`, no kit version folder such as `v1`, no browser, or the browser would not start). On a tool error it writes no `check.json`.
 
 Browser: `PAPERBOY_CHROME` (a path or a name on PATH), else the first of `google-chrome`, `chromium`, `chromium-browser`, `brave` on PATH. Nothing is downloaded. It always runs headless with `--no-sandbox` (needed when running as root, as in the cloud routine) and a throwaway profile. The tests skip when no browser is found.
 
@@ -138,13 +142,17 @@ Browser: `PAPERBOY_CHROME` (a path or a name on PATH), else the first of `google
   "pass": false,
   "checked_at": "2026-11-13T03:37:00Z",
   "problems": [{"rule": "overflow-x", "detail": "...", "theme": "light"}],
-  "shots": ["shots/light-01.png", "shots/dark-01.png", "shots/still-01.png"],
-  "hero": {"path": "explainer/hero.webp", "width": 700, "height": 526},
-  "page": {"height_px": 5128, "figures": 2, "data_figures": 2}
+  "shots": ["shots/light-01.png", "shots/dark-01.png", "shots/still-01.png", "shots/still-dark-01.png"],
+  "hero": {
+    "path": "explainer/hero.webp", "width": 700, "height": 526,
+    "night": {"path": "explainer/hero-night.webp", "width": 700, "height": 526},
+    "kind": "illustration", "to_scale": false
+  },
+  "page": {"height_px": 5128, "figures": 2, "data_figures": 2, "kit": 1}
 }
 ```
 
-`rule` is one of the ids in `EXPLAINER-CONTRACT.md`. `theme` is `light`, `dark`, or `still`; rules about the document itself are reported once, under `light`, and the hero is checked under `dark`. Shots are the full page cut into pieces at most 2400 px tall (`light-01.png`, `light-02.png`, ...). `hero` is `null` when the hero could not be captured.
+`rule` is one of the ids in `EXPLAINER-CONTRACT.md`. `theme` is `light`, `dark`, `still` (light with reduced motion), or `still-dark` (dark with reduced motion); rules about the document itself are reported once, under `light`, and the hero is captured under `still` and `still-dark`. Shots are the full page cut into pieces at most 2400 px tall (`light-01.png`, `light-02.png`, ...). `hero` is `null` when either plate still could not be captured. `kind` is the hero stage's `data-kind` when it is `data` or `illustration`; `to_scale` is present for an illustration and true only with `data-scale="true"`. `page.kit` is the kit version N of the page's `/kit/v<N>/` paths, `null` when they do not come from exactly one version.
 
 ## fetch
 

@@ -10,7 +10,8 @@ Layout (paths relative to the content repo root):
     feed/v1/chunks/000001.json     Chunk, up to 40 items, oldest first
     feed/v1/upgrades.json          Upgrades: explainers added to items in closed chunks
     papers/<id>/index.html         the explainer (explained papers only)
-    papers/<id>/hero.webp          the card image (explained papers only)
+    papers/<id>/hero.webp          the day plate, the card image in the light theme (explained papers only)
+    papers/<id>/hero-night.webp    the night plate, the card image in the dark theme (explained papers only)
     papers/<id>/meta.json          PaperMeta
     state/seen/<YYYY-MM>.jsonl     one Seen line per paper in the feed, by month added
     state/cursors.json             Cursors: the last day each source is processed through
@@ -33,7 +34,9 @@ from pathlib import Path
 from . import ids, schemas
 
 CHUNK_SIZE = 40
-KIT = 1
+# head.json's kit. Neither the app nor the worker reads it yet, so it has no settled meaning
+# and stays 1. A paper's own kit version is in its meta.json, from the page it loads.
+HEAD_KIT = 1
 MIN_APP = 1
 
 HEAD = Path("feed/v1/head.json")
@@ -53,6 +56,14 @@ def dump_json(obj) -> bytes:
 
 def dump_line(obj) -> str:
     return json.dumps(obj, sort_keys=True, ensure_ascii=False) + "\n"
+
+
+def set_readout(record: dict, readout: dict | None) -> None:
+    """Replace a feed item's or paper record's readout, or remove it when readout is None."""
+    if readout is None:
+        record.pop("readout", None)
+    else:
+        record["readout"] = readout
 
 
 def chunk_path(number: int) -> Path:
@@ -179,9 +190,10 @@ class ContentRepo:
     def upgrade(self, *, seen: dict, explainer: dict, meta: dict, files: dict[str, bytes]) -> None:
         """Give an item already in the feed its explainer.
 
-        explainer is {"explainer": "papers/<id>/", "hero": {...}, "explained_at": "..."}.
-        The item is changed in place when its chunk is the open one; otherwise the chunk is
-        left alone and the explainer is recorded in upgrades.json.
+        explainer is {"explainer": "papers/<id>/", "hero": {...}, "explained_at": "..."}, plus
+        "readout" when the expert settled one: an object replaces the item's readout and None
+        removes it. The item is changed in place when its chunk is the open one; otherwise the
+        chunk is left alone and the explainer is recorded in upgrades.json.
         """
         paper_id = seen["id"]
         chunk = self._open_chunk()
@@ -190,6 +202,8 @@ class ContentRepo:
             if not matches:
                 raise PublishError(f"{paper_id} is recorded in chunk {seen['chunk']} but is not in it")
             matches[0].update(has_explainer=True, explainer=explainer["explainer"], hero=explainer["hero"])
+            if "readout" in explainer:
+                set_readout(matches[0], explainer["readout"])
             self._put_chunk(chunk)
         else:
             self.upgrades["upgrades"][paper_id] = explainer
@@ -208,7 +222,7 @@ class ContentRepo:
                 "chunk_count": self.chunk_count,
                 "total_items": self.total_items,
                 "chunk_size": CHUNK_SIZE,
-                "kit": KIT,
+                "kit": HEAD_KIT,
                 "min_app": MIN_APP,
             }
             self._put(HEAD, dump_json(head), "head")

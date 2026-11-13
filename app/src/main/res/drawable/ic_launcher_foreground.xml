@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher foreground: the P on its trap and the pen point. Converted from design/scratch/brandmotion/bm.py, icon_layers(), small master:
+     108 dp of layer on the board's 512 grid, so 768 units with 128 outside the 512 square on each side. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="768"
+    android:viewportHeight="768">
+  <group android:translateX="128.0000" android:translateY="128.0000">
+      <path android:pathData="M313.68,357.08a82.30,82.30 0 1,0 164.60,0a82.30,82.30 0 1,0 -164.60,0z" android:fillColor="#E9E6DE" />
+      <group android:translateX="77.30" android:translateY="413.08" android:scaleX="0.44" android:scaleY="0.44">
+          <path android:pathData="M19.8 -0.0L19.8 -10.0L51.0 -10.0Q68.9 -10.0 78.4 -15.7Q87.8 -21.5 91.8 -35.9Q95.8 -50.4 95.8 -75.7L95.8 -641.8Q95.8 -666.6 92.3 -679.8Q88.8 -693.0 79.9 -698.5Q70.9 -704.0 55.0 -704.0L19.8 -704.0L19.8 -714.0L289.0 -714.0Q415.4 -714.0 474.4 -660.7Q533.4 -607.5 533.4 -501.9Q533.4 -453.8 519.0 -412.3Q504.7 -370.8 473.8 -339.3Q443.0 -307.8 393.3 -290.1Q343.6 -272.4 271.9 -272.4L248.0 -272.4L248.0 -71.2Q248.0 -47.4 251.5 -34.2Q255.0 -21.0 263.9 -15.5Q272.9 -10.0 288.2 -10.0L341.1 -10.0L341.1 -0.0L19.8 -0.0ZM265.8 -282.4Q297.6 -282.4 318.9 -294.3Q340.3 -306.2 353.2 -331.8Q366.2 -357.5 371.4 -399.1Q376.6 -440.6 376.6 -499.9Q376.6 -577.0 367.5 -621.3Q358.3 -665.5 336.7 -684.8Q315.1 -704.0 277.3 -704.0L248.0 -704.0L248.0 -282.4L265.8 -282.4Z" android:fillColor="#E9E6DE" android:strokeColor="#E9E6DE" android:strokeWidth="36.4" android:strokeLineJoin="round" />
+      </group>
+      <group android:translateX="77.30" android:translateY="413.08" android:scaleX="0.44" android:scaleY="0.44">
+          <path android:pathData="M19.8 -0.0L19.8 -10.0L51.0 -10.0Q68.9 -10.0 78.4 -15.7Q87.8 -21.5 91.8 -35.9Q95.8 -50.4 95.8 -75.7L95.8 -641.8Q95.8 -666.6 92.3 -679.8Q88.8 -693.0 79.9 -698.5Q70.9 -704.0 55.0 -704.0L19.8 -704.0L19.8 -714.0L289.0 -714.0Q415.4 -714.0 474.4 -660.7Q533.4 -607.5 533.4 -501.9Q533.4 -453.8 519.0 -412.3Q504.7 -370.8 473.8 -339.3Q443.0 -307.8 393.3 -290.1Q343.6 -272.4 271.9 -272.4L248.0 -272.4L248.0 -71.2Q248.0 -47.4 251.5 -34.2Q255.0 -21.0 263.9 -15.5Q272.9 -10.0 288.2 -10.0L341.1 -10.0L341.1 -0.0L19.8 -0.0ZM265.8 -282.4Q297.6 -282.4 318.9 -294.3Q340.3 -306.2 353.2 -331.8Q366.2 -357.5 371.4 -399.1Q376.6 -440.6 376.6 -499.9Q376.6 -577.0 367.5 -621.3Q358.3 -665.5 336.7 -684.8Q315.1 -704.0 277.3 -704.0L248.0 -704.0L248.0 -282.4L265.8 -282.4Z" android:fillColor="#16130F" />
+      </group>
+      <path android:pathData="M339.98,357.08a56.00,56.00 0 1,0 112.00,0a56.00,56.00 0 1,0 -112.00,0z" android:fillColor="#E0330A" />
+  </group>
+</vector>

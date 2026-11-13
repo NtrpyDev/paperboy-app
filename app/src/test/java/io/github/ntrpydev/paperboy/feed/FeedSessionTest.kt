@@ -196,7 +196,27 @@ class FeedSessionTest {
 
         assertTrue(upgraded.hasExplainer)
         assertEquals("papers/arxiv-2609.10300/", upgraded.explainer)
-        assertEquals(Hero("papers/arxiv-2609.10300/hero.webp", 1200, 675), upgraded.hero)
+        assertEquals(
+            Hero(
+                path = "papers/arxiv-2609.10300/hero.webp",
+                width = 1200,
+                height = 708,
+                night = Still("papers/arxiv-2609.10300/hero-night.webp", 1200, 708),
+                kind = "data",
+            ),
+            upgraded.hero,
+        )
+    }
+
+    @Test fun `an upgrade replaces, removes, or keeps the card's readout`() = runTest {
+        val session = session()
+        session.start()
+        val items = session.state.value.items.associateBy { it.id }
+
+        // The fixture upgrades: an object, null, and no readout key (tools/make-feed-fixtures.py).
+        assertEquals(Readout(">5.1", unit = "sigma", label = "Fixture significance of the result"), items.getValue("arxiv-2609.10300").readout)
+        assertNull(items.getValue("arxiv-2609.10301").readout)
+        assertEquals(Readout("0.5", unit = "meters", label = "Fixture length measured"), items.getValue("arxiv-2609.10302").readout)
     }
 
     private fun resource(path: String) = javaClass.classLoader!!.getResource(path)!!.readText()

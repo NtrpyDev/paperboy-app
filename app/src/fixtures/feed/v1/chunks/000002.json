@@ -6,6 +6,7 @@
       "id": "arxiv-2609.10040",
       "title": "Fixture study 40 on batteries",
       "hook": "Fixture paper 40: a chemistry finding about batteries",
+      "hook_turn": "about batteries",
       "summary": "This is fixture paper 40 in chemistry, used by the app tests. It stands in for a plain summary of a study about batteries.",
       "field": "chemistry",
       "tags": [
@@ -36,7 +37,11 @@
       "url": "https://arxiv.org/abs/2609.10041",
       "has_explainer": false,
       "significance": 4.7,
-      "added_at": "2026-09-21T20:00:00Z"
+      "added_at": "2026-09-21T20:00:00Z",
+      "readout": {
+        "value": "41",
+        "label": "Fixture count of things"
+      }
     },
     {
       "id": "arxiv-2609.10042",
@@ -54,7 +59,12 @@
       "url": "https://arxiv.org/abs/2609.10042",
       "has_explainer": false,
       "significance": 5.4,
-      "added_at": "2026-09-22T00:00:00Z"
+      "added_at": "2026-09-22T00:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
     },
     {
       "id": "arxiv-2609.10043",
@@ -72,7 +82,13 @@
       "url": "https://arxiv.org/abs/2609.10043",
       "has_explainer": false,
       "significance": 6.1,
-      "added_at": "2026-09-22T04:00:00Z"
+      "added_at": "2026-09-22T04:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
     },
     {
       "id": "arxiv-2609.10044",
@@ -96,6 +112,7 @@
       "id": "arxiv-2609.10045",
       "title": "Fixture study 45 on exoplanets",
       "hook": "Fixture paper 45: a space finding about exoplanets",
+      "hook_turn": "about exoplanets",
       "summary": "This is fixture paper 45 in space, used by the app tests. It stands in for a plain summary of a study about exoplanets.",
       "field": "space",
       "tags": [
@@ -108,7 +125,11 @@
       "url": "https://arxiv.org/abs/2609.10045",
       "has_explainer": false,
       "significance": 3.0,
-      "added_at": "2026-09-22T12:00:00Z"
+      "added_at": "2026-09-22T12:00:00Z",
+      "readout": {
+        "value": "45",
+        "label": "Fixture count of things"
+      }
     },
     {
       "id": "arxiv-2609.10046",
@@ -126,7 +147,12 @@
       "url": "https://arxiv.org/abs/2609.10046",
       "has_explainer": false,
       "significance": 3.7,
-      "added_at": "2026-09-22T16:00:00Z"
+      "added_at": "2026-09-22T16:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
     },
     {
       "id": "arxiv-2609.10047",
@@ -144,7 +170,13 @@
       "url": "https://arxiv.org/abs/2609.10047",
       "has_explainer": false,
       "significance": 4.4,
-      "added_at": "2026-09-22T20:00:00Z"
+      "added_at": "2026-09-22T20:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
     },
     {
       "id": "arxiv-2609.10048",
@@ -180,12 +212,17 @@
       "url": "https://arxiv.org/abs/2609.10049",
       "has_explainer": false,
       "significance": 5.8,
-      "added_at": "2026-09-23T04:00:00Z"
+      "added_at": "2026-09-23T04:00:00Z",
+      "readout": {
+        "value": "49",
+        "label": "Fixture count of things"
+      }
     },
     {
       "id": "arxiv-2609.10050",
       "title": "Fixture study 50 on cancer",
       "hook": "Fixture paper 50: a medicine finding about cancer",
+      "hook_turn": "about cancer",
       "summary": "This is fixture paper 50 in medicine, used by the app tests. It stands in for a plain summary of a study about cancer.",
       "field": "medicine",
       "tags": [
@@ -198,7 +235,12 @@
       "url": "https://arxiv.org/abs/2609.10050",
       "has_explainer": false,
       "significance": 6.5,
-      "added_at": "2026-09-23T08:00:00Z"
+      "added_at": "2026-09-23T08:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
     },
     {
       "id": "arxiv-2609.10051",
@@ -216,7 +258,13 @@
       "url": "https://arxiv.org/abs/2609.10051",
       "has_explainer": false,
       "significance": 7.2,
-      "added_at": "2026-09-23T12:00:00Z"
+      "added_at": "2026-09-23T12:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
     },
     {
       "id": "arxiv-2609.10052",
@@ -252,7 +300,11 @@
       "url": "https://arxiv.org/abs/2609.10053",
       "has_explainer": false,
       "significance": 4.1,
-      "added_at": "2026-09-23T20:00:00Z"
+      "added_at": "2026-09-23T20:00:00Z",
+      "readout": {
+        "value": "53",
+        "label": "Fixture count of things"
+      }
     },
     {
       "id": "arxiv-2609.10054",
@@ -270,12 +322,18 @@
       "url": "https://arxiv.org/abs/2609.10054",
       "has_explainer": false,
       "significance": 4.8,
-      "added_at": "2026-09-24T00:00:00Z"
+      "added_at": "2026-09-24T00:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
     },
     {
       "id": "arxiv-2609.10055",
       "title": "Fixture study 55 on superconductors",
       "hook": "Fixture paper 55: a physics finding about superconductors",
+      "hook_turn": "about superconductors",
       "summary": "This is fixture paper 55 in physics, used by the app tests. It stands in for a plain summary of a study about superconductors.",
       "field": "physics",
       "tags": [
@@ -288,7 +346,13 @@
       "url": "https://arxiv.org/abs/2609.10055",
       "has_explainer": false,
       "significance": 5.5,
-      "added_at": "2026-09-24T04:00:00Z"
+      "added_at": "2026-09-24T04:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
     },
     {
       "id": "arxiv-2609.10056",
@@ -324,7 +388,11 @@
       "url": "https://arxiv.org/abs/2609.10057",
       "has_explainer": false,
       "significance": 6.9,
-      "added_at": "2026-09-24T12:00:00Z"
+      "added_at": "2026-09-24T12:00:00Z",
+      "readout": {
+        "value": "57",
+        "label": "Fixture count of things"
+      }
     },
     {
       "id": "arxiv-2609.10058",
@@ -342,7 +410,12 @@
       "url": "https://arxiv.org/abs/2609.10058",
       "has_explainer": false,
       "significance": 3.1,
-      "added_at": "2026-09-24T16:00:00Z"
+      "added_at": "2026-09-24T16:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
     },
     {
       "id": "arxiv-2609.10059",
@@ -360,12 +433,19 @@
       "url": "https://arxiv.org/abs/2609.10059",
       "has_explainer": false,
       "significance": 3.8,
-      "added_at": "2026-09-24T20:00:00Z"
+      "added_at": "2026-09-24T20:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
     },
     {
       "id": "arxiv-2609.10060",
       "title": "Fixture study 60 on memory",
       "hook": "Fixture paper 60: a neuroscience finding about memory",
+      "hook_turn": "about memory",
       "summary": "This is fixture paper 60 in neuroscience, used by the app tests. It stands in for a plain summary of a study about memory.",
       "field": "neuroscience",
       "tags": [
@@ -396,7 +476,11 @@
       "url": "https://arxiv.org/abs/2609.10061",
       "has_explainer": false,
       "significance": 5.2,
-      "added_at": "2026-09-25T04:00:00Z"
+      "added_at": "2026-09-25T04:00:00Z",
+      "readout": {
+        "value": "61",
+        "label": "Fixture count of things"
+      }
     },
     {
       "id": "arxiv-2609.10062",
@@ -414,7 +498,12 @@
       "url": "https://arxiv.org/abs/2609.10062",
       "has_explainer": false,
       "significance": 5.9,
-      "added_at": "2026-09-25T08:00:00Z"
+      "added_at": "2026-09-25T08:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
     },
     {
       "id": "arxiv-2609.10063",
@@ -432,7 +521,13 @@
       "url": "https://arxiv.org/abs/2609.10063",
       "has_explainer": false,
       "significance": 6.6,
-      "added_at": "2026-09-25T12:00:00Z"
+      "added_at": "2026-09-25T12:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
     },
     {
       "id": "arxiv-2609.10064",
@@ -456,6 +551,7 @@
       "id": "arxiv-2609.10065",
       "title": "Fixture study 65 on education",
       "hook": "Fixture paper 65: a social finding about education",
+      "hook_turn": "about education",
       "summary": "This is fixture paper 65 in social, used by the app tests. It stands in for a plain summary of a study about education.",
       "field": "social",
       "tags": [
@@ -468,7 +564,11 @@
       "url": "https://arxiv.org/abs/2609.10065",
       "has_explainer": false,
       "significance": 3.5,
-      "added_at": "2026-09-25T20:00:00Z"
+      "added_at": "2026-09-25T20:00:00Z",
+      "readout": {
+        "value": "65",
+        "label": "Fixture count of things"
+      }
     },
     {
       "id": "arxiv-2609.10066",
@@ -486,7 +586,12 @@
       "url": "https://arxiv.org/abs/2609.10066",
       "has_explainer": false,
       "significance": 4.2,
-      "added_at": "2026-09-26T00:00:00Z"
+      "added_at": "2026-09-26T00:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
     },
     {
       "id": "arxiv-2609.10067",
@@ -504,7 +609,13 @@
       "url": "https://arxiv.org/abs/2609.10067",
       "has_explainer": false,
       "significance": 4.9,
-      "added_at": "2026-09-26T04:00:00Z"
+      "added_at": "2026-09-26T04:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
     },
     {
       "id": "arxiv-2609.10068",
@@ -540,12 +651,17 @@
       "url": "https://arxiv.org/abs/2609.10069",
       "has_explainer": false,
       "significance": 6.3,
-      "added_at": "2026-09-26T12:00:00Z"
+      "added_at": "2026-09-26T12:00:00Z",
+      "readout": {
+        "value": "69",
+        "label": "Fixture count of things"
+      }
     },
     {
       "id": "arxiv-2609.10070",
       "title": "Fixture study 70 on ecology",
       "hook": "Fixture paper 70: a biology finding about ecology",
+      "hook_turn": "about ecology",
       "summary": "This is fixture paper 70 in biology, used by the app tests. It stands in for a plain summary of a study about ecology.",
       "field": "biology",
       "tags": [
@@ -558,7 +674,12 @@
       "url": "https://arxiv.org/abs/2609.10070",
       "has_explainer": false,
       "significance": 7.0,
-      "added_at": "2026-09-26T16:00:00Z"
+      "added_at": "2026-09-26T16:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
     },
     {
       "id": "arxiv-2609.10071",
@@ -576,7 +697,13 @@
       "url": "https://arxiv.org/abs/2609.10071",
       "has_explainer": false,
       "significance": 3.2,
-      "added_at": "2026-09-26T20:00:00Z"
+      "added_at": "2026-09-26T20:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
     },
     {
       "id": "arxiv-2609.10072",
@@ -612,7 +739,11 @@
       "url": "https://arxiv.org/abs/2609.10073",
       "has_explainer": false,
       "significance": 4.6,
-      "added_at": "2026-09-27T04:00:00Z"
+      "added_at": "2026-09-27T04:00:00Z",
+      "readout": {
+        "value": "73",
+        "label": "Fixture count of things"
+      }
     },
     {
       "id": "arxiv-2609.10074",
@@ -630,12 +761,18 @@
       "url": "https://arxiv.org/abs/2609.10074",
       "has_explainer": false,
       "significance": 5.3,
-      "added_at": "2026-09-27T08:00:00Z"
+      "added_at": "2026-09-27T08:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
     },
     {
       "id": "arxiv-2609.10075",
       "title": "Fixture study 75 on robotics",
       "hook": "Fixture paper 75: a engineering finding about robotics",
+      "hook_turn": "about robotics",
       "summary": "This is fixture paper 75 in engineering, used by the app tests. It stands in for a plain summary of a study about robotics.",
       "field": "engineering",
       "tags": [
@@ -648,7 +785,13 @@
       "url": "https://arxiv.org/abs/2609.10075",
       "has_explainer": false,
       "significance": 6.0,
-      "added_at": "2026-09-27T12:00:00Z"
+      "added_at": "2026-09-27T12:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
     },
     {
       "id": "arxiv-2609.10076",
@@ -684,7 +827,11 @@
       "url": "https://arxiv.org/abs/2609.10077",
       "has_explainer": false,
       "significance": 7.4,
-      "added_at": "2026-09-27T20:00:00Z"
+      "added_at": "2026-09-27T20:00:00Z",
+      "readout": {
+        "value": "77",
+        "label": "Fixture count of things"
+      }
     },
     {
       "id": "arxiv-2609.10078",
@@ -702,7 +849,12 @@
       "url": "https://arxiv.org/abs/2609.10078",
       "has_explainer": false,
       "significance": 3.6,
-      "added_at": "2026-09-28T00:00:00Z"
+      "added_at": "2026-09-28T00:00:00Z",
+      "readout": {
+        "value": "0.5",
+        "unit": "meters",
+        "label": "Fixture length measured"
+      }
     },
     {
       "id": "arxiv-2609.10079",
@@ -720,7 +872,13 @@
       "url": "https://arxiv.org/abs/2609.10079",
       "has_explainer": false,
       "significance": 4.3,
-      "added_at": "2026-09-28T04:00:00Z"
+      "added_at": "2026-09-28T04:00:00Z",
+      "readout": {
+        "value": "2.4",
+        "exponent": -6,
+        "unit": "seconds",
+        "label": "Fixture time measured"
+      }
     }
   ]
 }

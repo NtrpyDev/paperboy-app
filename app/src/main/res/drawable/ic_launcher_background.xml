@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher background: the ground and the rings. Converted from design/scratch/brandmotion/bm.py, icon_layers(), small master:
+     108 dp of layer on the board's 512 grid, so 768 units with 128 outside the 512 square on each side. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="768"
+    android:viewportHeight="768">
+  <group android:translateX="128.0000" android:translateY="128.0000">
+      <path android:pathData="M-128.0,-128.0h768.0v768.0h-768.0z" android:fillColor="#E9E6DE" />
+      <path android:pathData="M308.66,357.08a87.32,87.32 0 1,0 174.64,0a87.32,87.32 0 1,0 -174.64,0z" android:strokeColor="#1F3FD0" android:strokeWidth="10.00" />
+      <path android:pathData="M284.66,357.08a111.32,111.32 0 1,0 222.64,0a111.32,111.32 0 1,0 -222.64,0z" android:strokeColor="#1F3FD0" android:strokeWidth="10.00" />
+      <path android:pathData="M260.66,357.08a135.32,135.32 0 1,0 270.64,0a135.32,135.32 0 1,0 -270.64,0z" android:strokeColor="#1F3FD0" android:strokeWidth="10.00" />
+      <path android:pathData="M236.66,357.08a159.32,159.32 0 1,0 318.64,0a159.32,159.32 0 1,0 -318.64,0z" android:strokeColor="#1F3FD0" android:strokeWidth="10.00" />
+      <path android:pathData="M212.66,357.08a183.32,183.32 0 1,0 366.64,0a183.32,183.32 0 1,0 -366.64,0z" android:strokeColor="#1F3FD0" android:strokeWidth="10.00" />
+  </group>
+</vector>

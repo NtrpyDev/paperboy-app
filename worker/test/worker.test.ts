@@ -344,3 +344,18 @@ describe("unknown paths", () => {
     expect(await env.CONTENT.get("papers/arxiv-1/missing.json")).toBeNull();
   });
 });
+
+describe("content repo outage", () => {
+  it.each(["error", "throw"] as const)(
+    "a file the bucket does not have yet is a 502, not a 404, and nothing is stored (%s)",
+    async (how) => {
+      const { origin, get } = setup({ "papers/arxiv-1/meta.json": "{}" });
+      origin.takeDown(how);
+
+      const res = await get("/papers/arxiv-1/meta.json");
+
+      expect(res.status).toBe(502);
+      expect(await env.CONTENT.get("papers/arxiv-1/meta.json")).toBeNull();
+    },
+  );
+});

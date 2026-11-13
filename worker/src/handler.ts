@@ -40,23 +40,29 @@ export interface Deps {
 
 export function createHandler(deps: Deps) {
   // Fetches a file from the content repo and stores it, noting whether it was still
-  // changing when fetched. Returns null when the repo does not have it or cannot be
-  // reached.
-  async function fill(env: Env, key: string, changing: boolean): Promise<Filled | null> {
+  // changing when fetched. Says "missing" when the repo answers 404 and
+  // "unreachable" for any other failure.
+  async function fill(env: Env, key: string, changing: boolean): Promise<Filled | Failure> {
     let res: Response;
     try {
       res = await deps.fetch(ORIGIN + key);
     } catch {
-      return null;
+      return "unreachable";
     }
-    if (!res.ok) return null;
+    if (res.status === 404) return "missing";
+    if (!res.ok) return "unreachable";
     const body = await res.arrayBuffer();
     // The raw host caches for up to five minutes, so a chunk that just closed can
     // still arrive short. It counts as changing until it comes back full.
     if (!changing && CHUNK.test(key) && !isFullChunk(body)) changing = true;
-    await env.CONTENT.put(key, body, {
-      customMetadata: { fetched_at: String(deps.now()), changing: String(changing) },
-    });
+    try {
+      await env.CONTENT.put(key, body, {
+        customMetadata: { fetched_at: String(deps.now()), changing: String(changing) },
+      });
+    } catch {
+      // R2 allows one write per second to a key, so two requests refreshing the same
+      // file at once can collide. The file is still served; the next request stores it.
+    }
     return { body, changing };
   }
 
@@ -64,8 +70,14 @@ export function createHandler(deps: Deps) {
   // bucket does not have it. Null when no head can be read.
   async function openChunk(env: Env): Promise<number | null> {
     const stored = await env.CONTENT.get(HEAD);
-    const text = stored ? await stored.text() : bodyText((await fill(env, HEAD, true))?.body ?? null);
-    if (text === null) return null;
+    let text: string;
+    if (stored) {
+      text = await stored.text();
+    } else {
+      const filled = await fill(env, HEAD, true);
+      if (typeof filled === "string") return null;
+      text = new TextDecoder().decode(filled.body);
+    }
     try {
       const n = JSON.parse(text).chunk_count;
       return Number.isInteger(n) ? n : null;
@@ -99,17 +111,21 @@ export function createHandler(deps: Deps) {
         // edits, so it keeps being refreshed until a copy is fetched after it stopped.
         const storedChanging = stored.customMetadata?.changing === "true";
         const due = (changing || storedChanging) && age > REFRESH_MS;
-        if (!due) return serve(key, stored.body, storedChanging);
+        if (!due) return serve(key, stored.body, changing || storedChanging);
         const fresh = await fill(env, key, changing);
-        return fresh ? serve(key, fresh.body, fresh.changing) : serve(key, stored.body, storedChanging);
+        if (typeof fresh === "string") return serve(key, stored.body, true);
+        return serve(key, fresh.body, fresh.changing);
       }
 
       const filled = await fill(env, key, changing);
-      if (!filled) return notFound();
+      if (filled === "missing") return notFound();
+      if (filled === "unreachable") return new Response("Content repo unreachable\n", { status: 502 });
       return serve(key, filled.body, filled.changing);
     },
   };
 }
+
+type Failure = "missing" | "unreachable";
 
 interface Filled {
   body: ArrayBuffer;
@@ -141,10 +157,6 @@ function isFullChunk(body: ArrayBuffer): boolean {
   } catch {
     return false;
   }
-}
-
-function bodyText(body: ArrayBuffer | null): string | null {
-  return body === null ? null : new TextDecoder().decode(body);
 }
 
 function notFound(): Response {

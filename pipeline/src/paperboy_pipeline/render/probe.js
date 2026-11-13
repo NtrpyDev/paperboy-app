@@ -8,6 +8,9 @@
   var SECTIONS = ["question", "method", "findings", "confidence", "matters"];
   var KINDS = ["data", "illustration", "paper"];
   var HERO_KINDS = ["data", "illustration"];
+  var DEPTHS = ["full", "abstract"]; // article.pb data-depth: what the page was built from; no mark is "full"
+  /* A page built from the abstract must tell the reader so in its "How sure is this?" section. */
+  var DEPTH_NOTE = /built from the paper['\u2019]s abstract,?\s+not its full text/i;
   var KIT = /^\/kit\/v([1-9][0-9]*)\//;
   var MIN_TEXT_PX = 11;
   var MIN_CONTROL_PX = 40;
@@ -81,6 +84,7 @@
   /* ---- The article: hero, sections, source, figures ---- */
 
   var figures = [];
+  var depth = null;
   if (!article) {
     s("missing-root", 'no <article class="pb">');
   } else {
@@ -110,6 +114,16 @@
     var expected = SECTIONS.filter(function (n) { return known.indexOf(n) >= 0; });
     var seen = known.filter(function (n, i) { return known.indexOf(n) === i; });
     if (seen.join() !== expected.join()) s("section-order", "sections run " + seen.join(", ") + "; the order is " + SECTIONS.join(", "));
+
+    var depthMark = article.getAttribute("data-depth");
+    if (depthMark === null) depth = "full";
+    else if (DEPTHS.indexOf(depthMark) >= 0) depth = depthMark;
+    else s("unknown-depth", 'article.pb has data-depth="' + depthMark + '", needs "full", "abstract", or no data-depth');
+    if (depth === "abstract") {
+      var ledger = article.querySelector('[data-section="confidence"]');
+      var said = ledger && DEPTH_NOTE.test((ledger.innerText || ledger.textContent || "").replace(/\s+/g, " "));
+      if (!said) s("missing-depth-note", 'a page with data-depth="abstract" must say "Built from the paper\'s abstract, not its full text." in its data-section="confidence" section');
+    }
 
     var source = article.querySelector(".pb-source");
     if (!source) {
@@ -210,6 +224,7 @@
     figures: figures.length,
     dataFigures: figures.filter(function (f) { return f.dataset.kind === "data"; }).length,
     kit: versions.length === 1 ? parseInt(versions[0], 10) : null,
+    depth: depth,
     structure: structure,
     layout: layout
   };

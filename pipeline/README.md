@@ -35,8 +35,9 @@ work/
     candidate.json                 queue take writes; the paper's Judged record
     fulltext.md  source.json       fetch writes
     brief.md                       the expert writes
-    card.json                      the expert writes: {"readout": {...} | null} (schema/card.schema.json)
-    explainer/index.html           the visualizer writes
+    card.json                      the expert writes: {"readout": {...} | null} (schema/card.schema.json);
+                                   the quick agent writes {"readout": null} when the scout's readout is not in the abstract
+    explainer/index.html           the visualizer writes, or the quick agent (a quick explainer, QUICK.md)
     explainer/hero.webp            check writes; the day plate
     explainer/hero-night.webp      check writes; the night plate
     check.json  shots/             check writes
@@ -148,11 +149,11 @@ Browser: `PAPERBOY_CHROME` (a path or a name on PATH), else the first of `google
     "night": {"path": "explainer/hero-night.webp", "width": 700, "height": 526},
     "kind": "illustration", "to_scale": false
   },
-  "page": {"height_px": 5128, "figures": 2, "data_figures": 2, "kit": 1}
+  "page": {"height_px": 5128, "figures": 2, "data_figures": 2, "kit": 1, "depth": "full"}
 }
 ```
 
-`rule` is one of the ids in `EXPLAINER-CONTRACT.md`. `theme` is `light`, `dark`, `still` (light with reduced motion), or `still-dark` (dark with reduced motion); rules about the document itself are reported once, under `light`, and the hero is captured under `still` and `still-dark`. Shots are the full page cut into pieces at most 2400 px tall (`light-01.png`, `light-02.png`, ...). `hero` is `null` when either plate still could not be captured. `kind` is the hero stage's `data-kind` when it is `data` or `illustration`; `to_scale` is present for an illustration and true only with `data-scale="true"`. `page.kit` is the kit version N of the page's `/kit/v<N>/` paths, `null` when they do not come from exactly one version.
+`rule` is one of the ids in `EXPLAINER-CONTRACT.md`. `theme` is `light`, `dark`, `still` (light with reduced motion), or `still-dark` (dark with reduced motion); rules about the document itself are reported once, under `light`, and the hero is captured under `still` and `still-dark`. Shots are the full page cut into pieces at most 2400 px tall (`light-01.png`, `light-02.png`, ...). `hero` is `null` when either plate still could not be captured. `kind` is the hero stage's `data-kind` when it is `data` or `illustration`; `to_scale` is present for an illustration and true only with `data-scale="true"`. `page.kit` is the kit version N of the page's `/kit/v<N>/` paths, `null` when they do not come from exactly one version. `page.depth` is what the page was built from, read from the `article.pb`'s `data-depth`: `"full"` (no mark, or `data-depth="full"`) or `"abstract"` (a quick explainer, see `QUICK.md`), `null` when the mark has any other value.
 
 ## fetch
 

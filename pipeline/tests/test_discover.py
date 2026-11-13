@@ -429,6 +429,24 @@ def test_papers_already_in_the_feed_are_skipped_by_id_doi_or_title(tmp_path):
     assert not written & {"arxiv-2611.13622", "doi-10.64898-2026.11.09.764949", "doi-10.5130-pjx4c836"}
 
 
+def test_papers_that_ever_entered_the_backlog_are_never_judged_again(tmp_path):
+    # Waiting for a page, aged out, or failed: a paper in state/queued/ is not a candidate again.
+    content = tmp_path / "content"
+    write_state(content)
+    (content / "state" / "queued").mkdir()
+    ledger = [
+        {"id": "arxiv-2611.13622", "doi": None, "arxiv_id": "2611.13622", "title_key": "1" * 20, "queued_at": "2026-11-01T00:00:00Z"},
+        {"id": "doi-10.64898-other", "doi": "10.64898/2026.11.09.764949", "arxiv_id": None, "title_key": "0" * 20, "queued_at": "2026-11-12T00:00:00Z"},
+    ]
+    for entry in ledger:
+        assert schemas.errors("queued", entry) == []
+    (content / "state" / "queued" / "2026-11.jsonl").write_text("".join(json.dumps(e) + "\n" for e in ledger))
+    code, records, _ = run(tmp_path, "--since", "2026-11-11", content=content)
+    assert code == 0
+    assert len(records) == 15
+    assert not set(by_id(records)) & {"arxiv-2611.13622", "doi-10.64898-2026.11.09.764949"}
+
+
 def test_journal_article_of_a_preprint_already_in_the_feed_is_skipped(tmp_path):
     content = tmp_path / "content"
     crossref_title = json.loads((FIXTURES / "pairs/crossref_title_pair.json").read_text())["message"]["items"][0]["title"][0]

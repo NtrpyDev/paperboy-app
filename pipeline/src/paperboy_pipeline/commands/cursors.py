@@ -3,13 +3,15 @@
 A cursor in CONTENT_REPO/state/cursors.json is the last day (UTC) whose papers from that source
 have been discovered, judged, and published. Discover starts each source the day after its
 cursor. This command only moves a cursor forward; a date before the current cursor leaves it.
+With --push it commits and pushes the cursors itself, starting from origin/main and moving them
+again on a newer main when the push is rejected (paperboy_pipeline.gitsync).
 """
 import json
 import sys
 from datetime import date
 from pathlib import Path
 
-from .. import schemas
+from .. import gitsync, schemas
 from ..content_repo import CURSORS, dump_json
 from ..sources import ADAPTERS
 from .discover import source_list
@@ -20,10 +22,23 @@ def register(subparsers) -> None:
     parser.add_argument("--content", type=Path, required=True, help="content repo checkout holding state/cursors.json")
     parser.add_argument("--set-through", type=date.fromisoformat, required=True, help="last processed day, YYYY-MM-DD")
     parser.add_argument("--sources", type=source_list, default=list(ADAPTERS), help="comma separated: " + ",".join(ADAPTERS))
+    parser.add_argument("--push", action="store_true", help="commit and push the cursors, starting from origin/main")
     parser.set_defaults(run=run)
 
 
 def run(args) -> int:
+    if not args.push:
+        return _move(args)
+    codes = []
+    try:
+        gitsync.sync(args.content, lambda: codes.append(_move(args)), start_from_origin=True, label="cursors")
+    except gitsync.GitError as error:
+        print(f"cursors: {error}", file=sys.stderr)
+        return 1
+    return codes[-1]
+
+
+def _move(args) -> int:
     path = args.content / CURSORS
     state = {"v": 1, "cursors": {}}
     if path.exists():

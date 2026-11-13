@@ -53,7 +53,7 @@ def register(subparsers) -> None:
     p.add_argument("--quick", type=_count, required=True, help="most papers to take for quick explainers")
     p.add_argument("--days", type=_count, help="first prune papers that have waited longer than this many days")
     p.add_argument("--claim-hours", type=float, default=backlog.CLAIM_HOURS, help=f"a claim older than this is stale and its paper can be taken again (default {backlog.CLAIM_HOURS})")
-    p.add_argument("--run", help="this run's name in its claims (default: the time and a random suffix)")
+    p.add_argument("--run", dest="run_name", help="this run's name in its claims (default: the time and a random suffix)")
     p.add_argument("--push", action="store_true", help="commit and push the claims, starting from origin/main; take again when the push is rejected")
     p = action("done", "take a paper out of the backlog")
     p.add_argument("--id", required=True)
@@ -202,7 +202,7 @@ def _choose(content: Path, full: int, quick: int, now: str, claim_hours: float) 
 
 
 def _take(args, now: str) -> int:
-    run_name = args.run or f"{now}-{secrets.token_hex(3)}"
+    run_name = args.run_name or f"{now}-{secrets.token_hex(3)}"
     result = {}
 
     def apply():

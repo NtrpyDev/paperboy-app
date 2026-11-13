@@ -9,6 +9,19 @@ plugins {
 val contentBase: String = providers.gradleProperty("paperboy.contentBase")
     .getOrElse("https://paperboy.ntrpydev.workers.dev")
 
+// Release signing comes from these environment variables, never from files in the repo.
+// The release workflow sets them from repository secrets. Debug builds need none of them.
+val releaseSigningVariables = listOf(
+    "PAPERBOY_KEYSTORE_FILE",
+    "PAPERBOY_KEYSTORE_PASSWORD",
+    "PAPERBOY_KEY_ALIAS",
+    "PAPERBOY_KEY_PASSWORD",
+)
+val releaseSigning: Map<String, String> = releaseSigningVariables
+    .mapNotNull { name -> providers.environmentVariable(name).orNull?.takeIf { it.isNotEmpty() }?.let { name to it } }
+    .toMap()
+val missingReleaseSigning: List<String> = releaseSigningVariables.filterNot { it in releaseSigning }
+
 android {
     namespace = "io.github.ntrpydev.paperboy"
     compileSdk = 37
@@ -23,9 +36,23 @@ android {
         buildConfigField("String", "CONTENT_BASE", "\"$contentBase\"")
     }
 
+    signingConfigs {
+        if (missingReleaseSigning.isEmpty()) {
+            create("release") {
+                storeFile = file(releaseSigning.getValue("PAPERBOY_KEYSTORE_FILE"))
+                storePassword = releaseSigning.getValue("PAPERBOY_KEYSTORE_PASSWORD")
+                keyAlias = releaseSigning.getValue("PAPERBOY_KEY_ALIAS")
+                keyPassword = releaseSigning.getValue("PAPERBOY_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
@@ -45,6 +72,25 @@ android {
         named("test") { resources.directories += "src/fixtures" }
         named("androidTest") { assets.directories += "src/fixtures" }
     }
+}
+
+// Packaging a release fails here, with the names of the missing variables, instead of
+// writing an unsigned APK. Compiling and testing the release variant still work without them.
+val checkReleaseSigning = tasks.register("checkReleaseSigning") {
+    val missing = missingReleaseSigning
+    doLast {
+        if (missing.isNotEmpty()) {
+            throw GradleException(
+                "Release signing is not configured. Set these environment variables: " +
+                    missing.joinToString(", ") +
+                    ". PAPERBOY_KEYSTORE_FILE is the path to the PKCS12 release keystore. " +
+                    "Debug builds (assembleDebug) need none of them.",
+            )
+        }
+    }
+}
+tasks.matching { it.name == "packageRelease" || it.name == "signReleaseBundle" }.configureEach {
+    dependsOn(checkReleaseSigning)
 }
 
 dependencies {

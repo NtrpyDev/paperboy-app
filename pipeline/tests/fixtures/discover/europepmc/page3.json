@@ -1,0 +1,16 @@
+{
+ "version": "6.9",
+ "hitCount": 4,
+ "nextCursorMark": "AoJwwKSw4aEDKDU2ODk1ODYz",
+ "request": {
+  "queryString": "OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[2026-11-10 TO 2026-11-12]",
+  "resultType": "core",
+  "cursorMark": "AoJwwKSw4aEDKDU2ODk1ODYz",
+  "pageSize": 100,
+  "sort": "FIRST_PDATE_D desc",
+  "synonym": false
+ },
+ "resultList": {
+  "result": []
+ }
+}

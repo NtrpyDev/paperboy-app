@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-13T03:20:04Z</responseDate>
+                <request verb="ListRecords" metadataPrefix="arXivRaw" from="2026-11-11">http://oaipmh.arxiv.org/oai</request>
+
+
+    <ListRecords>
+
+                    <record>
+                <header>
+        <identifier>oai:arXiv.org:2506.15578</identifier>
+        <datestamp>2026-11-11</datestamp>
+            <setSpec>stat:stat:AP</setSpec>
+    </header>
+
+            <metadata>
+                        <arXivRaw xmlns="http://arxiv.org/OAI/arXivRaw/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/OAI/arXivRaw/ https://oaipmh.arxiv.org/OAI/arXivRaw.xsd">
+        <id>2506.15578</id>
+        <submitter>S\&#39;andor Baran</submitter>
+            <version version="v1">
+                <date>Wed, 18 Jun 2025 15:56:01 GMT</date>
+                <size>1595kb</size>
+            </version>
+        <title>Statistical post-processing of operational dual-resolution wind-speed ensemble forecasts</title>
+        <authors>S\&#39;andor Baran and M\&#39;aria Lakatos</authors>
+        <categories>stat.AP</categories>
+            <comments>26 pages, 17 figures</comments>
+            <journal-ref>Quarterly Journal of the Royal Meteorological Society 152 (2026), no. 779, paper e70201</journal-ref>
+            <license>http://arxiv.org/licenses/nonexclusive-distrib/1.0/</license>
+            <abstract>Weather forecasting presents several challenges, including the chaotic nature of the atmosphere and the high computational demands of numerical weather prediction models. To achieve the most accurate predictions, the ideal scenario involves the lowest possible horizontal resolution and the largest ensemble size. This study provides a detailed comparative analysis of the forecast skill of the raw and post-processed medium- and extended-range wind-speed ensemble forecasts of the European Centre for Medium-Range Weather Forecasts issued at 9 km and 36 km horizontal resolutions, respectively, and their various mixtures. We utilized the ensemble model output statistic approach for forecast calibration with three different spatial training data selection techniques. First, we investigate the performance of the 50-member medium-range and 100-member extended-range predictions - referred to as high and low resolution, respectively - and their 150-member dual-resolution combination. Further, we examine whether the performance of raw and post-processed low-resolution forecasts can be improved by incorporating high-resolution ensemble members. Our results confirm that all post-processed forecasts outperform the raw ensemble predictions in terms of probabilistic calibration and point forecast accuracy and that post-processing considerably reduces the differences between the various configurations. We also show that spatial resolution is superior to the ensemble size; augmenting a sufficiently large ensemble of high-resolution forecasts with low-resolution predictions does not necessarily result in a gain in forecast skill. However, our study also highlights the clear benefit of the other direction, namely, incorporating high-resolution members into low-resolution ensemble forecasts, where the most significant gains are observed in configurations with the highest number of high-resolution members.</abstract>
+    </arXivRaw>
+
+            </metadata>
+        </record>
+    </ListRecords>
+</OAI-PMH>

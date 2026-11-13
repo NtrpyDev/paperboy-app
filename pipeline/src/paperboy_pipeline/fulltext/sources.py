@@ -46,6 +46,8 @@ def fetch(candidate: dict, client: PoliteClient) -> Fetched:
 def _parse(convert, content: bytes, url: str):
     try:
         return convert(content)
+    except jats.NoBodyText as error:
+        raise Unavailable(f"{error} at {url}") from error
     except (ValueError, TypeError) as error:
         raise FetchError(f"could not read the document at {url}: {error}") from error
 

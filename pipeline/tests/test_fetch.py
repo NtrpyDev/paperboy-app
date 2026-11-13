@@ -637,7 +637,11 @@ def test_mathml_letters_set_one_by_one_become_one_word(tmp_path):
         '</mml:msup><mml:mo>=</mml:mo><mml:msub><mml:mrow><mml:mo fence="true" stretchy="true" symmetric="true"/>'
         '<mml:mfrac><mml:mrow><mml:mi>d</mml:mi><mml:mi>x</mml:mi></mml:mrow><mml:mrow><mml:mi>d</mml:mi><mml:mi>t'
         '</mml:mi></mml:mrow></mml:mfrac><mml:mo>|</mml:mo></mml:mrow><mml:mrow><mml:mi>t</mml:mi></mml:mrow>'
-        '</mml:msub></mml:mstyle></mml:mrow></mml:mstyle></mml:math></disp-formula></p></sec></body></article>'
+        '</mml:msub></mml:mstyle></mml:mrow></mml:mstyle></mml:math></disp-formula></p>'
+        '<p>qualifies as a fitness statistic but often will incorrectly estimate the actual change in relative'
+        ' abundance because x(t) is nonlinear (Figure 1A, top panel). Instead, we can transform the relative'
+        ' abundance using a function m, which we call an encoding, such that it changes linearly in time.</p>'
+        '</sec></body></article>'
     ).encode()
     record = europepmc_candidate(pmcid="PMC13727076", doi="10.7554/elife.102635")
     folder = put_candidate(tmp_path, record)
@@ -659,3 +663,28 @@ def test_europepmc_fulltextxml_link_from_discover_is_fetched_as_given(tmp_path, 
 
     assert web.urls() == [url]
     assert read_outputs(folder)[1]["url"] == url
+
+
+@pytest.mark.parametrize("shape", ["no body", "body with only a supplementary file"])
+def test_jats_with_front_matter_only_is_unavailable_not_a_short_full_text(tmp_path, shape):
+    # Seen live on 2026-11-13: new bioRxiv XML had no <body> at all, and new medRxiv XML had a
+    # <body> holding only a supplementary-material link. Both are built here from the CC BY fixture.
+    from lxml import etree
+
+    root = etree.fromstring(fixture("biorxiv-2026.10.30.763081.source.xml"))
+    body = root.find("body")
+    if shape == "no body":
+        root.remove(body)
+        root.remove(root.find("back"))
+    else:
+        for child in list(body):
+            body.remove(child)
+        etree.SubElement(body, "supplementary-material").append(etree.fromstring("<label>Supplementary Material</label>"))
+    folder = put_candidate(tmp_path, biorxiv_candidate())
+    web = FakeWeb({BIORXIV_XML: (200, XML, etree.tostring(root))})
+
+    assert run_fetch(tmp_path, "doi-10.64898-2026.10.30.763081", web) == 3
+
+    source = json.loads((folder / "source.json").read_text())
+    assert source["available"] is False and "no body text" in source["reason"]
+    assert not (folder / "fulltext.md").exists()

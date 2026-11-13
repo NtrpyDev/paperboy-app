@@ -390,13 +390,34 @@ def _license(meta) -> str | None:
     return found or "other"
 
 
+class NoBodyText(ValueError):
+    """The XML holds front matter only: no paragraphs of body text."""
+
+
+MIN_BODY_CHARS = 200
+
+
+def _body_text_chars(root) -> int:
+    body = _child(root, "body")
+    if body is None:
+        return 0
+    total = 0
+    for p in body.iter():
+        if _local(p.tag) == "p" and not any(_local(a.tag) == "supplementary-material" for a in p.iterancestors()):
+            total += len(squash("".join(p.itertext())))
+    return total
+
+
 def convert(xml: bytes) -> tuple[Paper, str | None]:
-    """The paper and the license id its <permissions> state (None when it states none)."""
+    """The paper and the license id its <permissions> state (None when it states none).
+    Raises NoBodyText when the document carries no body text, ValueError when it is not JATS."""
     parser = etree.XMLParser(resolve_entities=False, no_network=True, load_dtd=False, huge_tree=True, recover=True)
     root = etree.fromstring(xml, parser)
     if root is None or _local(root.tag) != "article":
         raise ValueError("not a JATS <article>")
     _strip_ns(root)
+    if _body_text_chars(root) < MIN_BODY_CHARS:
+        raise NoBodyText("the JATS XML has no body text (front matter only)")
     paper = Paper()
     conv = _Converter(paper)
 

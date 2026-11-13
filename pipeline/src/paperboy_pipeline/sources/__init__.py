@@ -11,11 +11,12 @@ dedupe reads and discover drops before writing:
 
 `limit` caps the number of new records an adapter returns; None means everything in the window.
 """
-from . import arxiv, biorxiv, europepmc
+from . import arxiv, biorxiv, crossref, europepmc
 
 ADAPTERS = {
     "arxiv": arxiv.fetch,
     "biorxiv": biorxiv.fetch_biorxiv,
     "medrxiv": biorxiv.fetch_medrxiv,
     "europepmc": europepmc.fetch,
+    "crossref": crossref.fetch,
 }

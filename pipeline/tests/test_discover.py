@@ -267,3 +267,43 @@ def test_europepmc_service_unavailable_body_is_retried(tmp_path):
     code, records, _ = run(tmp_path, "--sources", "europepmc", "--since", "2026-11-10", overrides={"www.ebi.ac.uk": route})
     assert code == 0
     assert len(records) == 4
+
+
+def test_crossref_journal_articles_become_candidates_without_full_text(tmp_path):
+    code, records, sources = run(tmp_path, "--sources", "crossref", "--since", "2026-11-11")
+    assert code == 0
+    assert sorted(by_id(records)) == ["doi-10.1007-s44297-026-00091-6", "doi-10.22335-rlct.v18i3.2411", "doi-10.5130-pjx4c836"]
+    paper = by_id(records)["doi-10.1007-s44297-026-00091-6"]
+    assert {k: v for k, v in paper.items() if k != "abstract"} == {
+        "id": "doi-10.1007-s44297-026-00091-6",
+        "doi": "10.1007/s44297-026-00091-6",
+        "arxiv_id": None,
+        "title": "Translating pathogen biology into diagnostic and management strategies for gummy stem blight in cucumber production",
+        "authors": paper["authors"],
+        "venue": "Crop Health",
+        "published": "2026-11-13",
+        "status": "peer_reviewed",
+        "license": "cc-by",
+        "url": "https://doi.org/10.1007/s44297-026-00091-6",
+        "source": "crossref",
+        "categories": [],
+        "fulltext": {"available": False, "kind": None, "url": None},
+    }
+    assert paper["authors"][:2] == ["Aastha Ranjan", "Alison Lu"]
+    assert paper["abstract"].startswith(
+        "Abstract Gummy stem blight (GSB) is a major disease of cucurbits caused by Stagonosporopsis spp. and is")
+    assert "<" not in paper["abstract"]
+    other = by_id(records)["doi-10.22335-rlct.v18i3.2411"]
+    assert (other["venue"], other["license"], other["published"]) == ("Revista Logos Ciencia & Tecnología", None, "2026-11-12")
+    query = parse_qs(urlsplit(sources.urls("api.crossref.org")[0]).query)
+    assert query["filter"] == ["from-created-date:2026-11-11,type:journal-article,has-abstract:true"]
+    assert (query["sort"], query["order"], query["cursor"]) == (["created"], ["desc"], ["*"])
+    assert "mailto" not in query
+
+
+def test_crossref_list_requests_are_at_least_one_second_apart(tmp_path):
+    _, _, sources = run(tmp_path, "--sources", "crossref", "--since", "2026-11-11")
+    times = sources.times("api.crossref.org")
+    assert len(times) == 2
+    assert times[1] - times[0] >= 1.0
+    assert f"cursor={CROSSREF_SECOND_CURSOR}" in sources.urls("api.crossref.org")[1]

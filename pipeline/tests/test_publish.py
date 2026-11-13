@@ -120,6 +120,31 @@ def test_paper_with_a_passing_explainer_is_published_as_an_explained_card(tmp_pa
     assert meta["check"]["review"]["pass"] is True
 
 
+MADE_BY = {"expert": "claude-opus-5-5", "visualizer": "claude-opus-5-5", "checker": "claude-sonnet-5-5"}
+
+
+def test_explained_paper_records_which_models_made_it(tmp_path):
+    work = write_work(tmp_path / "work", [judged(1), judged(2)], explained={"arxiv-2611.00001": {}, "arxiv-2611.00002": {}})
+    (work / "papers/arxiv-2611.00001/made_by.json").write_text(json.dumps(MADE_BY))
+    content = tmp_path / "content"
+
+    assert publish(work, content) == 0
+
+    assert read_json(content / "papers/arxiv-2611.00001/meta.json")["made_by"] == MADE_BY
+    assert "made_by" not in read_json(content / "papers/arxiv-2611.00002/meta.json")
+
+
+def test_made_by_without_every_role_aborts_with_nothing_written(tmp_path, capsys):
+    work = write_work(tmp_path / "work", [judged(1)], explained={"arxiv-2611.00001": {}})
+    (work / "papers/arxiv-2611.00001/made_by.json").write_text(json.dumps({"expert": "claude-opus-5-5"}))
+    content = tmp_path / "content"
+
+    assert publish(work, content) == 1
+
+    assert not (content / "papers").exists()
+    assert "made_by" in capsys.readouterr().err
+
+
 @pytest.mark.parametrize(
     "opts",
     [{"check": False}, {"review": False}, {"files": False}],

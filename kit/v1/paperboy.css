@@ -238,7 +238,7 @@ body {
   border-radius: 999px;
   background: var(--pb-wash);
   color: var(--pb-ink-2);
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   font-weight: 650;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -326,7 +326,7 @@ body {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 32px;
+  height: 40px;
   margin: 0;
   background: transparent;
   touch-action: pan-y;

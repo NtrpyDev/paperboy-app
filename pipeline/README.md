@@ -106,3 +106,33 @@ uv run paperboy-pipeline discover --work work/smoke --content work/smoke-content
 ```
 
 Every source should print `5 found, 5 written`. The empty content folder means nothing is seen yet and the window is the last two days. `work/` is ignored by git.
+
+## check
+
+The render check. It loads one explainer in a headless Chromium-family browser at phone size and fails it if it breaks the explainer contract (`EXPLAINER-CONTRACT.md`).
+
+```
+cd pipeline && uv run paperboy-pipeline check --explainer work/papers/<paper id>/explainer --kit ../kit [--out DIR]
+```
+
+- `--explainer` is the folder holding `index.html`. `--kit` is the repo's `kit` folder. `--out` defaults to the explainer's parent.
+- It serves the explainer at `/papers/x/` and the kit at `/kit/` from a local server on a free port, then loads the page at 390 by 844 px, device scale factor 2, three times: light, dark, and light with reduced motion. Each time it waits for `data-pb-ready`, scrolls through the page once, and lets animations run for 1.5 seconds before measuring and capturing.
+- It writes `check.json` and `shots/` in the out folder, and the hero still as `explainer/hero.webp` (from the dark capture, at most 1200 px wide).
+- Exit code: 0 pass, 1 fail, 2 tool error (no `index.html`, no kit, no browser, or the browser would not start). On a tool error it writes no `check.json`.
+
+Browser: `PAPERBOY_CHROME` (a path or a name on PATH), else the first of `google-chrome`, `chromium`, `chromium-browser`, `brave` on PATH. Nothing is downloaded. It always runs headless with `--no-sandbox` (needed when running as root, as in the cloud routine) and a throwaway profile. The tests skip when no browser is found.
+
+`check.json`:
+
+```
+{
+  "pass": false,
+  "checked_at": "2026-11-13T03:37:00Z",
+  "problems": [{"rule": "overflow-x", "detail": "...", "theme": "light"}],
+  "shots": ["shots/light-01.png", "shots/dark-01.png", "shots/still-01.png"],
+  "hero": {"path": "explainer/hero.webp", "width": 700, "height": 526},
+  "page": {"height_px": 5128, "figures": 2, "data_figures": 2}
+}
+```
+
+`rule` is one of the ids in `EXPLAINER-CONTRACT.md`. `theme` is `light`, `dark`, or `still`; rules about the document itself are reported once, under `light`, and the hero is checked under `dark`. Shots are the full page cut into pieces at most 2400 px tall (`light-01.png`, `light-02.png`, ...). `hero` is `null` when the hero could not be captured.

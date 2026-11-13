@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-13T03:20:04Z</responseDate>
+                <request verb="ListRecords" metadataPrefix="arXivRaw" from="2026-11-11">http://oaipmh.arxiv.org/oai</request>
+
+
+    <ListRecords>
+
+                    <record>
+                <header>
+        <identifier>oai:arXiv.org:2611.13440</identifier>
+        <datestamp>2026-11-11</datestamp>
+            <setSpec>math:math:GT</setSpec>
+    </header>
+
+            <metadata>
+                        <arXivRaw xmlns="http://arxiv.org/OAI/arXivRaw/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/OAI/arXivRaw/ https://oaipmh.arxiv.org/OAI/arXivRaw.xsd">
+        <id>2611.13440</id>
+        <submitter>John Luecke</submitter>
+            <version version="v1">
+                <date>Tue, 10 Nov 2026 01:30:23 GMT</date>
+                <size>234kb</size>
+            </version>
+        <title>Genus zero simple knots</title>
+        <authors>Joshua Evan Greene and Shiyu Liang and John Luecke</authors>
+        <categories>math.GT</categories>
+            <comments>102 pages, 14 figures</comments>
+            <license>http://arxiv.org/licenses/nonexclusive-distrib/1.0/</license>
+            <abstract>We classify the simple knots in lens spaces with planar rational Seifert surfaces. As a consequence, we classify the homology classes of all knots in lens spaces that admit planar rational Seifert surfaces.</abstract>
+    </arXivRaw>
+
+            </metadata>
+        </record>
+
+                    <record>
+                <header>
+        <identifier>oai:arXiv.org:2611.13622</identifier>
+        <datestamp>2026-11-11</datestamp>
+            <setSpec>physics:cond-mat:stat-mech</setSpec>
+    </header>
+
+            <metadata>
+                        <arXivRaw xmlns="http://arxiv.org/OAI/arXivRaw/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/OAI/arXivRaw/ https://oaipmh.arxiv.org/OAI/arXivRaw.xsd">
+        <id>2611.13622</id>
+        <submitter>Subhrangshu Manna</submitter>
+            <version version="v1">
+                <date>Tue, 10 Nov 2026 06:06:10 GMT</date>
+                <size>1437kb</size>
+            </version>
+        <title>Stochastic evolution of interacting directed strings</title>
+        <authors>S. S. Manna and Deepak Dhar</authors>
+        <categories>cond-mat.stat-mech</categories>
+            <comments>10 page, 13 figures</comments>
+            <license>http://creativecommons.org/licenses/by/4.0/</license>
+            <abstract>We study the stochastic dynamics of a system of $N$ polymer rings on an infinite cylinder with only excluded volume interaction, using simulations and also analytically. The strings can diffuse in the transverse direction by local Rouse-like moves where an up-kink changes to a down -kink, or vice versa. The motion is biased if the rates of flip are not equal. In the initial state, we start with a step initial condition: all the sites with a positive $y$ coordinate are empty, and the sites with $y \leq 0$ are occupied with a uniform density. We study the scaling form of the density profile in the hydrodynamic limit. The scaling form is a function of $y/\sqrt{t}$ in the unbiased case, and a function of $y/t$ in the biased case. In the unbiased case, in the steady state on a torus, the marginal probability distribution of the positions of the strings on a line with fixed $x$-coordinate is exactly same as that in the ground state of quantum-mechanical spin-less fermions on a line. The biased problem is equivalent to a growing surface in $2+1$ dimension, which is expected to be in the Kardar-Parisi-Zhang universality class.</abstract>
+    </arXivRaw>
+
+            </metadata>
+        </record>
+                    <resumptionToken cursor='1300' completeListSize='1306'></resumptionToken>
+    </ListRecords>
+</OAI-PMH>

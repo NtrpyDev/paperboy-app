@@ -1,0 +1,63 @@
+{
+ "messages": [
+  {
+   "status": "ok",
+   "category": "all",
+   "interval": "2026-11-11:2026-11-12",
+   "cursor": 0,
+   "count": 3,
+   "count_new_papers": "95",
+   "total": "3"
+  }
+ ],
+ "collection": [
+  {
+   "title": "Menstrual Cycle Exacerbation of ADHD Symptoms in Adults: Common, Person-Specific, and Not Confined to the Luteal Phase",
+   "authors": "Eisenlohr-Moul, T. A.; Ross, A.; Peters, J. R.; Nagpal, A.; Schmalenberger, K.; Wiggs, K. K.; Knapp, E.; Patterson, A.; Martel, M.",
+   "author_corresponding": "Tory A. Eisenlohr-Moul",
+   "author_corresponding_institution": "University of Chicago",
+   "doi": "10.64898/2026.11.09.26367690",
+   "date": "2026-11-11",
+   "version": "1",
+   "type": "PUBLISHAHEADOFPRINT",
+   "license": "cc_by_nc_nd",
+   "category": "psychiatry and clinical psychology",
+   "jatsxml": "https://www.medrxiv.org/content/early/2026/11/11/2026.11.09.26367690.source.xml",
+   "abstract": "Objective. Patients often describe menstrual-cycle worsening of attention-deficit/hyperactivity disorder (ADHD). We prospectively evaluated sample- and person-level cycle effects on ADHD symptoms and their independence from cyclical negative affect and pain. Methods. In an intensive longitudinal cohort (2019-2024), 106 naturally cycling adults meeting DSM-5 ADHD criteria on integrated assessment rated daily inattention and hyperactivity-impulsivity (Barkley Adult ADHD Rating Scale-IV), negative affect, and pain (median, 41 days) and provided daily salivary estradiol and progesterone for ovulation coding and phase-aligned cycle time (PACTS). Generalized additive models estimated sample-level and person-specific cycle curves; robust cyclicity was tested against each participant's own time-shuffle null. Lab cognitive testing at four counterbalanced phases provided post hoc validation. Results. Sample-average cycle effects were significant yet small (<1% of daily variance), but 54% of 87 participants tested individually were robustly cyclical in ADHD symptoms (95% CI, 44%-64%; inattention 43%, hyperactivity-impulsivity 26%), more often with informant-confirmed ADHD (69% vs 36%). Among them, the cycle explained median 52% and 51% of symptom variance, a mean swing of 2.6 and 2.1 DSM-5 criteria. Most remained cyclical after adjustment for affect (68%) or pain (81%). Worsening most often peaked at and after menses rather than premenstrually; no cycle met prospective criteria for premenstrual dysphoric disorder (PMDD). Hormones did not differ by cyclicity. Conclusions. About half of these adults with ADHD showed robust cyclical symptom change, mostly not reducible to cyclical affect or pain and usually outside the premenstrual window. Future work should test its stability and whether a DSM-5 cyclical specifier is warranted.",
+   "published": "NA",
+   "server": "medRxiv"
+  },
+  {
+   "title": "Functional difficulty among children and adolescents aged 5-17 years in Ethiopia: Multilevel analysis of the nationally representative 2024-2025 DHS",
+   "authors": "Hailemariam, M. D.; Sisaye, A. M. S.",
+   "author_corresponding": "Awoke MIHRETU SISAYE Sisaye",
+   "author_corresponding_institution": "ADDIS ABABA UNIVERSITY",
+   "doi": "10.64898/2026.11.09.26367692",
+   "date": "2026-11-11",
+   "version": "1",
+   "type": "PUBLISHAHEADOFPRINT",
+   "license": "cc_by_nc_nd",
+   "category": "public and global health",
+   "jatsxml": "https://www.medrxiv.org/content/early/2026/11/11/2026.11.09.26367692.source.xml",
+   "abstract": "Background: Population-based data on functional difficulty among school-age children in Ethiopia are scarce. The 2024-2025 Ethiopia Demographic and Health Survey (EDHS) included, for the first time, the UNICEF/Washington Group Child Functioning Module (CFM) for children aged 5-17 years. We estimated the prevalence and domain distribution of functional difficulty and associated factors in Ethiopia. Methods: We analysed cross-sectional EDHS data from 11,122 children aged 5-17 years (weighted n = 10,726) and 4,739 mothers. Functional difficulty was defined as \"a lot of difficulty\" or \"cannot do at all\" in any of 11 domains, or daily anxiety or depression. We estimated design-based prevalence and fitted multilevel logistic regression models (children within mothers within clusters) for any, non-affective and affective difficulty. Interviewer effects were examined with random-intercept models and within-cluster comparisons. Results: Overall, 9.5% (95% CI 8.1-11.1) of children had functional difficulty. Daily depression (6.8%) and anxiety (6.6%) dominated, and 70.3% of affected children had only affective difficulty. Difficulty in at least one non-affective domain affected 2.8% (2.2-3.7), with each domain at 0.5-1.4%. Prevalence ranged from 1.5% in Southwest Regional State, Ethiopia, to 16.5% in Oromia Regional State. In adjusted models, children not attending school had higher odds of non-affective difficulty (AOR 2.82, 95% CI 2.01-3.96), and girls had lower odds (AOR 0.63, 0.48-0.84). Outcomes clustered strongly within families (sibling correlation 67.7%) and clusters (ICC 20.9%). Six of 163 interviewers (7.9% of the weighted sample) contributed 58.2% of weighted cases of daily anxiety or depression; in the same clusters they recorded daily symptoms for 56.4% of children, against 2.1% for other interviewers. Excluding 11 statistically outlying interviewers reduced the prevalence of any difficulty to 4.6% (3.6-5.8) and of daily anxiety or depression to 3.3%. The associations with school non-attendance and sex were unchanged. Conclusions: Functional difficulties across the sensory, physical, cognitive, and affective domains, including anxiety or depression, affect about 2-3% of Ethiopian children aged 5-17 years and are strongly associated with being out of school. Appropriate interventions and resource allocation should be considered.",
+   "published": "NA",
+   "server": "medRxiv"
+  },
+  {
+   "title": "Health Care Workload Impacts and Cost-Effectiveness of a Metabolomic Risk Score-based Health Check for Cardiometabolic Disease Prevention in Finland",
+   "authors": "Lavikainen, P.; Haikonen-Salo, L.; Lehtimaki, A.-V.; Jalkanen, K.; Heiskanen, J.; Laatikainen, T.; Martikainen, J.",
+   "author_corresponding": "Piia Lavikainen",
+   "author_corresponding_institution": "University of Eastern Finland",
+   "doi": "10.1101/2025.09.11.25335561",
+   "date": "2026-11-11",
+   "version": "2",
+   "type": "PUBLISHAHEADOFPRINT",
+   "license": "cc_by",
+   "category": "health economics",
+   "jatsxml": "https://www.medrxiv.org/content/early/2026/11/11/2025.09.11.25335561.source.xml",
+   "abstract": "Background: Predictive metabolomics enables efficient early cardiometabolic risk detection, supporting proactive prevention over traditional reactive healthcare approaches. We evaluated the impact of a novel metabolomic risk score (MRS)-based health check on healthcare workload and long-term cost-effectiveness compared with current practices in Finland's working-age population. Methods: A de novo individual-level microsimulation model was developed to estimate labour time and cost-effectiveness when identifying individuals at risk of cardiometabolic diseases (cardiovascular diseases; CVD or type 2 diabetes; T2D). The model used synthetic data on 256,372 Finnish individuals aged 50-54 years without prior CVD or T2D. From a societal perspective, three scenarios were assessed: 1) replacing the standard health checks with MRS-based health checks, 2) replacing standard health checks with MRS-based checks plus enhanced prevention, and 3) comparing enhanced standard checks with MRS-based checks plus enhanced prevention. Outcomes included time required to identify at-risk individuals, incremental cost-effectiveness ratio per QALY gained, and cost-effectiveness acceptability curves. Results: MRS-based health checks substantially reduce workload, saving 193,140 hours for nurses and 2,843 hours for physicians over five years. The approach is likely cost-saving across all scenarios, with discounted long-term savings ranging from EUR27 million to EUR258 million. In scenarios 1-2, QALYs improve, with gains from 1,316 to 10,813. In scenario 3, no QALY gains are observed, and minor losses occur due to differences in baseline risk stratification. Conclusions: MRS-based health checks in primary and occupational care reduce workload and are likely a cost-saving strategy with potential health outcome benefits in identifying individuals at risk of cardiometabolic diseases.",
+   "published": "NA",
+   "server": "medRxiv"
+  }
+ ]
+}

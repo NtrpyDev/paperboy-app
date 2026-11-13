@@ -76,3 +76,33 @@ Rules:
 
   Other changes in the checkout are left uncommitted. A run that changes nothing makes no commit.
 - **`--push`** runs `git push origin main`. It never forces.
+
+## discover
+
+```
+paperboy-pipeline discover --work WORK --content CONTENT_REPO [--since YYYY-MM-DD] [--sources arxiv,biorxiv,medrxiv,europepmc,crossref] [--limit N]
+```
+
+Lists newly released papers and writes them to `WORK/candidates.jsonl`, one Candidate per line (`schema/candidate.schema.json`), newest first. Prints one line per source: how many new papers it returned and how many candidates were written with that source.
+
+- **Start date.** `--since` for every source when given. Otherwise each source's cursor in `CONTENT_REPO/state/cursors.json`. A source without a cursor, or a checkout without `state/`, starts two days before today (UTC). The window always ends today.
+- **Sources.** One adapter per source in `src/paperboy_pipeline/sources/`, each a function `fetch(since, limit, http)`:
+  - arXiv: OAI-PMH at `https://oaipmh.arxiv.org/oai`, format `arXivRaw` (the only arXiv interface that states the license). All categories. A paper counts as new when its first version is at most 7 days older than the start date; older records that changed in the window (revisions, added DOIs) are context only.
+  - bioRxiv and medRxiv: `https://api.biorxiv.org/details/<server>/<from>/<to>/<cursor>/json`. Only first versions are new; later versions are context only.
+  - Europe PMC: REST search for `OPEN_ACCESS:y AND HAS_DOI:y` first published in the window, newest first. Records marked as preprints keep status `preprint`.
+  - Crossref: journal articles with an abstract created in the window, newest first, public pool (no mailto).
+- **Duplicates.** Records of one paper (same DOI, arXiv id, or title key; or a journal DOI the preprint server names) become one candidate. A journal record supplies the metadata and status; a preprint lends its full text pointer and that text's license when the journal record has none. See `src/paperboy_pipeline/dedupe.py`.
+- **Already published.** A paper whose id, DOI, arXiv id, or title key matches a line in `CONTENT_REPO/state/seen/` is skipped. Discover never writes to the content repo.
+- **Requests.** One shared client with User-Agent `paperboy-pipeline/0.1 (+https://github.com/NtrpyDev/paperboy-app)` and no email or other personal detail. arXiv requests start at least 3 seconds apart, Crossref requests at least 1 second apart. 429, 5xx, and connection errors are retried up to 4 times with doubling backoff, waiting at least as long as `Retry-After` asks.
+- **Abstracts** are pipeline input only. JATS and HTML tags are removed; LaTeX is kept as written.
+- **Exit status** is 1 when a source failed after retries or a record did not match the schema. The candidates from the other sources are still written.
+
+Live smoke run (not part of the test suite; makes one request per source and took about 20 seconds on 2026-11-13):
+
+```
+cd pipeline
+mkdir -p work/smoke-content
+uv run paperboy-pipeline discover --work work/smoke --content work/smoke-content --limit 5
+```
+
+Every source should print `5 found, 5 written`. The empty content folder means nothing is seen yet and the window is the last two days. `work/` is ignored by git.

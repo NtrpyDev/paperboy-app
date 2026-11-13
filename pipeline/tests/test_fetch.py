@@ -217,3 +217,142 @@ def test_arxiv_figures_are_listed_footnotes_kept_references_counted_and_chrome_d
     assert "Stellar Atmospheric Parameters for 754 Spectra" not in md  # the first bibliography entry
     for chrome in ("Skip to main content", "Report issue", "License: CC BY", "cavierescarrera@", "<img", "Refer to caption"):
         assert chrome not in md
+
+
+# No lawful full text
+
+
+def test_arxiv_paper_without_html_exits_3_and_writes_only_an_unavailable_record(tmp_path):
+    folder = put_candidate(tmp_path, arxiv_candidate("2611.15335"))
+    (folder / "fulltext.md").write_text("stale text from an earlier run")
+    web = FakeWeb({"https://arxiv.org/html/2611.15335": (404, HTML, fixture("arxiv-2611.15335-no-html.html"))})
+
+    assert run_fetch(tmp_path, "arxiv-2611.15335", web) == 3
+
+    assert not (folder / "fulltext.md").exists()
+    source = json.loads((folder / "source.json").read_text())
+    assert source["available"] is False
+    assert "no HTML rendering" in source["reason"]
+    assert web.urls() == ["https://arxiv.org/html/2611.15335"]  # no fallback to the PDF
+
+
+def test_candidate_without_free_full_text_exits_3_without_any_request(tmp_path):
+    record = candidate("doi-10.1000-paywalled", doi="10.1000/paywalled", source="crossref",
+                       fulltext={"available": False, "kind": None, "url": None})
+    folder = put_candidate(tmp_path, record)
+    web = FakeWeb({})
+
+    assert run_fetch(tmp_path, "doi-10.1000-paywalled", web) == 3
+
+    assert web.requests == []
+    assert json.loads((folder / "source.json").read_text())["available"] is False
+    assert not (folder / "fulltext.md").exists()
+
+
+@pytest.mark.parametrize("status", [403, 503])
+def test_challenge_page_counts_as_unavailable_and_is_not_retried(tmp_path, status):
+    folder = put_candidate(tmp_path, arxiv_candidate())
+    headers = {**HTML, "cf-mitigated": "challenge", "server": "cloudflare"}
+    web = FakeWeb({ARXIV_URL: (status, headers, fixture("cloudflare-challenge.html"))})
+
+    assert run_fetch(tmp_path, "arxiv-2611.15301", web) == 3
+
+    assert len(web.requests) == 1
+    source = json.loads((folder / "source.json").read_text())
+    assert source["available"] is False
+    assert "challenge" in source["reason"]
+    assert not (folder / "fulltext.md").exists()
+
+
+def test_challenge_page_served_with_200_is_still_caught(tmp_path):
+    folder = put_candidate(tmp_path, arxiv_candidate())
+    web = FakeWeb({ARXIV_URL: (200, HTML, fixture("cloudflare-challenge.html"))})
+
+    assert run_fetch(tmp_path, "arxiv-2611.15301", web) == 3
+    assert "challenge" in json.loads((folder / "source.json").read_text())["reason"]
+
+
+def test_plain_403_counts_as_unavailable(tmp_path):
+    folder = put_candidate(tmp_path, arxiv_candidate())
+    web = FakeWeb({ARXIV_URL: (403, {"content-type": "text/plain"}, b"Forbidden")})
+
+    assert run_fetch(tmp_path, "arxiv-2611.15301", web) == 3
+    assert "403" in json.loads((folder / "source.json").read_text())["reason"]
+
+
+# HTTP manners
+
+
+def test_requests_carry_the_project_user_agent_and_nothing_personal(tmp_path):
+    put_candidate(tmp_path, arxiv_candidate())
+    web = arxiv_web()
+    run_fetch(tmp_path, "arxiv-2611.15301", web)
+
+    request = web.requests[0]
+    assert request.headers["user-agent"] == USER_AGENT
+    assert "from" not in request.headers
+    assert "@" not in str(request.url) + "".join(request.headers.values())
+
+
+def test_429_is_retried_after_the_retry_after_delay(tmp_path):
+    put_candidate(tmp_path, arxiv_candidate())
+    web = FakeWeb({ARXIV_URL: [
+        (429, {"retry-after": "42"}, b""),
+        (200, HTML, fixture("arxiv-2611.15301.html")),
+    ]})
+    clock = FakeClock()
+
+    assert run_fetch(tmp_path, "arxiv-2611.15301", web, clock) == 0
+
+    assert len(web.requests) == 2
+    assert 42 in clock.sleeps
+
+
+def test_server_errors_are_retried_then_reported_as_a_real_error(tmp_path):
+    folder = put_candidate(tmp_path, arxiv_candidate())
+    web = FakeWeb({ARXIV_URL: [(503, {"content-type": "text/plain"}, b"busy")]})
+    clock = FakeClock()
+
+    code = run_fetch(tmp_path, "arxiv-2611.15301", web, clock)
+
+    assert code not in (0, 3)
+    assert len(web.requests) == 4
+    assert not (folder / "source.json").exists()
+    assert not (folder / "fulltext.md").exists()
+    assert sum(clock.sleeps) >= 5 + 10 + 20  # backoff doubles between the four attempts
+
+
+def test_consecutive_fetches_wait_at_least_three_seconds_between_arxiv_requests(tmp_path):
+    put_candidate(tmp_path, arxiv_candidate())
+    put_candidate(tmp_path, arxiv_candidate("2611.15335"))
+    web = FakeWeb({
+        ARXIV_URL: (200, HTML, fixture("arxiv-2611.15301.html")),
+        "https://arxiv.org/html/2611.15335": (404, HTML, fixture("arxiv-2611.15335-no-html.html")),
+    })
+    clock = FakeClock()
+    request_times = []
+    original = web._handle
+
+    def timed(request):
+        request_times.append(clock.now)
+        return original(request)
+
+    web._handle = timed
+
+    run_fetch(tmp_path, "arxiv-2611.15301", web, clock)
+    clock.now += 1.0  # the next command starts a second later
+    run_fetch(tmp_path, "arxiv-2611.15335", web, clock)
+
+    assert len(request_times) == 2
+    assert request_times[1] - request_times[0] >= 3.0
+
+
+def test_missing_or_invalid_candidate_is_a_real_error(tmp_path):
+    web = FakeWeb({})
+    assert run_fetch(tmp_path, "arxiv-2611.15301", web) not in (0, 3)
+
+    folder = tmp_path / "papers" / "arxiv-2611.15301"
+    folder.mkdir(parents=True)
+    (folder / "candidate.json").write_text(json.dumps({"id": "arxiv-2611.15301"}))
+    assert run_fetch(tmp_path, "arxiv-2611.15301", web) not in (0, 3)
+    assert web.requests == []

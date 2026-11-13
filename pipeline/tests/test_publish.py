@@ -30,8 +30,10 @@ def judged(n: int, **overrides) -> dict:
 
 
 def write_work(work: Path, records: list[dict], explained: dict[str, dict] | None = None) -> Path:
-    """explained maps paper id to {"check": bool, "review": bool, "files": bool, "night": bool, "hero": dict};
-    missing keys default to True, and "hero" (the hero check.json reports) defaults to none."""
+    """explained maps paper id to {"check": bool, "review": bool, "files": bool, "night": bool, "hero": dict,
+    "kit": int | None, "card": dict}. The booleans default to True; "hero" (the hero check.json reports)
+    defaults to none; "kit" (check.json's page.kit) defaults to 1, and None leaves page out; "card" is
+    written as card.json when given."""
     work.mkdir(parents=True, exist_ok=True)
     (work / "judged.jsonl").write_text("".join(json.dumps(r) + "\n" for r in records))
     for paper_id, opts in (explained or {}).items():
@@ -45,7 +47,11 @@ def write_work(work: Path, records: list[dict], explained: dict[str, dict] | Non
         check = {"pass": opts.get("check", True), "problems": []}
         if "hero" in opts:
             check["hero"] = opts["hero"]
+        if opts.get("kit", 1) is not None:
+            check["page"] = {"height_px": 2000, "figures": 3, "data_figures": 1, "kit": opts.get("kit", 1)}
         (folder / "check.json").write_text(json.dumps(check))
+        if "card" in opts:
+            (folder / "card.json").write_text(json.dumps(opts["card"]))
         (folder / "review.json").write_text(json.dumps({"pass": opts.get("review", True), "problems": []}))
     return work
 
@@ -250,6 +256,133 @@ def test_hook_turn_rule_applies_to_every_item_in_a_chunk():
     assert schemas.errors("chunk", {"v": 1, "number": 1, "items": [good, bad]}) == [
         "items/1/hook_turn: hook_turn is not an exact suffix of hook: 'where nobody looks'"
     ]
+
+
+EXPERT_READOUT = {"value": "1.3", "exponent": -21, "unit": "strain", "label": "Peak strain, from Table 2"}
+SCOUT_READOUT = CARD_TEXT["readout"]
+
+
+@pytest.mark.parametrize(
+    "card, expected",
+    [({"readout": EXPERT_READOUT}, EXPERT_READOUT), ({"readout": None}, None), (None, SCOUT_READOUT)],
+    ids=["expert readout replaces the scout's", "null removes it", "no card.json leaves it"],
+)
+def test_explained_card_takes_the_readout_the_expert_settled(tmp_path, card, expected):
+    opts = {} if card is None else {"card": card}
+    work = write_work(tmp_path / "work", [judged(1, **CARD_TEXT)], explained={"arxiv-2611.00001": opts})
+    content = tmp_path / "content"
+
+    assert publish(work, content) == 0
+
+    [item] = read_json(content / "feed/v1/chunks/000001.json")["items"]
+    meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
+    for published in (item, meta):
+        assert published.get("readout") == expected
+        assert published["hook_turn"] == CARD_TEXT["hook_turn"]
+    assert not (content / "papers/arxiv-2611.00001/card.json").exists()
+
+
+def test_card_json_of_an_explainer_that_did_not_pass_is_ignored(tmp_path):
+    work = write_work(tmp_path / "work", [judged(1, **CARD_TEXT)], explained={"arxiv-2611.00001": {"review": False, "card": {"readout": None}}})
+    content = tmp_path / "content"
+
+    assert publish(work, content) == 0
+
+    [item] = read_json(content / "feed/v1/chunks/000001.json")["items"]
+    assert item["has_explainer"] is False
+    assert item["readout"] == SCOUT_READOUT
+
+
+@pytest.mark.parametrize("card", [{"readout": None}, {"readout": EXPERT_READOUT}], ids=["null", "object"])
+def test_open_chunk_upgrade_replaces_or_removes_the_readout_in_place(tmp_path, card):
+    content = tmp_path / "content"
+    publish(write_work(tmp_path / "w1", [judged(1, **CARD_TEXT), judged(2)]), content)
+
+    work = write_work(tmp_path / "w2", [judged(1, **CARD_TEXT)], explained={"arxiv-2611.00001": {"card": card}})
+    assert publish(work, content, now=LATER) == 0
+
+    first, _ = read_json(content / "feed/v1/chunks/000001.json")["items"]
+    meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
+    for published in (first, meta):
+        assert published.get("readout") == card["readout"]
+    assert first["has_explainer"] is True
+    assert not (content / "feed/v1/upgrades.json").exists()
+
+
+@pytest.mark.parametrize(
+    "card", [{"readout": None}, {"readout": EXPERT_READOUT}, None], ids=["null", "object", "no card.json"]
+)
+def test_closed_chunk_upgrade_carries_the_readout_in_upgrades_json(tmp_path, card):
+    content = tmp_path / "content"
+    publish(write_work(tmp_path / "w1", [judged(1, **CARD_TEXT)] + [judged(n) for n in range(2, 42)]), content)
+    closed = (content / "feed/v1/chunks/000001.json").read_bytes()
+
+    opts = {} if card is None else {"card": card}
+    work = write_work(tmp_path / "w2", [judged(1, **CARD_TEXT)], explained={"arxiv-2611.00001": opts})
+    assert publish(work, content, now=LATER) == 0
+
+    assert (content / "feed/v1/chunks/000001.json").read_bytes() == closed
+    entry = read_json(content / "feed/v1/upgrades.json")["upgrades"]["arxiv-2611.00001"]
+    expected = {"explainer": "papers/arxiv-2611.00001/", "hero": HERO, "explained_at": LATER}
+    if card is not None:
+        expected["readout"] = card["readout"]
+    assert entry == expected
+    meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
+    assert meta.get("readout") == (SCOUT_READOUT if card is None else card["readout"])
+    assert schemas.errors("upgrades", read_json(content / "feed/v1/upgrades.json")) == []
+
+
+@pytest.mark.parametrize(
+    "card_text",
+    ['{"readout": {"value": "about 5", "label": "Peak strain"}}', "{}", '{"readout": null, "hook": "x"}', "{not json"],
+    ids=["bad readout", "no readout key", "unknown field", "not JSON"],
+)
+def test_invalid_card_json_aborts_with_nothing_changed(tmp_path, capsys, card_text):
+    content = published_repo(tmp_path)
+    before = tree(content)
+    work = write_work(tmp_path / "work", [judged(60), judged(61)], explained={"arxiv-2611.00061": {}})
+    (work / "papers/arxiv-2611.00061/card.json").write_text(card_text)
+
+    assert publish(work, content) == 1
+
+    assert tree(content) == before
+    assert "card.json" in capsys.readouterr().err
+
+
+def test_paper_record_names_the_kit_version_its_page_loads(tmp_path):
+    work = write_work(tmp_path / "work", [judged(1), judged(2)], explained={"arxiv-2611.00001": {"kit": 2}, "arxiv-2611.00002": {}})
+    content = tmp_path / "content"
+
+    assert publish(work, content) == 0
+
+    assert read_json(content / "papers/arxiv-2611.00001/meta.json")["kit"] == 2
+    assert read_json(content / "papers/arxiv-2611.00002/meta.json")["kit"] == 1
+    assert read_json(content / "feed/v1/head.json")["kit"] == 1
+
+
+def test_passing_check_without_the_page_kit_version_aborts_with_nothing_changed(tmp_path, capsys):
+    content = published_repo(tmp_path)
+    before = tree(content)
+    work = write_work(tmp_path / "work", [judged(61)], explained={"arxiv-2611.00061": {"kit": None}})
+
+    assert publish(work, content) == 1
+
+    assert tree(content) == before
+    assert "page.kit" in capsys.readouterr().err
+
+
+def test_schemas_accept_only_a_readout_object_or_null_in_upgrades_and_card():
+    def upgrades(readout):
+        entry = {"explainer": "papers/arxiv-1/", "hero": HERO, "explained_at": NOW, "readout": readout}
+        return {"v": 1, "upgrades": {"arxiv-1": entry}}
+
+    assert schemas.errors("upgrades", upgrades(None)) == []
+    assert schemas.errors("upgrades", upgrades(EXPERT_READOUT)) == []
+    assert schemas.errors("upgrades", upgrades({"value": "5"}))
+    assert schemas.errors("upgrades", upgrades("5 strain"))
+    assert schemas.errors("card", {"readout": None}) == []
+    assert schemas.errors("card", {"readout": EXPERT_READOUT}) == []
+    assert schemas.errors("card", {"readout": False})
 
 
 def test_content_published_before_plates_and_readouts_still_validates_and_publishes(tmp_path):

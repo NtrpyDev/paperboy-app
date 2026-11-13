@@ -209,6 +209,7 @@
     height: Math.ceil(Math.max(doc.scrollHeight, document.body ? document.body.scrollHeight : 0)),
     figures: figures.length,
     dataFigures: figures.filter(function (f) { return f.dataset.kind === "data"; }).length,
+    kit: versions.length === 1 ? parseInt(versions[0], 10) : null,
     structure: structure,
     layout: layout
   };

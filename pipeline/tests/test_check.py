@@ -105,6 +105,7 @@ def test_passing_page_passes_and_writes_shots_and_hero(tmp_path):
     assert report["page"]["figures"] == 3
     assert report["page"]["data_figures"] == 1
     assert report["page"]["height_px"] > 844
+    assert report["page"]["kit"] == 1
 
 
 def mean_brightness(path: Path) -> float:
@@ -163,12 +164,14 @@ def test_any_single_kit_version_passes(tmp_path):
     code, report = run_check(tmp_path, page, kit=kit)
     assert report["problems"] == []
     assert code == 0
+    assert report["page"]["kit"] == 7
 
 
 def test_kit_files_from_two_versions_fail(tmp_path):
     code, report = run_check(tmp_path, pass_page_with(head='<link rel="stylesheet" href="/kit/v2/paperboy.css">\n'))
     assert {p["rule"] for p in report["problems"]} == {"kit-not-absolute"}
     assert "one version" in report["problems"][0]["detail"]
+    assert report["page"]["kit"] is None
     assert code == 1
 
 

@@ -168,7 +168,12 @@ async def _one_theme(browser, url: str, theme: str, scheme: str, motion: str, sh
         if theme == STRUCTURE_THEME:
             for rule, detail in probe["structure"]:
                 add(rule, detail)
-            result.page = {"height_px": probe["height"], "figures": probe["figures"], "data_figures": probe["dataFigures"]}
+            result.page = {
+                "height_px": probe["height"],
+                "figures": probe["figures"],
+                "data_figures": probe["dataFigures"],
+                "kit": probe["kit"],  # the one kit version the page loads, or None
+            }
         result.shots += await _save_pieces(page, probe["height"], shots_dir, theme)
         if theme in PLATE_THEMES:
             plate = PLATE_THEMES[theme]

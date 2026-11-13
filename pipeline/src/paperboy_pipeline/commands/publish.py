@@ -4,7 +4,10 @@ Each Judged record in WORK/judged.jsonl becomes one feed item, carrying the reco
 and readout when it has them. It is an explained card when WORK/papers/<id>/explainer/ holds
 index.html, hero.webp (the day plate), and hero-night.webp (the night plate) and both check.json
 and review.json say {"pass": true}; otherwise it is a short card. The plate's kind and to_scale
-come from the hero in check.json. An explained paper's meta.json gets
+come from the hero in check.json, and meta.json's kit is the kit version check.json says the
+page loads. When WORK/papers/<id>/card.json exists, the readout the expert settled there
+replaces the scout's on the explained card (null removes it), through upgrades.json when the
+item sits in a closed chunk. An explained paper's meta.json gets
 "made_by" from WORK/papers/<id>/made_by.json when that file exists. A paper already in the feed is
 not added again, but a short card gains its explainer once one passes. See content_repo for
 the layout and the rules that keep closed chunks unchanged.
@@ -20,7 +23,7 @@ from pathlib import Path
 from PIL import Image
 
 from .. import content_repo, schemas
-from ..content_repo import KIT, ContentRepo, PublishError
+from ..content_repo import ContentRepo, PublishError, set_readout
 
 # One commit per top-level folder, so each folder's last commit subject describes it.
 COMMIT_SUBJECTS = {
@@ -117,6 +120,8 @@ def _publish_one(repo: ContentRepo, record: dict, folder: Path, now: str) -> Non
         files = {}
         if explained:
             item.update(has_explainer=True, explainer=explained["explainer"], hero=explained["hero"])
+            if explained["card"] is not None:
+                set_readout(item, explained["card"]["readout"])
             files = _explain_meta(meta, record, explained, now)
         repo.add(item=item, meta=meta, files=files, record=record)
         return
@@ -127,12 +132,10 @@ def _publish_one(repo: ContentRepo, record: dict, folder: Path, now: str) -> Non
     if meta is None or meta.get("has_explainer"):
         return
     files = _explain_meta(meta, record, explained, now)
-    repo.upgrade(
-        seen=seen,
-        explainer={"explainer": explained["explainer"], "hero": explained["hero"], "explained_at": now},
-        meta=meta,
-        files=files,
-    )
+    upgrade = {"explainer": explained["explainer"], "hero": explained["hero"], "explained_at": now}
+    if explained["card"] is not None:
+        upgrade["readout"] = explained["card"]["readout"]
+    repo.upgrade(seen=seen, explainer=upgrade, meta=meta, files=files)
 
 
 def _explain_meta(meta: dict, record: dict, explained: dict, now: str) -> dict[str, bytes]:
@@ -140,12 +143,14 @@ def _explain_meta(meta: dict, record: dict, explained: dict, now: str) -> dict[s
     meta.update(
         has_explainer=True,
         explained_at=now,
-        kit=KIT,
+        kit=explained["kit"],
         fulltext_source=record["fulltext"].get("url"),
         check={"render": explained["check"], "review": explained["review"]},
     )
     if explained["made_by"] is not None:
         meta["made_by"] = explained["made_by"]
+    if explained["card"] is not None:
+        set_readout(meta, explained["card"]["readout"])
     return {"index.html": explained["index_html"], **explained["plate_bytes"]}
 
 
@@ -172,6 +177,19 @@ def _explainer(paper_id: str, folder: Path) -> dict | None:
             made_by = json.loads((folder / "made_by.json").read_text())
         except json.JSONDecodeError as error:
             raise PublishError(f"{folder / 'made_by.json'} is not valid JSON: {error}")
+    card = None
+    if (folder / "card.json").is_file():
+        try:
+            card = json.loads((folder / "card.json").read_text())
+        except json.JSONDecodeError as error:
+            raise PublishError(f"{folder / 'card.json'} is not valid JSON: {error}")
+        problems = schemas.errors("card", card)
+        if problems:
+            raise PublishError(f"{folder / 'card.json'} does not match schema/card.schema.json: " + "; ".join(problems))
+    page_info = verdicts["check"].get("page")
+    kit = page_info.get("kit") if isinstance(page_info, dict) else None
+    if not isinstance(kit, int) or isinstance(kit, bool) or kit < 1:
+        raise PublishError(f"{folder / 'check.json'} does not say which kit version the page loads (page.kit); run check again")
     base = content_repo.paper_dir(paper_id).as_posix()
     plate_bytes, sizes = {}, {}
     for name, path in plates.items():
@@ -195,6 +213,8 @@ def _explainer(paper_id: str, folder: Path) -> dict | None:
         "check": verdicts["check"],
         "review": verdicts["review"],
         "made_by": made_by,
+        "card": card,
+        "kit": kit,
     }
 
 

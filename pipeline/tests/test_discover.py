@@ -47,8 +47,7 @@ def default_route(request: httpx.Request) -> str | None:
             return {"0": "biorxiv/page0.json", "3": "biorxiv/page1.json"}[cursor]
         return "medrxiv/page0.json"
     if url.hostname == "www.ebi.ac.uk":
-        return {"*": "europepmc/page1.json", EPMC_SECOND_CURSOR: "europepmc/page2.json"}.get(
-            q["cursorMark"], "europepmc/page3.json")
+        return {"*": "europepmc/page1.json", EPMC_SECOND_CURSOR: "europepmc/page2.json"}[q["cursorMark"]]
     if url.hostname == "api.crossref.org":
         return "crossref/page1.json" if q["cursor"] == "*" else "crossref/page2.json"
     return None
@@ -215,3 +214,56 @@ def test_biorxiv_no_posts_found_means_no_candidates(tmp_path):
     code, records, _ = run(tmp_path, "--sources", "biorxiv", overrides={"api.biorxiv.org": "empty/biorxiv.json"})
     assert code == 0
     assert records == []
+
+
+def test_europepmc_open_access_articles_and_preprints_become_candidates(tmp_path):
+    code, records, sources = run(tmp_path, "--sources", "europepmc", "--since", "2026-11-10")
+    assert code == 0
+    assert sorted(by_id(records)) == [
+        "doi-10.1039-d6nr02497a",
+        "doi-10.1371-journal.pgph.0007566",
+        "doi-10.1371-journal.pone.0362399",
+        "doi-10.64898-2026.10.02.26364570",
+    ]
+    article = by_id(records)["doi-10.1039-d6nr02497a"]
+    assert {k: v for k, v in article.items() if k not in ("abstract", "authors", "categories")} == {
+        "id": "doi-10.1039-d6nr02497a",
+        "doi": "10.1039/d6nr02497a",
+        "arxiv_id": None,
+        "title": "Sensitive detection of in vivo traumatic brain injury foci using magnetic particle imaging.",
+        "venue": "Nanoscale",
+        "published": "2026-11-12",
+        "status": "peer_reviewed",
+        "license": "cc-by",
+        "url": "https://europepmc.org/articles/PMC13721992",
+        "source": "europepmc",
+        "fulltext": {
+            "available": True,
+            "kind": "europepmc",
+            "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC13721992/fullTextXML",
+        },
+    }
+    assert article["authors"][:2] == ["Hayden J Good", "Mohammad Tabatabaei"]
+    assert article["categories"][:2] == ["Brain", "Animals"]
+    assert article["abstract"].startswith("Diagnosing traumatic brain injury (TBI) remains a major clinical challenge")
+    preprint = by_id(records)["doi-10.64898-2026.10.02.26364570"]
+    assert (preprint["status"], preprint["venue"], preprint["license"]) == ("preprint", "medRxiv", "cc-by-nc")
+    assert preprint["fulltext"]["url"] == "https://www.ebi.ac.uk/europepmc/webservices/rest/PPR1334369/fullTextXML"
+    query = parse_qs(urlsplit(sources.urls("www.ebi.ac.uk")[0]).query)
+    assert query["query"] == ["OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[2026-11-10 TO 2026-11-13]"]
+    assert query["sort"] == ["FIRST_PDATE_D desc"]
+    # The second page repeats the cursor it was asked with, which marks the end.
+    assert len(sources.urls("www.ebi.ac.uk")) == 2
+
+
+def test_europepmc_service_unavailable_body_is_retried(tmp_path):
+    busy = tmp_path / "busy.json"
+    busy.write_text('{"errCode":503,"errMsg":"Search service is temporarily unavailable. Please retry later."}')
+    answers = [str(busy)]
+
+    def route(request):
+        return answers.pop(0) if answers else default_route(request)
+
+    code, records, _ = run(tmp_path, "--sources", "europepmc", "--since", "2026-11-10", overrides={"www.ebi.ac.uk": route})
+    assert code == 0
+    assert len(records) == 4

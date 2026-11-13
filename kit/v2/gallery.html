@@ -519,6 +519,7 @@ PB.ready(function () {
       svg.style("overflow", "hidden");
       var x0 = 20, w = 350, band = 112, y0 = 58;
       var c = chirp(x0, y0, w, 46), xh = x0 + w * tPos;
+      vx = Math.max(0, Math.min(vx, 390 - s.width));
       var g = svg.append("g").attr("transform", "translate(" + (-vx) + ",0)");
       var cid = "crop-" + vx;
       svg.append("clipPath").attr("id", cid).append("rect").attr("x", vx).attr("y", 0).attr("width", s.width).attr("height", band);

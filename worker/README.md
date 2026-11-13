@@ -5,7 +5,7 @@ The edge worker at https://paperboy.ntrpydev.workers.dev. It is the content base
 ## What it serves
 
 - `/` and other site pages: static assets from `../site`.
-- `/kit/v1/*`: static assets, a copy of `../kit/v1`.
+- `/kit/v1/*`, `/kit/v2/*`, and every later kit version: static assets, a copy of `../kit`. Old kit versions stay served.
 - `/feed/*` and `/papers/*`: files from the R2 bucket `paperboy-content`. On a miss the worker fetches the file from `https://raw.githubusercontent.com/NtrpyDev/paperboy-content/main/<path>`, stores it in the bucket, and serves it. `/papers/<id>/` serves that folder's `index.html`.
 
 Files under `feed/` and `papers/` are either fixed or changing:
@@ -27,7 +27,7 @@ Run from this folder after `npm install`.
 | --- | --- |
 | `npm test` | Assembles the assets and runs every worker test. |
 | `npm run typecheck` | Regenerates the binding types and runs `tsc`. |
-| `npm run build` | Assembles `public/` from `../site` and `../kit/v1`. |
+| `npm run build` | Assembles `public/` from `../site` and every kit version in `../kit`. |
 | `npm run deploy` | Assembles the assets and deploys with wrangler. |
 
 The tests come in two vitest projects. `handler` runs `src/handler.ts` inside the Workers runtime with a local bucket and a fake content repo. `assets` starts the whole worker with wrangler's test harness to check the static assets, because the Workers test pool does not serve them.

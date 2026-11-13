@@ -4,17 +4,17 @@ Paperboy's code is released under the GNU General Public License, version 3 or l
 
 ## Explainer kit
 
-Vendored in `kit/v1/vendor/`. Each license text is in `kit/v1/vendor/licenses/`.
+Vendored in each kit version's `vendor/` folder (`kit/v1/vendor/`, `kit/v2/vendor/`), the same files in both, so each version is self-contained. Each license text is in that version's `vendor/licenses/`.
 
 | Work | Version | License | License text |
 |---|---|---|---|
-| D3 | 7.9.2 | ISC | `kit/v1/vendor/licenses/d3-LICENSE` |
-| Observable Plot | 0.6.19 | ISC | `kit/v1/vendor/licenses/plot-LICENSE` |
-| KaTeX, including its fonts in `kit/v1/vendor/katex/fonts/` | 0.19.1 | MIT | `kit/v1/vendor/licenses/katex-LICENSE` |
+| D3 | 7.9.2 | ISC | `kit/v1/vendor/licenses/d3-LICENSE`, `kit/v2/vendor/licenses/d3-LICENSE` |
+| Observable Plot | 0.6.19 | ISC | `kit/v1/vendor/licenses/plot-LICENSE`, `kit/v2/vendor/licenses/plot-LICENSE` |
+| KaTeX, including its fonts in `vendor/katex/fonts/` | 0.19.1 | MIT | `kit/v1/vendor/licenses/katex-LICENSE`, `kit/v2/vendor/licenses/katex-LICENSE` |
 
 ## Fonts
 
-In `kit/v2/fonts/`, as served by Google Fonts and unchanged. Each license text is beside the font files.
+In `kit/v2/fonts/`, as served by Google Fonts and unchanged, and loaded by kit v2's stylesheet. Each license text is beside the font files.
 
 | Family | License | License text |
 |---|---|---|

@@ -1,0 +1,1 @@
+{"version":"6.9","hitCount":0,"request":{"queryString":"(ISSN:\"0028-0836\") AND HAS_DOI:y AND FIRST_PDATE:[2026-11-12 TO 2026-11-12]","resultType":"core","cursorMark":"*","pageSize":100,"sort":"FIRST_PDATE_D desc","synonym":false},"resultList":{"result":[]}}

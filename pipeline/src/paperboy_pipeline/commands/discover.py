@@ -1,8 +1,9 @@
 """discover: list newly released papers from the sources as candidates for the scout.
 
 Reads each source from its start date, merges records of the same paper (see
-paperboy_pipeline.dedupe), skips papers already in the content repo's state/seen/, and writes
-WORK/candidates.jsonl, one Candidate per line, newest first. Prints one count line per source.
+paperboy_pipeline.dedupe), skips papers already in the content repo's state/seen/, drops papers that still have no abstract
+(an honest summary cannot be written from a title), and writes WORK/candidates.jsonl, one
+Candidate per line, newest first. Prints one count line per source.
 
 Each source's window is whole days, both ends inclusive (UTC). It ends on --until, by default
 yesterday. It starts on --since when given; otherwise the day after the source's cursor in
@@ -84,8 +85,12 @@ def run(args, *, transport: httpx.BaseTransport | None = None, clock=time.monoto
 
     papers = dedupe.merge([record for name in args.sources for record in fetched.get(name, [])])
     candidates, invalid = [], 0
+    no_abstract: dict[str, int] = {}
     for paper in papers:
         if _seen(repo, paper):
+            continue
+        if not paper.record["abstract"].strip():
+            no_abstract[paper.record["source"]] = no_abstract.get(paper.record["source"], 0) + 1
             continue
         candidate = {k: v for k, v in paper.record.items() if not k.startswith("_")}
         problems = schemas.errors("candidate", candidate)
@@ -112,7 +117,7 @@ def run(args, *, transport: httpx.BaseTransport | None = None, clock=time.monoto
             continue
         found = sum(r["_new"] for r in fetched[name])
         written = sum(c["source"] == name for c in candidates)
-        print(f"{name}: {found} found, {written} written")
+        print(f"{name}: {found} found, {written} written, {no_abstract.get(name, 0)} dropped without abstract")
     return 1 if failed or invalid else 0
 
 

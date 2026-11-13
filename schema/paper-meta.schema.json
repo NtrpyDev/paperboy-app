@@ -92,8 +92,45 @@
     "hook": {
       "type": "string"
     },
+    "hook_turn": {
+      "type": "string",
+      "minLength": 2,
+      "description": "The closing clause of the hook, set in the second voice (the light italic). Must be an exact suffix of hook. Written by whoever writes the hook, never guessed from position. Absent means the whole hook is set in the first voice."
+    },
     "summary": {
       "type": "string"
+    },
+    "readout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "label"
+      ],
+      "description": "The one number the card shows large, taken from the paper.",
+      "properties": {
+        "value": {
+          "type": "string",
+          "pattern": "^[<>~]?-?[0-9][0-9.,]*$",
+          "maxLength": 8,
+          "description": "The numeral as printed, for example 0.96, 42, >5.1. With exponent set, this is the mantissa."
+        },
+        "exponent": {
+          "type": "integer",
+          "description": "Power of ten. value 1.0 with exponent -21 prints as 1.0 times ten to the minus 21."
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 24,
+          "description": "Unit in words or symbols, for example angstroms. Absent for a pure number."
+        },
+        "label": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 56,
+          "description": "What the number measures, for example: Peak strain. Pitch 35 to 250 Hz."
+        }
+      }
     },
     "significance": {
       "type": "number"
@@ -124,7 +161,27 @@
     },
     "made_by": {
       "type": "object",
-      "description": "Model ids for the expert, visualizer, and checker."
+      "description": "Model ids the expert, visualizer, and checker ran as. Present only on explained papers whose run recorded them.",
+      "additionalProperties": false,
+      "required": [
+        "expert",
+        "visualizer",
+        "checker"
+      ],
+      "properties": {
+        "expert": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visualizer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checker": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     },
     "check": {
       "type": "object",

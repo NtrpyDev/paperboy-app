@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Card",
+  "description": "work/papers/<id>/card.json. Written by the expert for a paper it explains: the card text it settled from the full text. Input to publish; never published as a file.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "readout"
+  ],
+  "properties": {
+    "readout": {
+      "anyOf": [
+        {
+          "$ref": "feed-item.schema.json#/properties/readout"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The readout taken from the brief's evidence table, which keeps its place in the paper. It replaces the scout's readout. null when the paper has no single headline number or the scout's number is not what the paper reports: the card then shows none."
+    }
+  }
+}

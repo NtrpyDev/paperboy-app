@@ -127,6 +127,12 @@
       "maxLength": 110,
       "description": "One-line plain-language headline. Not the paper's title."
     },
+    "hook_turn": {
+      "$ref": "feed-item.schema.json#/properties/hook_turn"
+    },
+    "readout": {
+      "$ref": "feed-item.schema.json#/properties/readout"
+    },
     "summary": {
       "type": "string",
       "minLength": 40,
@@ -164,7 +170,7 @@
     },
     "explain": {
       "type": "boolean",
-      "description": "True when this paper is queued for an explainer."
+      "description": "Set by select: true when the paper is worth an explainer (full text of a kind listed in pipeline/config.json, significance at least the explain floor). queue add queues these."
     }
   }
 }

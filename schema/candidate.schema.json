@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Candidate",
+  "description": "One newly discovered paper, as the discover command writes it (one JSON object per line in work/candidates.jsonl).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "authors",
+    "abstract",
+    "venue",
+    "published",
+    "status",
+    "url",
+    "source",
+    "fulltext"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(arxiv|doi)-[a-z0-9._-]+$",
+      "description": "Stable paper id: arxiv-<id> or doi-<doi with every character outside a-z 0-9 . _ - replaced by ->, lowercase."
+    },
+    "doi": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "arxiv_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "abstract": {
+      "type": "string",
+      "description": "Pipeline input only. Never published."
+    },
+    "venue": {
+      "type": "string",
+      "description": "Journal name, or the preprint server's name."
+    },
+    "published": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "status": {
+      "enum": [
+        "preprint",
+        "peer_reviewed"
+      ]
+    },
+    "license": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Lowercase license id when the source states one: cc0, cc-by, cc-by-sa, cc-by-nc, cc-by-nd, cc-by-nc-sa, cc-by-nc-nd, arxiv-nonexclusive, other."
+    },
+    "url": {
+      "type": "string",
+      "description": "The paper's landing page."
+    },
+    "source": {
+      "enum": [
+        "arxiv",
+        "biorxiv",
+        "medrxiv",
+        "europepmc",
+        "crossref"
+      ]
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The source's own subject labels."
+    },
+    "fulltext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "available"
+      ],
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "kind": {
+          "enum": [
+            "arxiv_html",
+            "biorxiv",
+            "europepmc",
+            null
+          ]
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

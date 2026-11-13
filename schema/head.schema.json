@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Head",
+  "description": "feed/v1/head.json. The app reads this first.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "v",
+    "updated_at",
+    "chunk_count",
+    "total_items",
+    "chunk_size",
+    "kit",
+    "min_app"
+  ],
+  "properties": {
+    "v": {
+      "const": 1
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "chunk_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The highest chunk number. That chunk is the only one still changing."
+    },
+    "total_items": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "chunk_size": {
+      "const": 40
+    },
+    "kit": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "min_app": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Lowest app version code that can read this feed."
+    }
+  }
+}

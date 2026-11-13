@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chunk",
+  "description": "feed/v1/chunks/<6 digits>.json. Items in the order they were added, oldest first. At most 40.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "v",
+    "number",
+    "items"
+  ],
+  "properties": {
+    "v": {
+      "const": 1
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "items": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "$ref": "feed-item.schema.json"
+      }
+    }
+  }
+}

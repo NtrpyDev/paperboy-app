@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PaperMeta",
+  "description": "papers/<id>/meta.json. The full published record for one paper.",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "authors",
+    "venue",
+    "published",
+    "status",
+    "url",
+    "field",
+    "tags",
+    "hook",
+    "summary",
+    "significance",
+    "has_explainer",
+    "added_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(arxiv|doi)-[a-z0-9._-]+$",
+      "description": "Stable paper id: arxiv-<id> or doi-<doi with every character outside a-z 0-9 . _ - replaced by ->, lowercase."
+    },
+    "doi": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "arxiv_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "authors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "venue": {
+      "type": "string"
+    },
+    "published": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "status": {
+      "enum": [
+        "preprint",
+        "peer_reviewed"
+      ]
+    },
+    "license": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "url": {
+      "type": "string"
+    },
+    "field": {
+      "enum": [
+        "physics",
+        "space",
+        "math",
+        "cs",
+        "biology",
+        "neuroscience",
+        "medicine",
+        "chemistry",
+        "earth",
+        "engineering",
+        "social"
+      ]
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "hook": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "significance": {
+      "type": "number"
+    },
+    "has_explainer": {
+      "type": "boolean"
+    },
+    "added_at": {
+      "type": "string"
+    },
+    "explained_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "kit": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "fulltext_source": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "made_by": {
+      "type": "object",
+      "description": "Model ids for the expert, visualizer, and checker."
+    },
+    "check": {
+      "type": "object",
+      "description": "The render check verdict and the checker's review summary."
+    }
+  }
+}

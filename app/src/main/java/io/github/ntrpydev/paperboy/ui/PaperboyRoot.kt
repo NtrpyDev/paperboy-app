@@ -94,10 +94,10 @@ private fun Screens(graph: AppGraph, dark: Boolean, onToggleTheme: () -> Unit) {
     val listState = rememberLazyListState()
     val backStack = rememberNavBackStack(FeedKey)
 
+    // Every card in the feed has an explainer page (FeedItem.hasPage); a tap opens it in the app.
     fun open(item: FeedItem) {
         feedModel.markSeen(item.id)
-        val explainer = if (item.hasExplainer) graph.explainerUrl(item) else null
-        if (explainer != null) backStack.add(ExplainerKey(explainer)) else openInBrowser(context, item.url)
+        graph.explainerUrl(item)?.let { backStack.add(ExplainerKey(it)) }
     }
 
     fun openPaper(item: FeedItem) {

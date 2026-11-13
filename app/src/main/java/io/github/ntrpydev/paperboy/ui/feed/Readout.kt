@@ -191,25 +191,3 @@ fun ReadoutRow(readout: Readout?, hero: Hero?, modifier: Modifier = Modifier) {
         }
     }
 }
-
-/**
- * The short card's stat (SYSTEM.md 9.8): the numeral at 44 / 0.86 beside its label in
- * `label` muted, 10 dp apart, bottoms aligned.
- */
-@Composable
-fun Stat(readout: Readout, modifier: Modifier = Modifier) {
-    val r = readoutText(readout)
-    Row(
-        modifier.fillMaxWidth().padding(start = Margin, end = Margin, top = 12.dp),
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        NumeralAndUnit(r, Paperboy.type.stat)
-        Text(
-            caps(r.label),
-            style = Paperboy.type.label,
-            color = Paperboy.colors.muted,
-            modifier = Modifier.weight(1f).padding(bottom = 1.dp),
-        )
-    }
-}

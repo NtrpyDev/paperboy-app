@@ -48,7 +48,7 @@ class PaperboyType private constructor(night: Boolean) {
     /** Hero card headline, explainer title, full-screen covers. 44 / 0.98. */
     val headline = style(voice1, 44f, 0.98f, (-0.005).em)
 
-    /** Short card headline, section heads, footer covers. 30 / 1.02. */
+    /** Section heads, footer covers. 30 / 1.02. */
     val head2 = style(voice1, 30f, 1.02f, (-0.005).em)
 
     /** The second voice inside a headline or head-2. Width 87.5 at night (SYSTEM.md 2.1, D5). */
@@ -59,9 +59,6 @@ class PaperboyType private constructor(night: Boolean) {
 
     /** The hero plate readout. 44 / 1.0. */
     val readout = style(voice1, 44f, 1.0f, readoutTracking)
-
-    /** The short card stat. 44 / 0.86. */
-    val stat = style(voice1, 44f, 0.86f, readoutTracking)
 
     /** Ledger values. 30 / 1.0. */
     val readoutS = style(voice1, 30f, 1.0f, (-0.005).em)

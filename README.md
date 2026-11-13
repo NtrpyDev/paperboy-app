@@ -1,5 +1,49 @@
 # Paperboy
 
+Paperboy is a free, open source Android app: an endless feed of newly released science and math papers, peer-reviewed and preprints, each labeled as one or the other. Papers with a free legal full text get a visual explainer, a page of diagrams, charts drawn from the paper's reported numbers, and plain text. Every card links to the original paper. No account, no ads.
+
+- Website: https://paperboy.ntrpydev.workers.dev/
+- Download: the latest APK is on the [releases page](https://github.com/NtrpyDev/paperboy-app/releases). Not on Google Play yet.
+- Published feed and explainers: [NtrpyDev/paperboy-content](https://github.com/NtrpyDev/paperboy-content), under CC BY 4.0.
+
+Explainers are machine written and can be wrong. Each one says so and links its source so you can check it against the paper.
+
+## How it works
+
+1. A scheduled cloud run follows `pipeline/RUNBOOK.md`: it finds the day's new papers, AI agents judge them and write the feed cards, and for papers with a free legal full text three agents (an expert reader, a visualizer, and a checker) build and verify an explainer page with the kit.
+2. The run publishes cards and explainers to the content repo.
+3. A Cloudflare Worker serves the feed, the explainers, the kit, and the website from that repo.
+4. The app reads the feed, ranks it on the phone from your "More like this" and "Less like this" taps, and opens explainers in place. Ratings never leave the phone.
+
+## Repo layout
+
+```
+.claude/             Agent definitions the pipeline run uses: triage, scout, expert, visualizer, checker
+.github/             GitHub Actions workflows: tests on every push, and the signed release APK
+app/                 Android app (Kotlin, Jetpack Compose)
+design/              Design system, build handoff, and the Claude Design artboards
+docs/                Agent docs and the research notes behind the design decisions
+gradle/              Gradle wrapper files and the version catalog
+kit/                 Stylesheets, scripts, fonts, and vendored libraries every explainer page loads
+pipeline/            Python package and runbook that turn new papers into feed items and explainers
+schema/              JSON schemas for the records the pipeline, worker, and app pass to each other
+site/                The website, a static page
+tools/               Small scripts for development, feed fixtures, and reading Claude usage
+worker/              Cloudflare Worker that serves the feed, explainers, kit, and website
+.gitignore           Files git never tracks
+build.gradle.kts     Root Gradle build file
+CLAUDE.md            Instructions for coding agents working in this repo
+GLOSSARY.md          The project's vocabulary, one meaning per word
+gradle.properties    Gradle properties for the Android build
+gradlew, gradlew.bat Gradle wrapper scripts
+LICENSE              GNU General Public License, version 3
+NOTICE.md            Third-party libraries and fonts, with their licenses
+README.md            This file
+settings.gradle.kts  Gradle settings: the project name and its app module
+```
+
+Paperboy's code is under the GNU General Public License, version 3 or later.
+
 ## App
 
 The Android app is the Gradle project at the repo root (`app/`). It needs JDK 17 and the Android SDK; `tools/dev-env.sh` sets both up on the dev machine. The script is POSIX shell, so from fish run each command below as `bash -c 'source tools/dev-env.sh && ...'`.

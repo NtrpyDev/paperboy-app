@@ -1,10 +1,8 @@
 package io.github.ntrpydev.paperboy.feed
 
 import kotlinx.coroutines.test.runTest
-import mockwebserver3.Dispatcher
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import mockwebserver3.RecordedRequest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -112,35 +110,5 @@ class HttpFeedSourceTest {
 
         assertEquals(1, page.chunkNumber)
         assertEquals(2, page.items.size)
-    }
-}
-
-private fun json(body: String, cacheControl: String? = null): MockResponse =
-    MockResponse.Builder()
-        .code(200)
-        .addHeader("Content-Type", "application/json")
-        .apply { if (cacheControl != null) addHeader("Cache-Control", cacheControl) }
-        .body(body)
-        .build()
-
-/**
- * Serves the files under src/fixtures by path, and 404 for anything else.
- * A test can replace the response for one path, and read which paths reached the server.
- */
-private class FixtureDispatcher : Dispatcher() {
-    private val overrides = mutableMapOf<String, () -> MockResponse>()
-    val requested: MutableList<String> = java.util.Collections.synchronizedList(mutableListOf())
-
-    fun override(path: String, response: () -> MockResponse) {
-        overrides[path] = response
-    }
-
-    override fun dispatch(request: RecordedRequest): MockResponse {
-        val path = request.url.encodedPath.removePrefix("/")
-        requested += path
-        overrides[path]?.let { return it() }
-        val stream = javaClass.classLoader!!.getResourceAsStream(path)
-            ?: return MockResponse.Builder().code(404).build()
-        return json(stream.readBytes().decodeToString())
     }
 }

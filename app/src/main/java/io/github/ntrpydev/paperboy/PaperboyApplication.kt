@@ -8,7 +8,11 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 
 class PaperboyApplication : Application(), SingletonImageLoader.Factory {
     val graph: AppGraph by lazy {
-        AppGraph(contentBase = AppGraph.parseContentBase(BuildConfig.CONTENT_BASE), cacheDir = cacheDir)
+        AppGraph(
+            contentBase = AppGraph.parseContentBase(BuildConfig.CONTENT_BASE),
+            cacheDir = cacheDir,
+            filesDir = filesDir,
+        )
     }
 
     /**

@@ -1,11 +1,14 @@
 package io.github.ntrpydev.paperboy
 
 import io.github.ntrpydev.paperboy.feed.FeedItem
+import io.github.ntrpydev.paperboy.feed.FeedSession
 import io.github.ntrpydev.paperboy.feed.FeedSource
 import io.github.ntrpydev.paperboy.feed.HttpFeedSource
 import io.github.ntrpydev.paperboy.feed.feedHttpClient
-import io.github.ntrpydev.paperboy.rank.NewestFirstRanker
+import io.github.ntrpydev.paperboy.rank.FileTasteStore
 import io.github.ntrpydev.paperboy.rank.Ranker
+import io.github.ntrpydev.paperboy.rank.ScoredRanker
+import io.github.ntrpydev.paperboy.rank.TasteStore
 import java.io.File
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -15,10 +18,15 @@ class AppGraph(
     /** Where the feed and explainers live. Always ends in a slash. */
     val contentBase: HttpUrl,
     cacheDir: File,
+    /** App-private storage for the reader's ratings. Never sent anywhere. */
+    filesDir: File,
 ) {
     val httpClient = feedHttpClient(File(cacheDir, "http"))
     val feedSource: FeedSource = HttpFeedSource(contentBase, httpClient)
-    val ranker: Ranker = NewestFirstRanker
+    val ranker: Ranker = ScoredRanker
+    val tasteStore: TasteStore = FileTasteStore(File(filesDir, "taste.json"))
+
+    fun newFeedSession() = FeedSession(feedSource, ranker, tasteStore)
 
     fun explainerUrl(item: FeedItem): String? =
         item.explainer?.let { contentBase.resolve(it) }?.toString()

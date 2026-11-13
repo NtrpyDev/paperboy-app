@@ -32,7 +32,7 @@ private data class ExplainerKey(val url: String) : NavKey
 fun PaperboyRoot(graph: AppGraph) {
     val context = LocalContext.current
     // Held above the navigation so the feed keeps its items and scroll position while an explainer is open.
-    val feedModel = viewModel { FeedModel(graph.feedSource, graph.ranker) }
+    val feedModel = viewModel { FeedModel(graph.newFeedSession()) }
     val feedState by feedModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val backStack = rememberNavBackStack(FeedKey)
@@ -52,8 +52,12 @@ fun PaperboyRoot(graph: AppGraph) {
                     listState = listState,
                     heroUrl = graph::heroUrl,
                     onOpen = ::open,
+                    onRate = { item, rating -> feedModel.rate(item.id, rating) },
+                    onReached = feedModel::reached,
                     onLoadMore = feedModel::loadMore,
                     onRetry = feedModel::retry,
+                    collapsed = feedModel.collapsed,
+                    onUndoLess = feedModel::undoLess,
                 )
             }
             entry<ExplainerKey> { key ->

@@ -1,6 +1,6 @@
 # Explainer contract
 
-Every explainer must follow these rules. `paperboy-pipeline check` enforces them and names the broken rule in `check.json` by the id in brackets. `kit/v1/gallery.html` follows every rule except `hero-without-kind`, which is newer than kit v1.
+Every explainer must follow these rules. `paperboy-pipeline check` enforces them and names the broken rule in `check.json` by the id in brackets. `kit/v2/gallery.html` follows every rule and is the page to imitate. `kit/v1/gallery.html`, kept for kit v1, follows every rule except `hero-without-kind`, which is newer than kit v1.
 
 ## The document
 
@@ -16,7 +16,7 @@ Every explainer must follow these rules. `paperboy-pipeline check` enforces them
 - First, the hero: `.pb-hero` holding a `.pb-title`, a `.pb-dek`, and exactly one `.pb-stage` with the hero visual. [`hero-incomplete`]
 - The hero's `.pb-stage` has `data-kind` set to `data` (it plots the paper's numbers) or `illustration`. An illustration drawn to scale also has `data-scale="true"`. [`hero-without-kind`]
 - Then five sections marked with `data-section`, each exactly once, in this order: `question`, `method`, `findings`, `confidence`, `matters`. Other sections may sit between them. [`missing-section`, `duplicate-section`, `section-order`]
-- Last, a `.pb-source` footer [`missing-source`] with a link to the paper [`missing-source-link`] and the words "machine written" [`missing-source-note`].
+- Last, a `.pb-source` footer [`missing-source`] with a link to the paper [`missing-source-link`] and the words "machine written" or "written by a machine" [`missing-source-note`].
 
 ## Figures
 

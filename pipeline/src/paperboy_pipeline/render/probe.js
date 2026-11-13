@@ -116,7 +116,7 @@
       s("missing-source", "no .pb-source footer");
     } else {
       if (!source.querySelector('a[href^="http://"], a[href^="https://"]')) s("missing-source-link", "the .pb-source footer has no link to the paper");
-      if (!/machine[\s-]+written/i.test(source.textContent)) s("missing-source-note", 'the .pb-source footer does not say "machine written"');
+      if (!/machine[\s-]+written|written\s+by\s+a\s+machine/i.test(source.textContent)) s("missing-source-note", 'the .pb-source footer does not say "machine written" or "written by a machine"');
     }
 
     var first = marked[0], last = marked[marked.length - 1];

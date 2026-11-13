@@ -422,7 +422,7 @@ PB.ready(function () {
     { from: 62, to: 65, kind: "live", figure: "3", name: "Left as\nwaves" }] };
   var MASS_LABEL = "Data from the paper, in solar masses. Before: two black holes of about 36 and 29. After: one black hole of about 62, and about 3 that left as gravitational waves.";
   function massBars(target, rows) {
-    return PB.barRows(target, { domain: [0, 70], unit: "Solar masses", major: [0, 10, 20, 30, 40, 50, 60, 70], minor: 5, rows: rows, label: MASS_LABEL, format: function (v) { return v % 20 === 0 ? String(v) : ""; } });
+    return PB.barRows(target, { domain: [0, 70], unit: "SOLAR MASSES", major: [0, 10, 20, 30, 40, 50, 60, 70], minor: 5, rows: rows, label: MASS_LABEL, format: function (v) { return v % 20 === 0 ? String(v) : ""; } });
   }
   var MASS_TABLE = {
     caption: "All four values are estimates.",

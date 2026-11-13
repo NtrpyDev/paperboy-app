@@ -248,7 +248,7 @@
       var y = num(opts.y(v));
       g.append("line").attr("class", "pb-grid-line").attr("x1", opts.x1).attr("x2", opts.x2).attr("y1", y).attr("y2", y);
       g.append("text").attr("class", "pb-value-label").attr("x", opts.x1).attr("y", y - 5)
-        .text(fmt(v) + (i === top && opts.unit ? "  " + opts.unit : ""));
+        .text(fmt(v) + (i === top && opts.unit ? " " + opts.unit : ""));
     });
     return g;
   };

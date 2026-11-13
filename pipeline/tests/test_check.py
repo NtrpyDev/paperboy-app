@@ -59,6 +59,28 @@ def test_kit_v1_gallery_passes_once_its_hero_stage_has_a_kind(tmp_path):
     assert (tmp_path / "explainer" / "hero-night.webp").is_file()
 
 
+def test_kit_v2_gallery_passes_as_written(tmp_path):
+    # The v2 gallery is the page explainers imitate, so it must pass with no patching.
+    code, report = run_check(tmp_path, KIT / "v2" / "gallery.html")
+    assert report["problems"] == []
+    assert code == 0
+    assert report["page"]["kit"] == 2
+    assert report["page"]["data_figures"] == 4
+    assert report["hero"]["kind"] == "illustration"
+    assert report["hero"]["to_scale"] is False
+    assert (tmp_path / "explainer" / "hero.webp").is_file()
+    assert (tmp_path / "explainer" / "hero-night.webp").is_file()
+
+
+def test_source_note_may_say_written_by_a_machine(tmp_path):
+    # The design's closing line is "This page was written by a machine and can be wrong."
+    note = "This page is machine written and can be wrong."
+    assert PASS_PAGE.count(note) == 1
+    code, report = run_check(tmp_path, PASS_PAGE.replace(note, "This page was written by a machine and can be wrong."))
+    assert report["problems"] == []
+    assert code == 0
+
+
 def test_missing_index_is_a_tool_error(tmp_path):
     (tmp_path / "explainer").mkdir()
     assert main(["check", "--explainer", str(tmp_path / "explainer"), "--kit", str(KIT)]) == 2

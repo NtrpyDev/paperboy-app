@@ -33,7 +33,7 @@ from decimal import Decimal, InvalidOperation
 SUPER = dict(zip("\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079\u207a\u207b", "0123456789+-"))
 SUB = dict(zip("\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089\u208a\u208b", "0123456789+-"))
 DASHES = re.compile("[\u2212\u2010\u2011\u2012\u2013\u2014\ufe63\uff0d]")
-LETTER = "A-Za-z\u00c0-\u024f\u0370-\u03ff"
+LETTER = "A-Za-z\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u024f\u0370-\u03ff"  # Latin and Greek letters, not the signs \u00d7 and \u00f7
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
           "October", "November", "December"]
 

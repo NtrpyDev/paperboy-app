@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Judged",
-  "description": "A candidate after the scout has judged it (one JSON object per line in work/judged.jsonl). Input to the publish command.",
+  "description": "A candidate after the scout has judged it (one JSON object per line in work/judged.jsonl). select writes these; queue add puts them in the backlog; publish reads the ones that have a page.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -170,7 +170,7 @@
     },
     "explain": {
       "type": "boolean",
-      "description": "Set by select: true when the paper is worth an explainer (full text of a kind listed in pipeline/config.json, significance at least the explain floor). queue add queues these."
+      "description": "Whether the paper may get a full explainer: full text of a kind listed in pipeline/config.json and significance at least the explain floor. select sets it and queue add sets it again from its own floor and kinds; queue back turns it false when a full explainer failed. A paper with false here can get only a quick explainer."
     }
   }
 }

@@ -153,6 +153,18 @@
         "null"
       ]
     },
+    "depth": {
+      "enum": [
+        "full",
+        "abstract",
+        null
+      ],
+      "description": "What the page was built from: \"full\" for a full explainer (the paper's full text, by the expert, visualizer, and checker), \"abstract\" for a quick explainer (the title and abstract, by one agent). page.depth in the render check's check.json. null for a paper without a page. Absent on papers published before quick explainers, which are all full explainers.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "fulltext_source": {
       "type": [
         "string",
@@ -160,32 +172,49 @@
       ]
     },
     "made_by": {
-      "type": "object",
-      "description": "Model ids the expert, visualizer, and checker ran as. Present only on explained papers whose run recorded them.",
-      "additionalProperties": false,
-      "required": [
-        "expert",
-        "visualizer",
-        "checker"
-      ],
-      "properties": {
-        "expert": {
-          "type": "string",
-          "minLength": 1
+      "description": "The model ids that made the page. For a full explainer: the expert, visualizer, and checker. For a quick explainer: the one quick agent. Present only on papers whose run recorded them.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "expert",
+            "visualizer",
+            "checker"
+          ],
+          "properties": {
+            "expert": {
+              "type": "string",
+              "minLength": 1
+            },
+            "visualizer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "checker": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         },
-        "visualizer": {
-          "type": "string",
-          "minLength": 1
-        },
-        "checker": {
-          "type": "string",
-          "minLength": 1
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "quick"
+          ],
+          "properties": {
+            "quick": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         }
-      }
+      ]
     },
     "check": {
       "type": "object",
-      "description": "The render check verdict and the checker's review summary."
+      "description": "The render check's check.json (render, which for a quick explainer carries the numbers check in page.numbers) and the checker's review.json (review; null for a quick explainer, which has no checker)."
     }
   }
 }

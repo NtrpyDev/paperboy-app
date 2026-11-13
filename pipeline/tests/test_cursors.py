@@ -48,3 +48,27 @@ def test_unknown_source_or_bad_date_is_refused(tmp_path):
             code = exit.code
         assert code == 2
     assert not (content / "state/cursors.json").exists()
+
+
+def test_push_commits_and_pushes_the_cursors(tmp_path):
+    import subprocess
+
+    def git(root, *a):
+        return subprocess.run(["git", "-C", str(root), *a], check=True, capture_output=True, text=True).stdout
+
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "-q", "--bare", "-b", "main", str(remote)], check=True)
+    content = tmp_path / "content"
+    content.mkdir()
+    git(content, "init", "-q", "-b", "main")
+    git(content, "config", "user.name", "Test")
+    git(content, "config", "user.email", "test@example.invalid")
+    (content / "README.md").write_text("x\n")
+    git(content, "add", "README.md")
+    git(content, "commit", "-q", "-m", "Start")
+    git(content, "remote", "add", "origin", str(remote))
+    git(content, "push", "-q", "origin", "main")
+
+    assert main(["cursors", "--content", str(content), "--set-through", "2026-11-12", "--sources", "arxiv", "--push"]) == 0
+
+    assert json.loads(git(remote, "show", "main:state/cursors.json")) == {"v": 1, "cursors": {"arxiv": "2026-11-12"}}

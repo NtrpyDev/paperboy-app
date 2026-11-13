@@ -1,36 +1,40 @@
-"""publish: write judged papers from a work folder into a content repo checkout.
+"""publish: put papers that have a passing page into the content repo's feed.
 
-Each Judged record in WORK/judged.jsonl becomes one feed item, carrying the record's hook_turn
-and readout when it has them. It is an explained card when WORK/papers/<id>/explainer/ holds
-index.html, hero.webp (the day plate), and hero-night.webp (the night plate) and both check.json
-and review.json say {"pass": true}; otherwise it is a short card. The plate's kind and to_scale
-come from the hero in check.json, and meta.json's kit is the kit version check.json says the
-page loads. When WORK/papers/<id>/card.json exists, the readout the expert settled there
-replaces the scout's on the explained card (null removes it), through upgrades.json when the
-item sits in a closed chunk. An explained paper's meta.json gets
-"made_by" from WORK/papers/<id>/made_by.json when that file exists. A paper already in the feed is
-not added again, but a short card gains its explainer once one passes. See content_repo for
-the layout and the rules that keep closed chunks unchanged.
+A paper enters the feed only with its page. Each Judged record in WORK/judged.jsonl whose folder
+WORK/papers/<id>/ holds a passing page becomes one feed item, written with its explainer, plates,
+kind, depth, and readout in place; a record without one is skipped and keeps waiting in the
+backlog. A page passes when explainer/ holds index.html, hero.webp (the day plate), and
+hero-night.webp (the night plate), check.json says {"pass": true}, and:
+
+- a full explainer (check.json page.depth "full", or no depth) has review.json {"pass": true};
+- a quick explainer (page.depth "abstract") has the numbers check in check.json (page.numbers,
+  with nothing outside the title and abstract). It has no checker and no review.json.
+
+The item carries the record's hook_turn and readout when it has them; WORK/papers/<id>/card.json,
+when it exists, settles the readout (null removes it). meta.json gets the kit version and depth
+from check.json and "made_by" from made_by.json when that file exists. Every paper that is in
+the feed after the write leaves the backlog, and the run's claims are released; the run's
+queue fail and queue back (WORK/outcomes.jsonl) are applied again, so a push that must start over
+from a newer origin/main rebuilds the whole change (paperboy_pipeline.gitsync).
+
+A paper already in the feed is not added again. An item published before pages were required
+can still gain its explainer (through upgrades.json when its chunk is closed). See content_repo
+for the layout and the rules that keep closed chunks unchanged.
 """
 import argparse
 import io
 import json
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 from PIL import Image
 
-from .. import content_repo, schemas
+from .. import backlog, content_repo, gitsync, schemas
 from ..content_repo import ContentRepo, PublishError, set_readout
 
 # One commit per top-level folder, so each folder's last commit subject describes it.
-COMMIT_SUBJECTS = {
-    "papers": "Published papers: explainer page, card image, and record for each",
-    "feed": "Feed head and chunks the app reads",
-    "state": "Pipeline bookkeeping: papers in the feed, source cursors, and the explain queue",
-}
+COMMIT_SUBJECTS = gitsync.SUBJECTS
 
 FEED_FIELDS = ("id", "title", "hook", "summary", "field", "tags", "status", "venue", "published", "url", "significance")
 META_FIELDS = (
@@ -47,7 +51,7 @@ def register(subparsers) -> None:
     parser.add_argument("--work", type=Path, required=True, help="work folder holding judged.jsonl and papers/")
     parser.add_argument("--content", type=Path, required=True, help="content repo checkout to write into")
     parser.add_argument("--commit", action="store_true", help="commit the changes, one commit per changed top-level folder")
-    parser.add_argument("--push", action="store_true", help="push main to origin after writing (never forced)")
+    parser.add_argument("--push", action="store_true", help="commit and push main to origin (never forced); when the remote moved, start again from it")
     parser.add_argument("--now", help="RFC 3339 time to use as the current time (for tests); default is the current UTC time")
     parser.set_defaults(run=run)
 
@@ -56,22 +60,38 @@ def run(args) -> int:
     try:
         now = _now(args.now)
         records = _read_judged(args.work / "judged.jsonl")
-        repo = ContentRepo(args.content)
-        for record in records:
-            _publish_one(repo, record, args.work / "papers" / record["id"], now)
-        written = repo.save(now)
     except PublishError as error:
         print(f"publish: {error}", file=sys.stderr)
         return 1
-    print(f"publish: wrote {len(written)} files")
+    result = {}
+
+    def apply():
+        repo = ContentRepo(args.content)
+        # A run's papers enter best first, alternating preprints and peer-reviewed papers, as
+        # queue take chose them; ties keep the order of judged.jsonl.
+        ordered = backlog.alternate(records, by_id=False)
+        added = [r["id"] for r in ordered if _publish_one(repo, r, args.work / "papers" / r["id"], now)]
+        result.update(written=repo.save(now), added=added)
+        for record in records:
+            if repo.find(record) is not None:
+                backlog.leave(args.content, record["id"])
+        backlog.replay(args.content, args.work)
+
     try:
-        if args.commit:
-            _commit(args.content)
         if args.push:
-            _git(args.content, "push", "origin", "main")
-    except subprocess.CalledProcessError as error:
-        print(f"publish: git {' '.join(error.cmd[3:])} failed: {error.stderr.strip()}", file=sys.stderr)
+            gitsync.sync(args.content, apply, start_from_origin=False, label="publish")
+        else:
+            apply()
+            if args.commit:
+                gitsync.commit(args.content)
+    except PublishError as error:
+        print(f"publish: {error}", file=sys.stderr)
         return 1
+    except gitsync.GitError as error:
+        print(f"publish: {error}", file=sys.stderr)
+        return 1
+    print(f"publish: wrote {len(result['written'])} files")
+    print(f"publish: {len(result['added'])} papers entered the feed" + (": " + ", ".join(result["added"]) if result["added"] else ""))
     return 0
 
 
@@ -107,35 +127,39 @@ def _read_judged(path: Path) -> list[dict]:
     return records
 
 
-def _publish_one(repo: ContentRepo, record: dict, folder: Path, now: str) -> None:
+def _publish_one(repo: ContentRepo, record: dict, folder: Path, now: str) -> bool:
+    """Add the paper to the feed when it has a passing page. True when it was added."""
     explained = _explainer(record["id"], folder)
     seen = repo.find(record)
     if seen is None:
+        if not explained:
+            return False  # no page, no card: it keeps waiting in the backlog
         optional = {k: record[k] for k in OPTIONAL_CARD_FIELDS if k in record}
         item = {k: record[k] for k in FEED_FIELDS}
-        item.update(optional, authors_short=authors_short(record["authors"]), has_explainer=False, added_at=now)
+        item.update(optional, authors_short=authors_short(record["authors"]), added_at=now,
+                    has_explainer=True, explainer=explained["explainer"], depth=explained["depth"], hero=explained["hero"])
+        if explained["card"] is not None:
+            set_readout(item, explained["card"]["readout"])
         meta = {k: record.get(k) for k in META_FIELDS}
         meta.update(optional)
-        meta.update(has_explainer=False, added_at=now, explained_at=None, kit=None, fulltext_source=None)
-        files = {}
-        if explained:
-            item.update(has_explainer=True, explainer=explained["explainer"], hero=explained["hero"])
-            if explained["card"] is not None:
-                set_readout(item, explained["card"]["readout"])
-            files = _explain_meta(meta, record, explained, now)
+        meta.update(added_at=now)
+        files = _explain_meta(meta, record, explained, now)
         repo.add(item=item, meta=meta, files=files, record=record)
-        return
+        return True
 
+    # Already in the feed. Only an item published before pages were required can gain one;
+    # a page, once published, is never replaced.
     if seen["id"] != record["id"] or not explained:
-        return
+        return False
     meta = repo.meta(seen["id"])
     if meta is None or meta.get("has_explainer"):
-        return
+        return False
     files = _explain_meta(meta, record, explained, now)
     upgrade = {"explainer": explained["explainer"], "hero": explained["hero"], "explained_at": now}
     if explained["card"] is not None:
         upgrade["readout"] = explained["card"]["readout"]
     repo.upgrade(seen=seen, explainer=upgrade, meta=meta, files=files)
+    return False
 
 
 def _explain_meta(meta: dict, record: dict, explained: dict, now: str) -> dict[str, bytes]:
@@ -144,7 +168,8 @@ def _explain_meta(meta: dict, record: dict, explained: dict, now: str) -> dict[s
         has_explainer=True,
         explained_at=now,
         kit=explained["kit"],
-        fulltext_source=record["fulltext"].get("url"),
+        depth=explained["depth"],
+        fulltext_source=record["fulltext"].get("url") if explained["depth"] == "full" else None,
         check={"render": explained["check"], "review": explained["review"]},
     )
     if explained["made_by"] is not None:
@@ -158,19 +183,28 @@ def _explainer(paper_id: str, folder: Path) -> dict | None:
     """The finished explainer for this paper, or None when it is missing or has not passed both checks."""
     page = folder / "explainer" / "index.html"
     plates = {name: folder / "explainer" / filename for name, filename in PLATE_FILES.items()}
-    files = [page, *plates.values(), folder / "check.json", folder / "review.json"]
-    if not all(path.is_file() for path in files):
+    if not all(path.is_file() for path in [page, *plates.values(), folder / "check.json"]):
         return None
-    verdicts = {}
-    for name in ("check", "review"):
-        try:
-            verdicts[name] = json.loads((folder / f"{name}.json").read_text())
-        except json.JSONDecodeError as error:
-            raise PublishError(f"{folder / (name + '.json')} is not valid JSON: {error}")
-        if not isinstance(verdicts[name], dict):
-            raise PublishError(f"{folder / (name + '.json')} is not a JSON object")
-    if verdicts["check"].get("pass") is not True or verdicts["review"].get("pass") is not True:
+    check = _read_object(folder / "check.json")
+    if check.get("pass") is not True:
         return None
+    page_info = check.get("page") if isinstance(check.get("page"), dict) else {}
+    depth = page_info.get("depth") or "full"
+    review = None
+    if depth == "abstract":
+        numbers = page_info.get("numbers")
+        if not (isinstance(numbers, dict) and numbers.get("not_in_abstract") == 0):
+            print(f"publish: {paper_id}: its quick explainer has no numbers check in check.json; run check with its candidate.json", file=sys.stderr)
+            return None
+    elif depth == "full":
+        if not (folder / "review.json").is_file():
+            return None
+        review = _read_object(folder / "review.json")
+        if review.get("pass") is not True:
+            return None
+    else:
+        return None
+    verdicts = {"check": check, "review": review}
     made_by = None
     if (folder / "made_by.json").is_file():
         try:
@@ -186,8 +220,7 @@ def _explainer(paper_id: str, folder: Path) -> dict | None:
         problems = schemas.errors("card", card)
         if problems:
             raise PublishError(f"{folder / 'card.json'} does not match schema/card.schema.json: " + "; ".join(problems))
-    page_info = verdicts["check"].get("page")
-    kit = page_info.get("kit") if isinstance(page_info, dict) else None
+    kit = page_info.get("kit")
     if not isinstance(kit, int) or isinstance(kit, bool) or kit < 1:
         raise PublishError(f"{folder / 'check.json'} does not say which kit version the page loads (page.kit); run check again")
     base = content_repo.paper_dir(paper_id).as_posix()
@@ -215,7 +248,18 @@ def _explainer(paper_id: str, folder: Path) -> dict | None:
         "made_by": made_by,
         "card": card,
         "kit": kit,
+        "depth": depth,
     }
+
+
+def _read_object(path: Path) -> dict:
+    try:
+        value = json.loads(path.read_text())
+    except json.JSONDecodeError as error:
+        raise PublishError(f"{path} is not valid JSON: {error}")
+    if not isinstance(value, dict):
+        raise PublishError(f"{path} is not a JSON object")
+    return value
 
 
 def authors_short(authors: list[str]) -> str:
@@ -231,16 +275,3 @@ def authors_short(authors: list[str]) -> str:
     if len(authors) == 2:
         return f"{family(authors[0])} and {family(authors[1])}"
     return f"{family(authors[0])} et al."
-
-
-def _git(root: Path, *args: str) -> str:
-    result = subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True, text=True)
-    return result.stdout
-
-
-def _commit(root: Path) -> None:
-    for folder, subject in COMMIT_SUBJECTS.items():
-        if not _git(root, "status", "--porcelain", "--", folder).strip():
-            continue
-        _git(root, "add", "-A", "--", folder)
-        _git(root, "commit", "-q", "-m", subject, "--", folder)

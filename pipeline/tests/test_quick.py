@@ -83,3 +83,50 @@ def test_every_example_in_the_manual_runs(tmp_path):
     code, report = check(tmp_path, html)
     assert report["problems"] == []
     assert code == 0
+
+
+# The numbers check (paperboy_pipeline.numbers), run by the render check on a page built from the abstract.
+
+CANDIDATE = {
+    "title": "A thing measured twice", "abstract": "We measured 4 things and found 7 of a kind.",
+    "published": "2026-11-12", "doi": "10.1/x", "arxiv_id": None, "venue": "Nature", "url": "https://example.org/x",
+}
+
+
+def check_with(tmp_path: Path, html: str, candidate: dict | None):
+    if candidate is not None:
+        (tmp_path / "candidate.json").write_text(json.dumps(candidate))
+    return check(tmp_path, html)
+
+
+def test_a_page_whose_numbers_are_all_in_the_abstract_passes_and_ruler_ticks_are_scale(tmp_path):
+    # The starter's figure prints 4 and 7; its rulers label 0, 5, and 10, which are not claims.
+    code, report = check_with(tmp_path, STARTER, CANDIDATE)
+    assert report["problems"] == []
+    assert code == 0
+    assert report["page"]["numbers"]["not_in_abstract"] == 0
+    assert report["page"]["numbers"]["checked"] >= 4
+
+
+def test_a_number_the_abstract_does_not_print_fails_the_page(tmp_path):
+    invented = STARTER.replace('{ what: "[Row B]", v: "7" }', '{ what: "[Row B]", v: "7.5" }')
+    assert invented != STARTER
+    code, report = check_with(tmp_path, invented, CANDIDATE)
+    assert code == 1
+    [problem] = report["problems"]
+    assert problem["rule"] == "number-not-in-abstract" and '"7.5"' in problem["detail"]
+    assert report["page"]["numbers"]["not_in_abstract"] == 1
+
+
+def test_a_label_drawn_on_the_plate_is_checked_too(tmp_path):
+    invented = STARTER.replace('"[THE FINDING]"', '"[THE FINDING] 12%"')
+    assert invented != STARTER
+    code, report = check_with(tmp_path, invented, CANDIDATE)
+    assert code == 1
+    assert '"12"' in report["problems"][0]["detail"]
+
+
+def test_without_the_record_the_numbers_check_does_not_run_and_says_so(tmp_path):
+    code, report = check_with(tmp_path, STARTER, None)
+    assert code == 0
+    assert report["page"]["numbers"] is None

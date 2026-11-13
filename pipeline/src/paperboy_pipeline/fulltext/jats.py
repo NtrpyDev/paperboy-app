@@ -301,9 +301,15 @@ class _Converter:
     # Sections
 
     def section(self, sec, level: int) -> None:
-        refs = _children(sec, "ref-list")
-        if refs:
+        if sec.get("sec-type") == "associated-data":
+            return  # Europe PMC's own copy of the supplementary and data availability sections
+        if _children(sec, "ref-list") or _only_apparatus(sec):
+            # A "References" or "Footnotes" section: count the references, keep the notes,
+            # and add no heading of its own.
             self.count_references(sec)
+            for el in sec.iter():
+                if _local(el.tag) == "fn-group" and el.getparent() is not None and _local(el.getparent().tag) == "sec":
+                    self.element(el, Flow())
             return
         title = _child(sec, "title")
         label = _child(sec, "label")
@@ -328,6 +334,21 @@ class _Converter:
         for ref_list in el.iter():
             if _local(ref_list.tag) == "ref-list":
                 self.paper.reference_count += len(_children(ref_list, "ref"))
+
+
+def _only_apparatus(sec) -> bool:
+    """True when a section holds nothing but reference lists, footnote groups, or sections of those."""
+    content = [c for c in sec if isinstance(c.tag, str) and _local(c.tag) not in ("title", "label")]
+    if not content:
+        return False
+    for child in content:
+        kind = _local(child.tag)
+        if kind == "sec":
+            if not (_children(child, "ref-list") or _only_apparatus(child)):
+                return False
+        elif kind not in ("ref-list", "fn-group"):
+            return False
+    return True
 
 
 def _authors(meta) -> list[str]:

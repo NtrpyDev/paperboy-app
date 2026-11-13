@@ -460,3 +460,155 @@ def test_biorxiv_xml_not_posted_yet_is_unavailable(tmp_path):
     source = json.loads((folder / "source.json").read_text())
     assert source["available"] is False and "404" in source["reason"]
     assert not (folder / "fulltext.md").exists()
+
+
+# Europe PMC (JATS XML)
+
+EPMC = "https://www.ebi.ac.uk/europepmc/webservices/rest"
+EPMC_TEX = f"{EPMC}/PMC13749077/fullTextXML"
+EPMC_MATHML = f"{EPMC}/PMC13707691/fullTextXML"
+EPMC_SEARCH = f"{EPMC}/search?query=DOI%3A%2210.1088%2F1361-6501%2Faebb53%22&resultType=lite&format=json"
+
+
+def europepmc_candidate(pmcid="PMC13749077", doi="10.1088/1361-6501/aebb53", fulltext_url="default") -> dict:
+    if fulltext_url == "default":
+        fulltext_url = f"https://europepmc.org/articles/{pmcid}"
+    return candidate(
+        "doi-" + re.sub(r"[^a-z0-9._-]", "-", doi.lower()),
+        doi=doi,
+        venue="Measurement Science & Technology",
+        status="peer_reviewed",
+        source="europepmc",
+        url=f"https://doi.org/{doi}",
+        fulltext={"available": True, "kind": "europepmc", "url": fulltext_url},
+    )
+
+
+def europepmc_web() -> FakeWeb:
+    return FakeWeb({
+        EPMC_TEX: (200, XML, fixture("europepmc-PMC13749077.xml")),
+        EPMC_MATHML: (200, XML, fixture("europepmc-PMC13707691.xml")),
+        EPMC_SEARCH: (200, JSON, fixture("europepmc-search-doi-10.1088-1361-6501-aebb53.json")),
+    })
+
+
+def test_europepmc_jats_becomes_markdown_with_tex_equations(tmp_path):
+    record = europepmc_candidate()
+    folder = put_candidate(tmp_path, record)
+
+    assert run_fetch(tmp_path, record["id"], europepmc_web()) == 0
+
+    md, source = read_outputs(folder)
+    assert md.startswith("# Accuracy of AFM cantilever thermal calibration in fluid of varying viscosities\n")
+    assert "Authors: Abideen O Ayangbemi, David R Jacobson" in md
+    assert "## Abstract\n\nThermal calibration of atomic force microscopy (AFM) cantilever spring constant, *k*," in md
+    headings = re.findall(r"^(#{2,6}) (.+)$", md, flags=re.M)
+    assert headings[:4] == [("##", "Abstract"), ("##", "1. Introduction"), ("##", "2. Methods"),
+                            ("###", "2.1. Sader-Bellon viscous PSD model")]
+    # The publisher's <tex-math>, without its \documentclass wrapper.
+    assert "$$\nk = \\frac{{k_\\mathrm{B}}T}{ \\langle {x^2} \\rangle}.\n$$" in md
+    assert "$\\frac 1{2}{k_\\mathrm{B}}T$" in md
+    assert "\\documentclass" not in md and "\\usepackage" not in md
+    assert source == {
+        "available": True,
+        "url": EPMC_TEX,
+        "kind": "europepmc",
+        "license": "cc-by",
+        "retrieved_at": source["retrieved_at"],
+        "chars": len(md),
+        "sections": 21,
+    }
+
+
+def test_europepmc_table_numbers_survive_exactly(tmp_path):
+    record = europepmc_candidate()
+    folder = put_candidate(tmp_path, record)
+    run_fetch(tmp_path, record["id"], europepmc_web())
+    md, _ = read_outputs(folder)
+
+    # Table 1 of doi:10.1088/1361-6501/aebb53: two header rows merged, a spanning group row.
+    assert (
+        "| Medium | Local fit / *f*<sub>0</sub> (kHz) | Local fit / *Q* | Local fit / *k* (pN nm<sup>−1</sup>) |"
+        " Local fit / δ*k* (%) | Global fit / *f*<sub>0</sub> (kHz) | Global fit / *Q* |"
+        " Global fit / *k* (pN nm<sup>−1</sup>) | Global fit / δ*k* (%) |\n"
+        "|---|---|---|---|---|---|---|---|---|\n"
+        "| *BL-AC40TS (k = 90.0 pN nm<sup>−1</sup>)* |  |  |  |  |  |  |  |  |\n"
+        "| Air | 151.9 | 26.5 | 92.1 | +2.4 | 151.9 | 26.5 | 92.1 | +2.4 |\n"
+        "| Water | 25.2 | 2.2 | 91.7 | +1.9 | 25.1 | 2.3 | 95.2 | +5.8 |\n"
+    ) in md
+    assert "| 75% glycerol | 0.9 | 0.4 | 19.6 | −2.1 | 0.7 | 0.7 | 22.8 | +14.1 |" in md
+    assert "| BL-AC40TS | Air | 93.8 ± 0.01 | 37.6 ± 1.6 | 93.7 ± 3.5 | (2.65 ±0.10) × 10<sup>−26</sup> |" in md
+    assert "δ*k* denotes the percentage bias of the fitted *k* relative to the input *k*" in md  # table note
+
+
+NUMBER = re.compile(r"[−+-]?\d+(?:[.,]\d+)*")
+
+
+def _local(el) -> str:
+    return el.tag.rsplit("}", 1)[-1] if isinstance(el.tag, str) else ""
+
+
+@pytest.mark.parametrize("pmcid,xml", [("PMC13749077", "europepmc-PMC13749077.xml"),
+                                       ("PMC13707691", "europepmc-PMC13707691.xml")])
+def test_every_number_in_every_europepmc_table_body_survives_in_order(tmp_path, pmcid, xml):
+    from lxml import etree
+
+    record = europepmc_candidate(pmcid=pmcid, doi=f"10.9999/{pmcid.lower()}")
+    folder = put_candidate(tmp_path, record)
+    run_fetch(tmp_path, record["id"], europepmc_web())
+    md, _ = read_outputs(folder)
+
+    # Numbers read straight from the XML's table body cells, independent of the converter.
+    root = etree.fromstring(fixture(xml), etree.XMLParser(load_dtd=False, no_network=True, recover=True))
+    source_tables = [t for t in root.iter() if _local(t) == "table"]
+    md_tables = re.findall(r"(?:^\|.*\|\n)+", md, flags=re.M)
+    assert len(md_tables) == len(source_tables) > 0
+    for source_table, md_table in zip(source_tables, md_tables):
+        body_cells = [c for c in source_table.iter() if _local(c) in ("td", "th")
+                      and not any(_local(a) == "thead" for a in c.iterancestors())]
+        expected = [n for c in body_cells for n in NUMBER.findall(" ".join(c.itertext()))]
+        body_rows = md_table.splitlines()[2:]
+        found = NUMBER.findall(re.sub(r"\\[A-Za-z]+", " ", "\n".join(body_rows)))
+        assert found == expected and len(expected) > 10, (len(found), len(expected))
+
+
+def test_europepmc_mathml_without_tex_is_converted_to_latex(tmp_path):
+    record = europepmc_candidate(pmcid="PMC13707691", doi="10.3390/mi17101204")
+    folder = put_candidate(tmp_path, record)
+
+    assert run_fetch(tmp_path, record["id"], europepmc_web()) == 0
+
+    md, source = read_outputs(folder)
+    # Equation (1) of doi:10.3390/mi17101204, worked by hand from its MathML.
+    assert "$$\n\\cos\\theta_{k}=\\cos\\theta_{\\infty}-\\frac{q}{\\gamma_{lv}x_{k}} \\tag{1}\n$$" in md
+    assert "where $\\theta_{k}$ is the apparent contact angle" in md
+    assert "| $\\mathrm{SiO}_{2}$ | 10 | 1.994 ± 0.019 | 66.51 ± 0.52 |" in md
+    assert "<mml:" not in md and "<math" not in md
+    assert source["license"] == "cc-by"
+    headings = re.findall(r"^## (.+)$", md, flags=re.M)
+    assert headings.count("References") == 1 and headings.count("Footnotes") == 1
+    assert "Associated Data" not in headings
+    assert "## References\n\nThe reference list (25 entries) is left out.\n" in md
+
+
+def test_europepmc_candidate_without_pmcid_is_found_by_doi(tmp_path):
+    record = europepmc_candidate(fulltext_url=None)
+    folder = put_candidate(tmp_path, record)
+    web = europepmc_web()
+
+    assert run_fetch(tmp_path, record["id"], web) == 0
+
+    assert web.urls() == [EPMC_SEARCH, EPMC_TEX]
+    assert read_outputs(folder)[1]["url"] == EPMC_TEX
+
+
+def test_europepmc_article_outside_the_open_access_subset_is_unavailable(tmp_path):
+    record = europepmc_candidate(pmcid="PMC1", doi="10.9999/closed")
+    folder = put_candidate(tmp_path, record)
+    web = FakeWeb({f"{EPMC}/PMC1/fullTextXML": (404, {"content-type": "text/plain"}, b"")})
+
+    assert run_fetch(tmp_path, record["id"], web) == 3
+
+    source = json.loads((folder / "source.json").read_text())
+    assert source["available"] is False and "PMC1" in source["reason"]
+    assert not (folder / "fulltext.md").exists()

@@ -60,10 +60,16 @@ jobs:
           apk="$outputs/paperboy-$version.apk"
           mv "$outputs/app-release.apk" "$apk"
           echo "path=$apk" >> "$GITHUB_OUTPUT"
+          # The same APK under a fixed name, so the website can link to
+          # releases/latest/download/paperboy.apk.
+          cp "$apk" "$outputs/paperboy.apk"
+          echo "latest=$outputs/paperboy.apk" >> "$GITHUB_OUTPUT"
 
       - name: Publish the GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          files: ${{ steps.apk.outputs.path }}
+          files: |
+            ${{ steps.apk.outputs.path }}
+            ${{ steps.apk.outputs.latest }}
           generate_release_notes: true
           fail_on_unmatched_files: true

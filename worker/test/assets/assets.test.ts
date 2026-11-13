@@ -35,7 +35,7 @@ describe("static assets", () => {
 
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/html");
-    expect(await res.text()).toContain("Paperboy is a free, open source Android app");
+    expect(await res.text()).toContain("Paperboy is a feed of newly released science and math papers for Android.");
   });
 
   it("answers 404 for a kit file that does not exist", async () => {

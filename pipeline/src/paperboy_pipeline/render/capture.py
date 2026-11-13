@@ -173,6 +173,7 @@ async def _one_theme(browser, url: str, theme: str, scheme: str, motion: str, sh
                 "figures": probe["figures"],
                 "data_figures": probe["dataFigures"],
                 "kit": probe["kit"],  # the one kit version the page loads, or None
+                "depth": probe["depth"],  # "full" or "abstract" (article.pb data-depth), or None when unknown
             }
         result.shots += await _save_pieces(page, probe["height"], shots_dir, theme)
         if theme in PLATE_THEMES:

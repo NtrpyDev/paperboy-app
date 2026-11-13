@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Paperboy kit gallery</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<link rel="stylesheet" href="paperboy.css">
+<script src="vendor/d3.min.js"></script>
+<script src="vendor/plot.umd.min.js"></script>
+<script src="vendor/katex/katex.min.js"></script>
+<script src="vendor/katex/auto-render.min.js"></script>
+<script src="paperboy.js"></script>
+</head>
+<body>
+<article class="pb">
+
+<header class="pb-hero">
+  <div class="pb-kicker"><span>Kit gallery</span><span class="pb-badge">Fixture</span></div>
+  <h1 class="pb-title">Every kit component on one page</h1>
+  <p class="pb-dek">This page is the test fixture for the kit. The data below is made up for the fixture and describes no real paper.</p>
+  <div class="pb-stage" id="hero"><div class="pb-stage-label">A canvas animation on the always-dark stage</div></div>
+</header>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">The question</p>
+  <h2>Text, a glossary term, and math</h2>
+  <p class="pb-lede">A lede paragraph sets up the section in one or two sentences.</p>
+  <p>Body text can define a <span class="pb-term" data-def="A term the reader may not know, explained in one or two plain sentences.">glossary term</span> in place. Inline math looks like \(E = mc^2\), and display math gets its own line:</p>
+  <p>\[ \frac{\partial u}{\partial t} = \alpha \nabla^2 u \]</p>
+  <div class="pb-callout" data-kind="key"><span class="pb-callout-label">Key idea</span><p>The one sentence a reader should keep.</p></div>
+  <div class="pb-callout" data-kind="analogy"><span class="pb-callout-label">Analogy</span><p>A comparison to something familiar, marked as an analogy.</p></div>
+  <div class="pb-callout" data-kind="caveat"><span class="pb-callout-label">Caveat</span><p>A limit on how far the claim goes.</p></div>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">What they found</p>
+  <h2>Numbers and a chart</h2>
+  <div class="pb-stats">
+    <div class="pb-stat"><div class="pb-stat-value">42%</div><div class="pb-stat-label">Fixture stat with a short label</div></div>
+    <div class="pb-stat"><div class="pb-stat-value">1,284</div><div class="pb-stat-label">Second fixture stat</div></div>
+  </div>
+  <figure class="pb-fig" data-kind="data">
+    <p class="pb-fig-title">One series is the point, the rest is context</p>
+    <p class="pb-fig-sub">Fixture values, arbitrary units</p>
+    <div id="bars"></div>
+    <div id="bars-table"></div>
+    <figcaption>Captions say what to notice and where the numbers come from.</figcaption>
+  </figure>
+  <figure class="pb-fig" data-kind="data">
+    <p class="pb-fig-title">A trend with a control</p>
+    <div class="pb-legend"><span><i style="background:var(--pb-s1)"></i>Model</span><span><i style="background:var(--pb-deemph)"></i>Baseline</span></div>
+    <div id="line"></div>
+    <div class="pb-controls" id="line-controls"></div>
+    <div id="line-table"></div>
+  </figure>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">What they did</p>
+  <h2>Scroll steps drive one visual</h2>
+  <div class="pb-steps" id="steps">
+    <div class="pb-steps-visual"><div class="pb-stage" id="steps-stage"></div></div>
+    <div class="pb-step"><span class="pb-step-n">Step 1</span><p>Start with a few particles.</p></div>
+    <div class="pb-step"><span class="pb-step-n">Step 2</span><p>Add more of them.</p></div>
+    <div class="pb-step"><span class="pb-step-n">Step 3</span><p>Then sort them into two groups.</p></div>
+  </div>
+</section>
+
+<section class="pb-section">
+  <p class="pb-eyebrow">How sure is this</p>
+  <h2>Confidence list and a toggle</h2>
+  <div id="toggle"></div>
+  <ul class="pb-confidence">
+    <li data-kind="strength"><div><b>Strength</b>Something that supports the claim.</div></li>
+    <li data-kind="limit"><div><b>Limit</b>Something that narrows the claim.</div></li>
+    <li data-kind="open"><div><b>Open question</b>Something still unknown.</div></li>
+  </ul>
+</section>
+
+<footer class="pb-source">
+  <p><cite>Fixture, A. and Fixture, B. "A paper that does not exist." Journal of Fixtures (2026).</cite></p>
+  <p>This page is a test fixture for the Paperboy explainer kit.</p>
+</footer>
+
+</article>
+<script>
+PB.ready(function () {
+  // Hero: drifting dots on a canvas, readable as a still frame too.
+  var hero = PB.canvas("#hero", { label: "Dots drifting across a dark stage" });
+  var dots = d3.range(60).map(function (i) { return { x: Math.random(), y: Math.random(), r: 2 + (i % 5), s: 0.02 + (i % 7) * 0.006 }; });
+  PB.animate("#hero", function (t) {
+    var ctx = hero.ctx, w = hero.width(), h = hero.height(), theme = hero.theme();
+    ctx.clearRect(0, 0, w, h);
+    dots.forEach(function (d, i) {
+      var x = ((d.x + t * d.s) % 1) * w;
+      var y = (d.y + 0.03 * Math.sin(t * 0.8 + i)) * h;
+      ctx.beginPath();
+      ctx.arc(x, y, d.r, 0, Math.PI * 2);
+      ctx.fillStyle = theme.series[i % 3];
+      ctx.globalAlpha = 0.85;
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }, { still: 2 });
+
+  // Bars: emphasis form. One accent bar, the rest de-emphasized.
+  var bars = [
+    { name: "Method A", value: 31 }, { name: "Method B", value: 38 },
+    { name: "Method C", value: 44 }, { name: "New method", value: 67 }
+  ];
+  PB.plot("#bars", function (c) {
+    return {
+      height: 220, marginLeft: 96,
+      x: { label: null, grid: true, tickSize: 0 },
+      y: { label: null, tickSize: 0 },
+      marks: [
+        c.Plot.barX(bars, { y: "name", x: "value", sort: { y: "-x" }, insetTop: 6, insetBottom: 6, r2: 4,
+          fill: function (d) { return d.name === "New method" ? c.theme.series[0] : c.theme.deemph; } }),
+        c.Plot.text(bars, { y: "name", x: "value", text: function (d) { return String(d.value); }, dx: 6, textAnchor: "start", fill: c.theme.ink }),
+        c.Plot.ruleX([0], { stroke: c.theme.axis })
+      ]
+    };
+  });
+  PB.table("#bars-table", { caption: "Fixture values", columns: [{ key: "name", label: "Method" }, { key: "value", label: "Score", numeric: true }], rows: bars });
+
+  // Line: a slider changes the model's growth rate.
+  var rate = 0.5;
+  function series() {
+    return d3.range(0, 21).map(function (x) { return { x: x, model: 10 * Math.exp(rate * x / 10), base: 10 + x }; });
+  }
+  var redraw = function () {};
+  PB.plot("#line", function (c) {
+    var data = series();
+    return {
+      height: 240,
+      x: { label: "Time (fixture units)", tickSize: 0 },
+      y: { label: null, grid: true, tickSize: 0 },
+      marks: [
+        c.Plot.lineY(data, { x: "x", y: "base", stroke: c.theme.deemph, strokeWidth: 2 }),
+        c.Plot.lineY(data, { x: "x", y: "model", stroke: c.theme.series[0], strokeWidth: 2 }),
+        c.Plot.dot(data.slice(-1), { x: "x", y: "model", r: 4, fill: c.theme.series[0], stroke: c.theme.surface, strokeWidth: 2 }),
+        c.Plot.text(data.slice(-1), { x: "x", y: "model", text: function (d) { return d.model.toFixed(0); }, dy: -12, fill: c.theme.ink }),
+        c.Plot.ruleY([0], { stroke: c.theme.axis })
+      ]
+    };
+  });
+  PB.slider("#line-controls", { label: "Growth rate", min: 0, max: 1.5, step: 0.05, value: rate, format: PB.fmt.fixed(2), onInput: function (v) {
+    rate = v;
+    window.dispatchEvent(new Event("pb-redraw-line"));
+  } });
+  window.addEventListener("pb-redraw-line", function () {
+    document.querySelector("#line").style.width = "";
+    PB.plot("#line", function (c) {
+      var data = series();
+      return {
+        height: 240,
+        x: { label: "Time (fixture units)", tickSize: 0 },
+        y: { label: null, grid: true, tickSize: 0 },
+        marks: [
+          c.Plot.lineY(data, { x: "x", y: "base", stroke: c.theme.deemph, strokeWidth: 2 }),
+          c.Plot.lineY(data, { x: "x", y: "model", stroke: c.theme.series[0], strokeWidth: 2 }),
+          c.Plot.ruleY([0], { stroke: c.theme.axis })
+        ]
+      };
+    });
+  });
+  PB.table("#line-table", { caption: "Fixture values at the default rate", columns: [
+    { key: "x", label: "Time", numeric: true }, { key: "model", label: "Model", numeric: true, format: PB.fmt.fixed(1) }, { key: "base", label: "Baseline", numeric: true }
+  ], rows: series().filter(function (d) { return d.x % 5 === 0; }) });
+
+  // Scroll steps: an SVG that changes with the active step.
+  var step = 0;
+  var stage = PB.svg("#steps-stage", { aspect: 16 / 11, label: "Particles that multiply and then sort into two groups" }, drawSteps);
+  function drawSteps(svg, s) {
+    var n = step === 0 ? 8 : 40;
+    var pts = d3.range(n).map(function (i) {
+      var gx = step === 2 ? (i % 2 ? 0.72 : 0.28) : 0.5;
+      var spread = step === 2 ? 0.16 : 0.36;
+      return { x: (gx + (Math.sin(i * 12.9898) * 0.5) * spread) * s.width, y: (0.5 + (Math.cos(i * 78.233) * 0.5) * 0.7) * s.height, g: i % 2 };
+    });
+    svg.selectAll("circle").data(pts).join("circle")
+      .attr("cx", function (d) { return d.x; }).attr("cy", function (d) { return d.y; }).attr("r", 6)
+      .attr("fill", function (d) { return step === 2 ? s.theme.series[d.g] : s.theme.series[0]; })
+      .attr("stroke", "#111110").attr("stroke-width", 2);
+  }
+  PB.steps("#steps", function (i) {
+    step = i;
+    var node = stage.node();
+    var box = node.viewBox.baseVal;
+    stage.selectAll("*").remove();
+    drawSteps(stage, { width: box.width, height: box.height, theme: PB.theme(node) });
+  });
+
+  PB.toggle("#toggle", { label: "Fixture toggle", value: "a", options: [{ value: "a", label: "Option A" }, { value: "b", label: "Option B" }], onChange: function () {} });
+});
+</script>
+</body>
+</html>

@@ -2,11 +2,14 @@
 
 Two records are the same paper when they share a DOI (including DOIs a source names as the same
 paper), an arXiv id (version dropped), or a title key (ids.title_key). Sameness is transitive.
+The title key only links titles of at least MIN_TITLE_CHARS letters and digits, so short titles
+that many journals reuse ("Editorial", "Preface") do not merge unrelated papers.
 
 From each group one record is kept:
 
-- The base record is a journal record when there is one (status peer_reviewed), else the record
-  from the highest ranked source in SOURCE_RANK.
+- The base record is a journal record when there is one (status peer_reviewed, Europe PMC
+  before Crossref, see SOURCE_RANK), else the preprint from the highest ranked server in
+  PREPRINT_RANK.
 - Its full text pointer is kept when it has one; otherwise the first group member with a full
   text lends its pointer, and its license, since the license belongs to that text.
 - A missing DOI, arXiv id, abstract, or author list is filled from the other members, and
@@ -15,9 +18,12 @@ From each group one record is kept:
 
 A group with no newly released member (see paperboy_pipeline.sources) is dropped.
 """
+import re
 from dataclasses import dataclass
 
 from . import ids
+
+MIN_TITLE_CHARS = 20
 
 SOURCE_RANK = {"europepmc": 0, "crossref": 1, "arxiv": 2, "biorxiv": 3, "medrxiv": 4}
 PREPRINT_RANK = {"arxiv": 0, "biorxiv": 1, "medrxiv": 2, "europepmc": 3, "crossref": 4}
@@ -30,7 +36,9 @@ class Paper:
 
 
 def keys(record: dict) -> set[str]:
-    found = {f"title:{ids.title_key(record['title'])}"}
+    found = set()
+    if len(re.sub(r"[^a-z0-9]", "", record["title"].lower())) >= MIN_TITLE_CHARS:
+        found.add(f"title:{ids.title_key(record['title'])}")
     for doi in [record.get("doi"), *record.get("_aliases", [])]:
         if doi:
             found.add(f"doi:{ids.normalize_doi(doi)}")

@@ -482,3 +482,14 @@ def test_requests_carry_the_pipeline_user_agent_and_no_contact_details(tmp_path)
         assert "@" not in str(request.url)
         assert "mailto" not in str(request.url)
         assert "From" not in request.headers
+
+
+def test_short_generic_titles_do_not_merge_different_papers(tmp_path):
+    # The recorded Crossref page with two titles changed to "Editorial", a title many journals reuse.
+    page = json.loads((FIXTURES / "crossref/page1.json").read_text())
+    for item in page["message"]["items"][:2]:
+        item["title"] = ["Editorial"]
+    (tmp_path / "editorials.json").write_text(json.dumps(page))
+    _, records, _ = run(tmp_path, "--sources", "crossref", "--since", "2026-11-11",
+                        overrides={"api.crossref.org": first_page_only(str(tmp_path / "editorials.json"))})
+    assert len(records) == 3

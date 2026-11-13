@@ -1,0 +1,47 @@
+{
+ "messages": [
+  {
+   "status": "ok",
+   "category": "all",
+   "interval": "2026-11-11:2026-11-12",
+   "cursor": 3,
+   "count": 2,
+   "count_new_papers": "338",
+   "total": "5"
+  }
+ ],
+ "collection": [
+  {
+   "title": "Comparative connectomics reveals stage-specific gap junction rewiring that reshapes avoidance behavior",
+   "authors": "Choe, D. T.; Hall, D. H.; Nguyen, K. C. Q.; Choi, M.; Bae, J. A.; Lee, J.",
+   "author_corresponding": "Junho Lee",
+   "author_corresponding_institution": "Seoul National University",
+   "doi": "10.64898/2026.05.28.728331",
+   "date": "2026-11-11",
+   "version": "2",
+   "type": "new results",
+   "license": "cc0_ng",
+   "category": "neuroscience",
+   "jatsxml": "https://www.biorxiv.org/content/early/2026/11/11/2026.05.28.728331.source.xml",
+   "abstract": "Environmental stress can remodel neural circuits, yet how such rewiring generates behavioral adaptation remains poorly understood. Here, we investigated how dauer-specific circuit remodeling alters nociceptive behavior. We discovered that dauers exhibit significantly shorter avoidance durations than adults. Through comparative connectomics, we observed a substantial expansion of gap junctions within the dauer nociceptive circuit and found that dauer neurons exhibit more transient activity dynamics as a result of this rewiring. Modeling neuronal activity demonstrated that removing dauer-specific connectivity constraints failed to reproduce transient characteristics, validating the functional role of dauer-specific gap junctions. Furthermore, introducing synthetic dauer-specific gap junctions into adults was sufficient to recapitulate dauer-like activity patterns and shorten avoidance duration. Despite extensive rewiring, avoidance initiation remained preserved across developmental stages. Our findings show that the dauer neural circuit is selectively rewired through gap junction remodeling to balance flexibility and stability for survival under stress.",
+   "published": "NA",
+   "server": "bioRxiv"
+  },
+  {
+   "title": "Repurposing clofarabine against enteric pathogens via metabolic starvation",
+   "authors": "Deans, N. D.; Naylor, K. L.; Srour, S.; Mallick, B.; Pham, T. K.; Edmunds, G. S.; Sheffield, J. W.; Ansell, O. F.; Edington-Siddon, C. D.; Burt, E. A.; Stafford, G.; Collins, M.; Humphreys, D.",
+   "author_corresponding": "Daniel Humphreys",
+   "author_corresponding_institution": "University of Sheffield",
+   "doi": "10.64898/2026.10.09.757903",
+   "date": "2026-11-11",
+   "version": "2",
+   "type": "new results",
+   "license": "cc_by",
+   "category": "microbiology",
+   "jatsxml": "https://www.biorxiv.org/content/early/2026/11/11/2026.10.09.757903.source.xml",
+   "abstract": "Enteropathogenic and enterohaemorrhagic Escherichia coli (EPEC/EHEC) cause severe global diarrhoeal disease, exacerbated by rising antimicrobial resistance. Pathogenesis relies on \"attaching and effacing\" lesions, where bacteria generate actin pedestals to adhere, replicate, and destroy intestinal microvilli. To identify novel anti-virulence candidates targeting this process, we conducted a high-throughput phenotypic screen quantifying pedestal formation via high-content fluorescence microscopy. We identified the anticancer nucleotide analogue clofarabine as a potent inhibitor of EPEC growth and pathogenesis. Distinct from its oncology mechanism - inducing DNA chain termination and apoptosis - clofarabine competes with bacterial ATP-dependent processes to impede gene transcription, protein synthesis, and Type III Secretion System (T3SS) function. Remarkably, EPEC counteracts this inhibition by cleaving clofarabine, enabling restored protein synthesis and resumed growth. Furthermore, we report for the first time that clofarabine suppresses protein translation in human monocytes, suggesting an uncharacterised translational impact on mammalian cells. These findings reveal host and bacterial translation as interconnected vulnerabilities to purine antimetabolites, offering a novel strategy to disarm enteric pathogens while uncovering a bacterial enzymatic mechanism for neutralizing host-targeted therapeutics.",
+   "published": "NA",
+   "server": "bioRxiv"
+  }
+ ]
+}

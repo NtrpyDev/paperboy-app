@@ -1,0 +1,1000 @@
+{
+ "version": "6.9",
+ "hitCount": 4,
+ "nextCursorMark": "AoJwwKSw4aEDKDU2ODk1ODYz",
+ "request": {
+  "queryString": "OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[2026-11-10 TO 2026-11-12]",
+  "resultType": "core",
+  "cursorMark": "*",
+  "pageSize": 100,
+  "sort": "FIRST_PDATE_D desc",
+  "synonym": false
+ },
+ "resultList": {
+  "result": [
+   {
+    "id": "42961301",
+    "source": "MED",
+    "pmid": "42961301",
+    "pmcid": "PMC13721992",
+    "fullTextIdList": {
+     "fullTextId": [
+      "PMC13721992"
+     ]
+    },
+    "doi": "10.1039/d6nr02497a",
+    "title": "Sensitive detection of &lt;i&gt;in vivo&lt;/i&gt; traumatic brain injury foci using magnetic particle imaging.",
+    "authorString": "Good HJ, Tabatabaei M, Alzamora E, Eswaran N, Ali SR, Velazquez-Albino AC, Simon ZD, Febo M, Williams LN, Rinaldi-Ramos CM.",
+    "authorList": {
+     "author": [
+      {
+       "fullName": "Good HJ",
+       "lastName": "Good",
+       "firstName": "Hayden J",
+       "initials": "HJ",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0009-0001-5529-3109"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Chemical Engineering, University of Florida, 1075 Center Dr, Gainesville, FL, 32611, USA. carlos.rinaldi@ufl.edu."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Tabatabaei M",
+       "lastName": "Tabatabaei",
+       "firstName": "Mohammad",
+       "initials": "M",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "J. Crayton Pruitt Department of Biomedical Engineering, University of Florida, 1275 Center Dr, Gainesville, FL, 32611, USA. LWilliams@bme.ufl.edu."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Alzamora E",
+       "lastName": "Alzamora",
+       "firstName": "Eiko",
+       "initials": "E",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "J. Crayton Pruitt Department of Biomedical Engineering, University of Florida, 1275 Center Dr, Gainesville, FL, 32611, USA. LWilliams@bme.ufl.edu."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Eswaran N",
+       "lastName": "Eswaran",
+       "firstName": "Neel",
+       "initials": "N",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Department of Materials Science & Engineering, University of Florida, 1149 S Newell Dr, Gainesville, FL, 32611, USA."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Ali SR",
+       "lastName": "Ali",
+       "firstName": "Sk Rajab",
+       "initials": "SR",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Chemical Engineering, University of Florida, 1075 Center Dr, Gainesville, FL, 32611, USA. carlos.rinaldi@ufl.edu."
+         },
+         {
+          "affiliation": "J. Crayton Pruitt Department of Biomedical Engineering, University of Florida, 1275 Center Dr, Gainesville, FL, 32611, USA. LWilliams@bme.ufl.edu."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Velazquez-Albino AC",
+       "lastName": "Velazquez-Albino",
+       "firstName": "Ambar C",
+       "initials": "AC",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0009-0000-5901-4288"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Chemical Engineering, University of Florida, 1075 Center Dr, Gainesville, FL, 32611, USA. carlos.rinaldi@ufl.edu."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Simon ZD",
+       "lastName": "Simon",
+       "firstName": "Zachary D",
+       "initials": "ZD",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0000-0001-9297-2971"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Department of Psychiatry, McKnight Brain Institute, University of Florida, 1149 S. Newell Dr, Gainesville, FL, 32611, USA."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Febo M",
+       "lastName": "Febo",
+       "firstName": "Marcelo",
+       "initials": "M",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Department of Psychiatry, McKnight Brain Institute, University of Florida, 1149 S. Newell Dr, Gainesville, FL, 32611, USA."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Williams LN",
+       "lastName": "Williams",
+       "firstName": "Lakiesha N",
+       "initials": "LN",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "J. Crayton Pruitt Department of Biomedical Engineering, University of Florida, 1275 Center Dr, Gainesville, FL, 32611, USA. LWilliams@bme.ufl.edu."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Rinaldi-Ramos CM",
+       "lastName": "Rinaldi-Ramos",
+       "firstName": "Carlos M",
+       "initials": "CM",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0000-0001-8886-5612"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Chemical Engineering, University of Florida, 1075 Center Dr, Gainesville, FL, 32611, USA. carlos.rinaldi@ufl.edu."
+         },
+         {
+          "affiliation": "J. Crayton Pruitt Department of Biomedical Engineering, University of Florida, 1275 Center Dr, Gainesville, FL, 32611, USA. LWilliams@bme.ufl.edu."
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "authorIdList": {
+     "authorId": [
+      {
+       "type": "ORCID",
+       "value": "0000-0001-8886-5612"
+      },
+      {
+       "type": "ORCID",
+       "value": "0000-0001-9297-2971"
+      },
+      {
+       "type": "ORCID",
+       "value": "0009-0000-5901-4288"
+      },
+      {
+       "type": "ORCID",
+       "value": "0009-0001-5529-3109"
+      }
+     ]
+    },
+    "dataLinksTagsList": {
+     "dataLinkstag": [
+      "related_data",
+      "supporting_data"
+     ]
+    },
+    "journalInfo": {
+     "issue": "43",
+     "volume": "18",
+     "journalIssueId": 4314648,
+     "dateOfPublication": "2026 Nov",
+     "monthOfPublication": 11,
+     "yearOfPublication": 2026,
+     "journal": {
+      "medlineAbbreviation": "Nanoscale",
+      "title": "Nanoscale",
+      "essn": "2040-3372",
+      "issn": "2040-3364",
+      "isoabbreviation": "Nanoscale",
+      "nlmid": "101525249"
+     },
+     "printPublicationDate": "2026-11-01"
+    },
+    "pubYear": "2026",
+    "pageInfo": "23576-23589",
+    "abstractText": "Diagnosing traumatic brain injury (TBI) remains a major clinical challenge, particularly for mild to moderate cases, due to the limited sensitivity of conventional imaging modalities like magnetic resonance imaging (MRI) and computed tomography (CT) in detecting subtle cerebrovascular damage early after injury occurs. Magnetic particle imaging (MPI) is a novel modality that offers high sensitivity, linear quantification, and unambiguous detection of superparamagnetic tracers such as iron oxide nanoparticles (IONPs). This study evaluates the capacity of MPI to detect and visualize cerebral bleeding resulting from TBI. A controlled cortical impact (CCI) closed-head TBI model was implemented using a calibrated electromagnetic impactor to induce moderate brain injury in C57BL/6 mice. IONPs were administered intravenously after impact, to mimic potential clinical use. CT-registered MPI images revealed strong, localized signals in the impact region of injured animals at early time points, while sham animals showed no residual signal in the brain. This localized signal decayed over time and eventually approached noise levels after 7 days post-injury. A direct comparison between MPI and -weighted MRI demonstrated that only MPI reliably differentiates the early injury foci at 24 hours. These results highlight the sensitivity and specificity of MPI as a potential diagnostic tool for detecting vascular disruption in TBI, offering a promising minimally invasive approach for early injury assessment. Additionally, these results demonstrate nanoparticle accumulation in sites of moderate TBI, highlighting potential theranostic applications of MPI to develop drug carriers suitable for treatment of TBI.",
+    "affiliation": "Chemical Engineering, University of Florida, 1075 Center Dr, Gainesville, FL, 32611, USA. carlos.rinaldi@ufl.edu.",
+    "publicationStatus": "epublish",
+    "language": "eng",
+    "pubModel": "Electronic",
+    "pubTypeList": {
+     "pubType": [
+      "research-article",
+      "Journal Article"
+     ]
+    },
+    "grantsList": {
+     "grant": [
+      {
+       "agency": "NINDS NIH HHS",
+       "acronym": "NS",
+       "grantId": "R21 NS125089",
+       "orderIn": 0
+      },
+      {
+       "agency": "National Institute of Neurological Disorders and Stroke",
+       "grantId": "R21NS125089",
+       "orderIn": 0
+      }
+     ]
+    },
+    "meshHeadingList": {
+     "meshHeading": [
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Brain",
+       "meshQualifierList": {
+        "meshQualifier": [
+         {
+          "majorTopic_YN": "N",
+          "abbreviation": "DG",
+          "qualifierName": "diagnostic imaging"
+         },
+         {
+          "majorTopic_YN": "N",
+          "abbreviation": "PA",
+          "qualifierName": "pathology"
+         }
+        ]
+       }
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Animals"
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Mice, Inbred C57BL"
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Mice"
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Tomography, X-Ray Computed"
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Magnetic Resonance Imaging"
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Male"
+      },
+      {
+       "majorTopic_YN": "Y",
+       "descriptorName": "Magnetite Nanoparticles",
+       "meshQualifierList": {
+        "meshQualifier": [
+         {
+          "majorTopic_YN": "N",
+          "abbreviation": "CH",
+          "qualifierName": "chemistry"
+         }
+        ]
+       }
+      },
+      {
+       "majorTopic_YN": "Y",
+       "descriptorName": "Brain Injuries, Traumatic",
+       "meshQualifierList": {
+        "meshQualifier": [
+         {
+          "majorTopic_YN": "N",
+          "abbreviation": "DG",
+          "qualifierName": "diagnostic imaging"
+         },
+         {
+          "majorTopic_YN": "N",
+          "abbreviation": "PA",
+          "qualifierName": "pathology"
+         }
+        ]
+       }
+      },
+      {
+       "majorTopic_YN": "Y",
+       "descriptorName": "Magnetic Iron Oxide Nanoparticles",
+       "meshQualifierList": {
+        "meshQualifier": [
+         {
+          "majorTopic_YN": "N",
+          "abbreviation": "CH",
+          "qualifierName": "chemistry"
+         }
+        ]
+       }
+      },
+      {
+       "majorTopic_YN": "Y",
+       "descriptorName": "Magnetic Particle Imaging",
+       "meshQualifierList": {
+        "meshQualifier": [
+         {
+          "majorTopic_YN": "N",
+          "abbreviation": "MT",
+          "qualifierName": "methods"
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "chemicalList": {
+     "chemical": [
+      {
+       "name": "Magnetite Nanoparticles",
+       "registryNumber": "0"
+      }
+     ]
+    },
+    "subsetList": {
+     "subset": [
+      {
+       "code": "IM",
+       "name": "Index Medicus"
+      }
+     ]
+    },
+    "fullTextUrlList": {
+     "fullTextUrl": [
+      {
+       "availability": "Subscription required",
+       "availabilityCode": "S",
+       "documentStyle": "doi",
+       "site": "DOI",
+       "url": "https://doi.org/10.1039/d6nr02497a"
+      },
+      {
+       "availability": "Open access",
+       "availabilityCode": "OA",
+       "documentStyle": "html",
+       "site": "Europe_PMC",
+       "url": "https://europepmc.org/articles/PMC13721992"
+      }
+     ]
+    },
+    "isOpenAccess": "Y",
+    "inEPMC": "Y",
+    "inPMC": "Y",
+    "citedByCount": 0,
+    "hasReferences": "Y",
+    "hasTextMinedTerms": "Y",
+    "hasDbCrossReferences": "N",
+    "hasPDF": "N",
+    "hasBook": "N",
+    "hasSuppl": "Y",
+    "hasLabsLinks": "Y",
+    "hasData": "Y",
+    "license": "cc by",
+    "authMan": "N",
+    "epmcAuthMan": "N",
+    "nihAuthMan": "N",
+    "hasTMAccessionNumbers": "Y",
+    "tmAccessionTypeList": {
+     "accessionType": [
+      "doi"
+     ]
+    },
+    "dateOfCompletion": "2026-11-12",
+    "dateOfCreation": "2026-10-30",
+    "dateOfRevision": "2026-11-12",
+    "electronicPublicationDate": "2026-11-12",
+    "firstPublicationDate": "2026-11-12",
+    "firstIndexDate": "2026-10-31",
+    "fullTextReceivedDate": "2026-10-31",
+    "hasEvaluations": "N"
+   },
+   {
+    "id": "43013715",
+    "source": "MED",
+    "pmid": "43013715",
+    "pmcid": "PMC13754236",
+    "fullTextIdList": {
+     "fullTextId": [
+      "PMC13754236"
+     ]
+    },
+    "doi": "10.1371/journal.pone.0362399",
+    "title": "Dual-task interference in the drop jump: Frequentist, Bayesian, and waveform analysis of vertical ground reaction force.",
+    "authorString": "Celik H, Arpinar-Avsar P.",
+    "authorList": {
+     "author": [
+      {
+       "fullName": "Celik H",
+       "lastName": "Celik",
+       "firstName": "Huseyin",
+       "initials": "H",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0000-0001-8316-6468"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Department of Biomechanics and Motor Control, Faculty of Sport Sciences, Hacettepe University, Ankara, Türkiye."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Arpinar-Avsar P",
+       "lastName": "Arpinar-Avsar",
+       "firstName": "Pinar",
+       "initials": "P",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0000-0001-5318-3494"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Department of Biomechanics and Motor Control, Faculty of Sport Sciences, Hacettepe University, Ankara, Türkiye."
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "authorIdList": {
+     "authorId": [
+      {
+       "type": "ORCID",
+       "value": "0000-0001-5318-3494"
+      },
+      {
+       "type": "ORCID",
+       "value": "0000-0001-8316-6468"
+      }
+     ]
+    },
+    "journalInfo": {
+     "issue": "11",
+     "volume": "21",
+     "journalIssueId": 4305194,
+     "dateOfPublication": "2026 ",
+     "monthOfPublication": 0,
+     "yearOfPublication": 2026,
+     "journal": {
+      "medlineAbbreviation": "PLoS One",
+      "title": "PloS one",
+      "essn": "1932-6203",
+      "issn": "1932-6203",
+      "isoabbreviation": "PLoS One",
+      "nlmid": "101285081"
+     },
+     "printPublicationDate": "2026-01-01"
+    },
+    "pubYear": "2026",
+    "pageInfo": "e0362399",
+    "abstractText": "To ensure standardization, reliability, and maximal performance, physical performance tests are usually performed with little to no cognitive load. However, during training and competition, athletes usually perform physical actions while under the demands of a concurrent cognitive task (CT). This study examined the effect of a concurrent CT on the force-time metrics of the drop jump (DJ) and their reliability under single-task (DJ without a CT) and dual-task conditions (DJ with a CT based on simple arithmetic calculations). Thirty-five healthy young participants performed single-task and dual-task DJ trials in a randomized order. Nineteen force-time metrics covering the braking, propulsion, and landing phases of the DJ were compared between conditions using paired t-tests with Holm adjustment and Hedges' gz, Bayesian paired t-tests, and statistical parametric mapping (SPM) of vertical ground reaction force (VGRF) waveforms. For three-trial mean scores, 17 of the 19 metrics had within-session intraclass correlation coefficients (ICCs) of 0.812-0.930 across both conditions. Under the dual-task condition, jump height (p < 0.001, gz=1.40, Bayes factor BF10 = 1.76×107) and reactive strength index (p < 0.001, gz=1.04, BF10 = 45,943) were lower, while ground contact time was longer (p = 0.025, gz=-0.57, BF10 = 20.57). SPM showed that VGRF was significantly lower under the dual-task condition during 29.2-34.3% (within braking) and 52.0-79.1% (within propulsion) of ground contact. In the landing phase, VGRF was significantly lower under the dual-task condition during 1.3-6.3% (initial force rise) and significantly higher during 15.5-19.6% (attenuation of the impact force). The spring-like correlation (p = 0.462, gz=0.20, BF01 = 2.79) and the vertical time to stabilization (p = 0.462, gz=0.15, BF01 = 3.74) showed no significant difference between conditions, with weak and moderate evidence for the absence of an effect. These findings suggest that a concurrent CT reduces force production within both the braking and propulsion phases of the DJ and alters the VGRF waveform during the subsequent landing phase in healthy young participants.",
+    "affiliation": "Department of Biomechanics and Motor Control, Faculty of Sport Sciences, Hacettepe University, Ankara, Türkiye.",
+    "publicationStatus": "epublish",
+    "language": "eng",
+    "pubModel": "Electronic-eCollection",
+    "pubTypeList": {
+     "pubType": [
+      "research-article",
+      "Journal Article"
+     ]
+    },
+    "meshHeadingList": {
+     "meshHeading": [
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Humans"
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Bayes Theorem"
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Adult"
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Female"
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Male"
+      },
+      {
+       "majorTopic_YN": "Y",
+       "descriptorName": "Athletic Performance",
+       "meshQualifierList": {
+        "meshQualifier": [
+         {
+          "majorTopic_YN": "N",
+          "abbreviation": "PH",
+          "qualifierName": "physiology"
+         }
+        ]
+       }
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Young Adult"
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Biomechanical Phenomena"
+      },
+      {
+       "majorTopic_YN": "N",
+       "descriptorName": "Dual-Task Tests"
+      }
+     ]
+    },
+    "subsetList": {
+     "subset": [
+      {
+       "code": "IM",
+       "name": "Index Medicus"
+      }
+     ]
+    },
+    "fullTextUrlList": {
+     "fullTextUrl": [
+      {
+       "availability": "Subscription required",
+       "availabilityCode": "S",
+       "documentStyle": "doi",
+       "site": "DOI",
+       "url": "https://doi.org/10.1371/journal.pone.0362399"
+      },
+      {
+       "availability": "Open access",
+       "availabilityCode": "OA",
+       "documentStyle": "html",
+       "site": "Europe_PMC",
+       "url": "https://europepmc.org/articles/PMC13754236"
+      },
+      {
+       "availability": "Open access",
+       "availabilityCode": "OA",
+       "documentStyle": "pdf",
+       "site": "Europe_PMC",
+       "url": "https://europepmc.org/articles/PMC13754236?pdf=render"
+      }
+     ]
+    },
+    "isOpenAccess": "Y",
+    "inEPMC": "Y",
+    "inPMC": "Y",
+    "citedByCount": 0,
+    "hasReferences": "Y",
+    "hasTextMinedTerms": "N",
+    "hasDbCrossReferences": "N",
+    "hasPDF": "Y",
+    "hasBook": "N",
+    "hasSuppl": "Y",
+    "hasLabsLinks": "N",
+    "hasData": "Y",
+    "license": "cc by",
+    "authMan": "N",
+    "epmcAuthMan": "N",
+    "nihAuthMan": "N",
+    "hasTMAccessionNumbers": "N",
+    "dateOfCompletion": "2026-11-11",
+    "dateOfCreation": "2026-11-11",
+    "dateOfRevision": "2026-11-11",
+    "electronicPublicationDate": "2026-11-11",
+    "firstPublicationDate": "2026-11-11",
+    "firstIndexDate": "2026-11-12",
+    "fullTextReceivedDate": "2026-11-12",
+    "hasEvaluations": "N"
+   },
+   {
+    "id": "43013700",
+    "source": "MED",
+    "pmid": "43013700",
+    "pmcid": "PMC13754215",
+    "fullTextIdList": {
+     "fullTextId": [
+      "PMC13754215"
+     ]
+    },
+    "doi": "10.1371/journal.pgph.0007566",
+    "title": "Admissions to publicly-funded residential treatment for opioid use disorder and opioid toxicity outcomes after discharge in Ontario, Canada: A population-based repeated cross-sectional study.",
+    "authorString": "Rebić N, Hamzat B, McCormack D, Kurdyak P, Ledlie S, Dodd Z, Wyman J, Shearer D, Besharah J, Munro C, Watford J, Huang A, Leece P, Gomes T.",
+    "authorList": {
+     "author": [
+      {
+       "fullName": "Rebić N",
+       "lastName": "Rebić",
+       "firstName": "Nevena",
+       "initials": "N",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Ontario Drug Policy Research Network (ODPRN), St. Michael's Hospital Research Institute, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "St. Michael's Hospital Research Institute, MAP Centre for Urban Health Solutions, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Hamzat B",
+       "lastName": "Hamzat",
+       "firstName": "Bisola",
+       "initials": "B",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Ontario Drug Policy Research Network (ODPRN), St. Michael's Hospital Research Institute, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "St. Michael's Hospital Research Institute, MAP Centre for Urban Health Solutions, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "McCormack D",
+       "lastName": "McCormack",
+       "firstName": "Daniel",
+       "initials": "D",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Ontario Drug Policy Research Network (ODPRN), St. Michael's Hospital Research Institute, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "ICES, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Kurdyak P",
+       "lastName": "Kurdyak",
+       "firstName": "Paul",
+       "initials": "P",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "ICES, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "Institute for Health Policy, Management and Evaluation, University of Toronto, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Ledlie S",
+       "lastName": "Ledlie",
+       "firstName": "Shaleesa",
+       "initials": "S",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Ontario Drug Policy Research Network (ODPRN), St. Michael's Hospital Research Institute, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "St. Michael's Hospital Research Institute, MAP Centre for Urban Health Solutions, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Dodd Z",
+       "lastName": "Dodd",
+       "firstName": "Zoë",
+       "initials": "Z",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "St. Michael's Hospital Research Institute, MAP Centre for Urban Health Solutions, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Wyman J",
+       "lastName": "Wyman",
+       "firstName": "Jennifer",
+       "initials": "J",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Department of Family and Community Medicine, University of Toronto, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Shearer D",
+       "lastName": "Shearer",
+       "firstName": "Dana",
+       "initials": "D",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0009-0000-8008-3974"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Ontario Drug Policy Research Network (ODPRN), St. Michael's Hospital Research Institute, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "St. Michael's Hospital Research Institute, MAP Centre for Urban Health Solutions, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Besharah J",
+       "lastName": "Besharah",
+       "firstName": "Jes",
+       "initials": "J",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0009-0005-4370-8556"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Ontario Drug Policy Research Network (ODPRN), St. Michael's Hospital Research Institute, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Munro C",
+       "lastName": "Munro",
+       "firstName": "Charlotte",
+       "initials": "C",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0000-0003-1911-7586"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Ontario Drug Policy Research Network (ODPRN), St. Michael's Hospital Research Institute, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Watford J",
+       "lastName": "Watford",
+       "firstName": "Jase",
+       "initials": "J",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Ontario Drug Policy Research Network (ODPRN), St. Michael's Hospital Research Institute, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Huang A",
+       "lastName": "Huang",
+       "firstName": "Anjie",
+       "initials": "A",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "ICES, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Leece P",
+       "lastName": "Leece",
+       "firstName": "Pamela",
+       "initials": "P",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0000-0001-8374-6518"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Department of Family and Community Medicine, University of Toronto, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "Dalla Lana School of Public Health, University of Toronto, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "Public Health Ontario, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Gomes T",
+       "lastName": "Gomes",
+       "firstName": "Tara",
+       "initials": "T",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0000-0002-1468-1965"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Ontario Drug Policy Research Network (ODPRN), St. Michael's Hospital Research Institute, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "St. Michael's Hospital Research Institute, MAP Centre for Urban Health Solutions, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "ICES, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "Institute for Health Policy, Management and Evaluation, University of Toronto, Toronto, Ontario, Canada."
+         },
+         {
+          "affiliation": "Leslie Dan Faculty of Pharmacy, University of Toronto, Toronto, Ontario, Canada."
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "authorIdList": {
+     "authorId": [
+      {
+       "type": "ORCID",
+       "value": "0000-0001-8374-6518"
+      },
+      {
+       "type": "ORCID",
+       "value": "0000-0002-1468-1965"
+      },
+      {
+       "type": "ORCID",
+       "value": "0000-0003-1911-7586"
+      },
+      {
+       "type": "ORCID",
+       "value": "0009-0000-8008-3974"
+      },
+      {
+       "type": "ORCID",
+       "value": "0009-0005-4370-8556"
+      }
+     ]
+    },
+    "journalInfo": {
+     "issue": "11",
+     "volume": "6",
+     "journalIssueId": 4305200,
+     "dateOfPublication": "2026 ",
+     "monthOfPublication": 0,
+     "yearOfPublication": 2026,
+     "journal": {
+      "medlineAbbreviation": "PLOS Glob Public Health",
+      "title": "PLOS global public health",
+      "essn": "2767-3375",
+      "issn": "2767-3375",
+      "isoabbreviation": "PLOS Glob Public Health",
+      "nlmid": "9918283779606676"
+     },
+     "printPublicationDate": "2026-01-01"
+    },
+    "pubYear": "2026",
+    "pageInfo": "e0007566",
+    "abstractText": "With Canadian provinces expanding investments for bed-based inpatient (i.e., residential) substance use treatment, it's important to understand who accesses these programs and their treatment outcomes. Therefore, the aim of our study was to describe admissions to publicly-funded residential treatment for opioid use disorder (OUD) and opioid toxicities rates following discharge. We conducted a population-based repeated cross-sectional study of publicly-funded residential treatment for OUD in Ontario, Canada, between July 1, 2013 and June 30, 2022. We calculated population-adjusted residential treatment admission rates and used joinpoint regression models to assess significant changes in monthly percent changes (MPC). We reported characteristics of discharged clients and weekly rates of fatal or non-fatal opioid toxicity 1-year post-discharge. Among the first identified residential treatment episode for each client, we determined the proportion who had an opioid toxicity event within 28-days post-discharge, overall and stratified by admission date, age, sex, mandated treatment, and discharge reason. Over the study period, admissions fluctuated monthly (from 1.5 [N = 18] to 11.9 [N = 136] per 1,000,000), declining gradually until December 2019 (MPC: -0.3%; p-value = 0.0009) before dropping abruptly between January and April 2020 (MPC: -20.3%; p-value = 0.44) and then rising soon thereafter (MPC, 2.5%; p-value = 0.0001). Overall, 60.8% of clients (N = 9,388; mean age, 33.1 + 10.2 years; 64.1% male) completed their treatment program. Within 28 days post-discharge, 1.4% experienced an opioid toxicity, with higher rates among clients who were male (1.7%), mandated to treatment (2.1%), and discharged early, both voluntarily (2.0%) and involuntarily (2.8%). Despite rising investments into residential treatment programs, our findings showed admissions for OUD dropped substantially early in the COVID-19 pandemic and remained below pre-pandemic levels in the subsequent two years. Importantly, high rates of early discharge and opioid toxicity soon thereafter underscore the need to implement quality standards for residential treatment programs in Ontario and throughout Canada.",
+    "affiliation": "Ontario Drug Policy Research Network (ODPRN), St. Michael's Hospital Research Institute, Toronto, Ontario, Canada.",
+    "publicationStatus": "epublish",
+    "language": "eng",
+    "pubModel": "Electronic-eCollection",
+    "pubTypeList": {
+     "pubType": [
+      "research-article",
+      "Journal Article"
+     ]
+    },
+    "grantsList": {
+     "grant": [
+      {
+       "agency": "Canadian Institutes of Health Research",
+       "grantId": "203781",
+       "orderIn": 0
+      },
+      {
+       "agency": "Canadian Institutes of Health Research",
+       "grantId": "178163",
+       "orderIn": 0
+      }
+     ]
+    },
+    "fullTextUrlList": {
+     "fullTextUrl": [
+      {
+       "availability": "Subscription required",
+       "availabilityCode": "S",
+       "documentStyle": "doi",
+       "site": "DOI",
+       "url": "https://doi.org/10.1371/journal.pgph.0007566"
+      },
+      {
+       "availability": "Open access",
+       "availabilityCode": "OA",
+       "documentStyle": "html",
+       "site": "Europe_PMC",
+       "url": "https://europepmc.org/articles/PMC13754215"
+      },
+      {
+       "availability": "Open access",
+       "availabilityCode": "OA",
+       "documentStyle": "pdf",
+       "site": "Europe_PMC",
+       "url": "https://europepmc.org/articles/PMC13754215?pdf=render"
+      }
+     ]
+    },
+    "isOpenAccess": "Y",
+    "inEPMC": "Y",
+    "inPMC": "Y",
+    "citedByCount": 0,
+    "hasReferences": "Y",
+    "hasTextMinedTerms": "N",
+    "hasDbCrossReferences": "N",
+    "hasPDF": "Y",
+    "hasBook": "N",
+    "hasSuppl": "Y",
+    "hasLabsLinks": "N",
+    "hasData": "Y",
+    "license": "cc by",
+    "authMan": "N",
+    "epmcAuthMan": "N",
+    "nihAuthMan": "N",
+    "hasTMAccessionNumbers": "N",
+    "dateOfCompletion": "2026-11-11",
+    "dateOfCreation": "2026-11-11",
+    "dateOfRevision": "2026-11-11",
+    "electronicPublicationDate": "2026-11-11",
+    "firstPublicationDate": "2026-11-11",
+    "firstIndexDate": "2026-11-12",
+    "fullTextReceivedDate": "2026-11-12",
+    "hasEvaluations": "N"
+   }
+  ]
+ }
+}

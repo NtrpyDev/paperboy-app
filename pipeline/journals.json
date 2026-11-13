@@ -1,0 +1,346 @@
+[
+  {
+    "title": "Nature",
+    "issn": [
+      "0028-0836",
+      "1476-4687"
+    ],
+    "field_hint": null
+  },
+  {
+    "title": "Science",
+    "issn": [
+      "0036-8075",
+      "1095-9203"
+    ],
+    "field_hint": null
+  },
+  {
+    "title": "Cell",
+    "issn": [
+      "0092-8674"
+    ],
+    "field_hint": "biology"
+  },
+  {
+    "title": "Proceedings of the National Academy of Sciences",
+    "issn": [
+      "0027-8424",
+      "1091-6490"
+    ],
+    "field_hint": null
+  },
+  {
+    "title": "Physical Review Letters",
+    "issn": [
+      "0031-9007",
+      "1079-7114"
+    ],
+    "field_hint": "physics"
+  },
+  {
+    "title": "Physical Review X",
+    "issn": [
+      "2160-3308"
+    ],
+    "field_hint": "physics"
+  },
+  {
+    "title": "Nature Physics",
+    "issn": [
+      "1745-2473",
+      "1745-2481"
+    ],
+    "field_hint": "physics"
+  },
+  {
+    "title": "Nature Communications",
+    "issn": [
+      "2041-1723"
+    ],
+    "field_hint": null
+  },
+  {
+    "title": "Science Advances",
+    "issn": [
+      "2375-2548"
+    ],
+    "field_hint": null
+  },
+  {
+    "title": "Nature Medicine",
+    "issn": [
+      "1078-8956",
+      "1546-170X"
+    ],
+    "field_hint": "medicine"
+  },
+  {
+    "title": "The Lancet",
+    "issn": [
+      "0140-6736",
+      "1474-547X"
+    ],
+    "field_hint": "medicine"
+  },
+  {
+    "title": "New England Journal of Medicine",
+    "issn": [
+      "0028-4793",
+      "1533-4406"
+    ],
+    "field_hint": "medicine"
+  },
+  {
+    "title": "JAMA",
+    "issn": [
+      "0098-7484",
+      "1538-3598"
+    ],
+    "field_hint": "medicine"
+  },
+  {
+    "title": "BMJ",
+    "issn": [
+      "0959-8138",
+      "1756-1833"
+    ],
+    "field_hint": "medicine"
+  },
+  {
+    "title": "Nature Astronomy",
+    "issn": [
+      "2397-3366"
+    ],
+    "field_hint": "space"
+  },
+  {
+    "title": "The Astrophysical Journal Letters",
+    "issn": [
+      "2041-8205",
+      "2041-8213"
+    ],
+    "field_hint": "space"
+  },
+  {
+    "title": "Nature Chemistry",
+    "issn": [
+      "1755-4330",
+      "1755-4349"
+    ],
+    "field_hint": "chemistry"
+  },
+  {
+    "title": "Journal of the American Chemical Society",
+    "issn": [
+      "0002-7863",
+      "1520-5126"
+    ],
+    "field_hint": "chemistry"
+  },
+  {
+    "title": "Angewandte Chemie International Edition",
+    "issn": [
+      "1433-7851",
+      "1521-3773"
+    ],
+    "field_hint": "chemistry"
+  },
+  {
+    "title": "Nature Materials",
+    "issn": [
+      "1476-1122",
+      "1476-4660"
+    ],
+    "field_hint": "physics"
+  },
+  {
+    "title": "Nature Neuroscience",
+    "issn": [
+      "1097-6256",
+      "1546-1726"
+    ],
+    "field_hint": "neuroscience"
+  },
+  {
+    "title": "Neuron",
+    "issn": [
+      "0896-6273"
+    ],
+    "field_hint": "neuroscience"
+  },
+  {
+    "title": "Nature Genetics",
+    "issn": [
+      "1061-4036",
+      "1546-1718"
+    ],
+    "field_hint": "biology"
+  },
+  {
+    "title": "Nature Biotechnology",
+    "issn": [
+      "1087-0156",
+      "1546-1696"
+    ],
+    "field_hint": "biology"
+  },
+  {
+    "title": "Nature Methods",
+    "issn": [
+      "1548-7091",
+      "1548-7105"
+    ],
+    "field_hint": "biology"
+  },
+  {
+    "title": "eLife",
+    "issn": [
+      "2050-084X"
+    ],
+    "field_hint": "biology"
+  },
+  {
+    "title": "PLOS Biology",
+    "issn": [
+      "1544-9173",
+      "1545-7885"
+    ],
+    "field_hint": "biology"
+  },
+  {
+    "title": "Current Biology",
+    "issn": [
+      "0960-9822"
+    ],
+    "field_hint": "biology"
+  },
+  {
+    "title": "Nature Geoscience",
+    "issn": [
+      "1752-0894",
+      "1752-0908"
+    ],
+    "field_hint": "earth"
+  },
+  {
+    "title": "Nature Climate Change",
+    "issn": [
+      "1758-678X",
+      "1758-6798"
+    ],
+    "field_hint": "earth"
+  },
+  {
+    "title": "Geophysical Research Letters",
+    "issn": [
+      "1944-8007",
+      "0094-8276"
+    ],
+    "field_hint": "earth"
+  },
+  {
+    "title": "Annals of Mathematics",
+    "issn": [
+      "0003-486X",
+      "1939-8980"
+    ],
+    "field_hint": "math"
+  },
+  {
+    "title": "Inventiones mathematicae",
+    "issn": [
+      "0020-9910",
+      "1432-1297"
+    ],
+    "field_hint": "math"
+  },
+  {
+    "title": "Journal of the American Mathematical Society",
+    "issn": [
+      "0894-0347",
+      "1088-6834"
+    ],
+    "field_hint": "math"
+  },
+  {
+    "title": "Nature Human Behaviour",
+    "issn": [
+      "2397-3374"
+    ],
+    "field_hint": "social"
+  },
+  {
+    "title": "Nature Machine Intelligence",
+    "issn": [
+      "2522-5839"
+    ],
+    "field_hint": "cs"
+  },
+  {
+    "title": "Nature Energy",
+    "issn": [
+      "2058-7546"
+    ],
+    "field_hint": "engineering"
+  },
+  {
+    "title": "Joule",
+    "issn": [
+      "2542-4351"
+    ],
+    "field_hint": "engineering"
+  },
+  {
+    "title": "Science Robotics",
+    "issn": [
+      "2470-9476"
+    ],
+    "field_hint": "engineering"
+  },
+  {
+    "title": "Nature Electronics",
+    "issn": [
+      "2520-1131"
+    ],
+    "field_hint": "engineering"
+  },
+  {
+    "title": "Nature Ecology & Evolution",
+    "issn": [
+      "2397-334X"
+    ],
+    "field_hint": "biology"
+  },
+  {
+    "title": "Nature Microbiology",
+    "issn": [
+      "2058-5276"
+    ],
+    "field_hint": "biology"
+  },
+  {
+    "title": "Psychological Science",
+    "issn": [
+      "0956-7976",
+      "1467-9280"
+    ],
+    "field_hint": "social"
+  },
+  {
+    "title": "American Economic Review",
+    "issn": [
+      "0002-8282",
+      "1944-7981"
+    ],
+    "field_hint": "social"
+  },
+  {
+    "title": "The Quarterly Journal of Economics",
+    "issn": [
+      "0033-5533",
+      "1531-4650"
+    ],
+    "field_hint": "social"
+  }
+]

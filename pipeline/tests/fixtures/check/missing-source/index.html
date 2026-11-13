@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Render check fixture</title>
+<link rel="stylesheet" href="/kit/v1/paperboy.css">
+<script src="/kit/v1/vendor/d3.min.js"></script>
+<script src="/kit/v1/paperboy.js"></script>
+</head>
+<body>
+<article class="pb">
+
+<header class="pb-hero">
+  <h1 class="pb-title">A small page that follows the explainer contract</h1>
+  <p class="pb-dek">This is a render check fixture. It describes no real paper.</p>
+  <div class="pb-stage" id="hero" data-kind="data"></div>
+</header>
+
+<section class="pb-section" data-section="question">
+  <p class="pb-eyebrow">The question</p>
+  <h2>What the fixture asks</h2>
+  <p>Body text for the question section.</p>
+</section>
+
+<section class="pb-section" data-section="method">
+  <p class="pb-eyebrow">What they did</p>
+  <h2>What the fixture did</h2>
+  <figure class="pb-fig" data-kind="illustration">
+    <svg viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="Two boxes"><rect x="10" y="10" width="60" height="40" fill="#2a78d6"></rect><rect x="120" y="10" width="60" height="40" fill="#eb6834"></rect></svg>
+    <figcaption>An illustration, not data.</figcaption>
+  </figure>
+</section>
+
+<section class="pb-section" data-section="findings">
+  <p class="pb-eyebrow">What they found</p>
+  <h2>What the fixture found</h2>
+  <figure class="pb-fig" data-kind="data">
+    <p class="pb-fig-title">Two made-up numbers</p>
+    <div id="toggle"></div>
+    <table class="pb-table">
+      <thead><tr><th scope="col">Group</th><th scope="col" class="num">Value</th></tr></thead>
+      <tbody><tr><td>A</td><td class="num">12</td></tr><tr><td>B</td><td class="num">30</td></tr></tbody>
+    </table>
+  </figure>
+  <figure class="pb-fig" data-kind="paper">
+    <svg viewBox="0 0 200 60" width="200" height="60" role="img" aria-label="A reproduced figure"><circle cx="100" cy="30" r="24" fill="#1baf7a"></circle></svg>
+    <p class="pb-credit">Figure 1 from the fixture paper, CC BY 4.0.</p>
+  </figure>
+</section>
+
+<section class="pb-section" data-section="confidence">
+  <p class="pb-eyebrow">How sure is this</p>
+  <h2>How sure the fixture is</h2>
+  <p>Body text for the confidence section.</p>
+</section>
+
+<section class="pb-section" data-section="matters">
+  <p class="pb-eyebrow">Why it matters</p>
+  <h2>Why the fixture matters</h2>
+  <p>Body text for the last section.</p>
+</section>
+
+
+</article>
+<script>
+PB.ready(function () {
+  var hero = PB.canvas("#hero", { label: "Bars growing on a dark stage" });
+  PB.animate("#hero", function (t) {
+    var ctx = hero.ctx, w = hero.width(), h = hero.height(), theme = hero.theme();
+    ctx.clearRect(0, 0, w, h);
+    for (var i = 0; i < 6; i++) {
+      var bh = h * (0.2 + 0.1 * i) * (0.8 + 0.2 * Math.sin(t + i));
+      ctx.fillStyle = theme.series[i % 3];
+      ctx.fillRect(20 + i * (w - 40) / 6, h - 20 - bh, (w - 40) / 6 - 8, bh);
+    }
+  }, { still: 1 });
+  PB.toggle("#toggle", { label: "Fixture toggle", value: "a", options: [{ value: "a", label: "Option A" }, { value: "b", label: "Option B" }], onChange: function () {} });
+});
+</script>
+</body>
+</html>

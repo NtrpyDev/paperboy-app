@@ -1,0 +1,31 @@
+[project]
+name = "paperboy-pipeline"
+version = "0.1.0"
+description = "Finds new papers and turns them into Paperboy feed items and explainers"
+requires-python = ">=3.11"
+license = "GPL-3.0-or-later"
+dependencies = [
+    "httpx>=0.27",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.2",
+    "jsonschema>=4.22",
+    "referencing>=0.35",
+    "playwright>=1.48",
+    "pillow>=10.4",
+]
+
+[project.scripts]
+paperboy-pipeline = "paperboy_pipeline.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.2"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/paperboy_pipeline"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

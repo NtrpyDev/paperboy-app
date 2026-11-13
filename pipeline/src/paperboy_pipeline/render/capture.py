@@ -1,6 +1,6 @@
 """Loading an explainer in a headless browser in each theme, measuring it, and saving
-the screenshots and the hero still. The three themes load in parallel, one browser
-context each."""
+the screenshots and the two plate stills (the hero stage at rest in the light and in the
+dark color scheme). The four themes load in parallel, one browser context each."""
 import asyncio
 import io
 from dataclasses import dataclass, field
@@ -22,9 +22,18 @@ HERO_QUALITY = 85
 HERO_MIN_CSS_WIDTH = 300
 
 # name, color scheme, reduced motion
-THEMES = (("light", "light", "no-preference"), ("dark", "dark", "no-preference"), ("still", "light", "reduce"))
+THEMES = (
+    ("light", "light", "no-preference"),
+    ("dark", "dark", "no-preference"),
+    ("still", "light", "reduce"),
+    ("still-dark", "dark", "reduce"),
+)
 STRUCTURE_THEME = "light"  # rules about the document itself are reported once, from this theme
-HERO_THEME = "dark"
+# The plate stills are the hero stage at rest (reduced motion), one per color scheme. The
+# browser's emulated color scheme drives which form the page draws, whatever the kit version.
+PLATE_THEMES = {"still": "day", "still-dark": "night"}
+KIND_PLATE = "day"  # the hero's data-kind and data-scale are read in this plate's capture
+HERO_KINDS = ("data", "illustration")
 
 PROBE = resources.files(__package__).joinpath("probe.js").read_text()
 
@@ -59,7 +68,9 @@ class Problem:
 class Result:
     problems: list[Problem] = field(default_factory=list)
     shots: list[Path] = field(default_factory=list)
-    hero: dict | None = None
+    plates: dict = field(default_factory=dict)  # "day" and "night": {"path", "width", "height"}
+    hero_kind: str | None = None  # data-kind of the hero stage when it is data or illustration
+    hero_to_scale: bool | None = None  # for an illustration: data-scale="true" on the hero stage
     page: dict = field(default_factory=dict)
 
 
@@ -82,7 +93,7 @@ def _is_flat(png: bytes) -> bool:
     return all(lo == hi for lo, hi in image.getextrema())
 
 
-async def _save_hero(page, hero_path: Path, theme: str, result: Result):
+async def _save_plate(page, plate_path: Path, theme: str, plate: str, result: Result):
     def fail(detail):
         result.problems.append(Problem("hero-not-capturable", detail, theme))
 
@@ -95,6 +106,12 @@ async def _save_hero(page, hero_path: Path, theme: str, result: Result):
         return fail(f"hero stage is {width} px wide, needs at least {HERO_MIN_CSS_WIDTH}")
     if await stage.evaluate("el => el.childElementCount === 0 && !el.textContent.trim()"):
         return fail("hero stage is empty")
+    if plate == KIND_PLATE:
+        kind = await stage.get_attribute("data-kind")
+        if kind in HERO_KINDS:
+            result.hero_kind = kind
+            if kind == "illustration":
+                result.hero_to_scale = await stage.get_attribute("data-scale") == "true"
     await stage.scroll_into_view_if_needed()
     png = await stage.screenshot()
     if _is_flat(png):
@@ -102,11 +119,11 @@ async def _save_hero(page, hero_path: Path, theme: str, result: Result):
     image = Image.open(io.BytesIO(png)).convert("RGB")
     if image.width > HERO_MAX_WIDTH:
         image = image.resize((HERO_MAX_WIDTH, round(image.height * HERO_MAX_WIDTH / image.width)), Image.LANCZOS)
-    image.save(hero_path, "WEBP", quality=HERO_QUALITY)
-    result.hero = {"path": hero_path, "width": image.width, "height": image.height}
+    image.save(plate_path, "WEBP", quality=HERO_QUALITY)
+    result.plates[plate] = {"path": plate_path, "width": image.width, "height": image.height}
 
 
-async def _one_theme(browser, url: str, theme: str, scheme: str, motion: str, shots_dir: Path, hero_path: Path, result: Result):
+async def _one_theme(browser, url: str, theme: str, scheme: str, motion: str, shots_dir: Path, plate_paths: dict, result: Result):
     origin = urlsplit(url).netloc
     problems = []
 
@@ -153,20 +170,21 @@ async def _one_theme(browser, url: str, theme: str, scheme: str, motion: str, sh
                 add(rule, detail)
             result.page = {"height_px": probe["height"], "figures": probe["figures"], "data_figures": probe["dataFigures"]}
         result.shots += await _save_pieces(page, probe["height"], shots_dir, theme)
-        if theme == HERO_THEME:
-            await _save_hero(page, hero_path, theme, result)
+        if theme in PLATE_THEMES:
+            plate = PLATE_THEMES[theme]
+            await _save_plate(page, plate_paths[plate], theme, plate, result)
     finally:
         await context.close()
     result.problems += problems
 
 
-async def _render(url: str, browser_path: str, shots_dir: Path, hero_path: Path) -> Result:
+async def _render(url: str, browser_path: str, shots_dir: Path, plate_paths: dict) -> Result:
     result = Result()
     async with async_playwright() as p:
         browser = await p.chromium.launch(executable_path=browser_path, headless=True, args=["--no-sandbox"])
         try:
             await asyncio.gather(*(
-                _one_theme(browser, url, theme, scheme, motion, shots_dir, hero_path, result)
+                _one_theme(browser, url, theme, scheme, motion, shots_dir, plate_paths, result)
                 for theme, scheme, motion in THEMES
             ))
         finally:
@@ -177,9 +195,10 @@ async def _render(url: str, browser_path: str, shots_dir: Path, hero_path: Path)
     return result
 
 
-def render(url: str, browser_path: str, shots_dir: Path, hero_path: Path) -> Result:
-    """Load `url` in each theme. Raises playwright's Error if the browser cannot start."""
+def render(url: str, browser_path: str, shots_dir: Path, plate_paths: dict) -> Result:
+    """Load `url` in each theme and save the plate stills to plate_paths ({"day": path, "night": path}).
+    Raises playwright's Error if the browser cannot start."""
     shots_dir.mkdir(parents=True, exist_ok=True)
     for old in shots_dir.glob("*.png"):
         old.unlink()
-    return asyncio.run(_render(url, browser_path, shots_dir, hero_path))
+    return asyncio.run(_render(url, browser_path, shots_dir, plate_paths))

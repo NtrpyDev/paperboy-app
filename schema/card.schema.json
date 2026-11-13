@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Card",
-  "description": "work/papers/<id>/card.json. Written by the expert for a paper it explains: the card text it settled from the full text. Input to publish; never published as a file.",
+  "description": "work/papers/<id>/card.json. The card's readout settled by whoever built the page: the expert, from the full text, or the quick agent, which writes {\"readout\": null} when the scout's number is not printed in the title or abstract. Input to publish; never published as a file.",
   "type": "object",
   "additionalProperties": false,
   "required": [

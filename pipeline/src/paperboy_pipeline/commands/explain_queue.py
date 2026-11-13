@@ -1,33 +1,38 @@
-"""queue: papers worth an explainer wait in the content repo until a run gets to them.
+"""queue: the backlog of papers waiting in the content repo for a page.
 
-Each waiting paper is CONTENT/state/queue/<id>.json: its Judged record plus "queued_at" (UTC,
-RFC 3339). Papers the queue gave up on are lines {"id", "reason", "at"} in
-CONTENT/state/queue-failed.jsonl and are never queued or taken again.
+A paper enters the feed only with a page, so every paper select keeps waits in the backlog until
+a run builds its page: a full explainer for the best few with lawful free full text, a quick
+explainer for the rest. See paperboy_pipeline.backlog for the files.
 
-  add     queue every paper in WORK/judged.jsonl worth an explainer (paperboy_pipeline.explaining)
-  take    choose the best K waiting papers and prepare their work folders
-  done    remove a paper from the queue (its explainer is published)
-  fail    remove a paper and record why it cannot be explained
-  prune   remove papers that have waited longer than --days
-  list    print how many are waiting and the top ten
+  add     put every paper in WORK/judged.jsonl into the backlog, marking which may get a full explainer
+  take    claim this run's papers: up to --full for full explainers and up to --quick for quick ones
+  done    take a paper out of the backlog (publish does this for every paper it adds to the feed)
+  fail    take a paper out of the backlog without a page, for good, and record why
+  back    a full explainer failed or had no full text: the paper waits again, for a quick page only
+  prune   take out papers that have waited longer than --days
+  list    print how many wait and the top ten
 
-These commands only change files in the checkout; publish --commit commits them with state/.
+add and take with --push commit and push their change themselves, starting from origin/main and
+building it again when the push is rejected (paperboy_pipeline.gitsync). The other actions only
+change the checkout; fail and back also note what they did in the work folder, and publish
+commits and pushes it all.
 """
 import argparse
 import json
+import secrets
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from .. import schemas
+from .. import backlog, gitsync, schemas
+from ..content_repo import ContentRepo, PublishError
 from ..explaining import EXPLAIN_FLOOR, explain_kinds, worth_explaining
 
-QUEUE = Path("state/queue")
-FAILED = Path("state/queue-failed.jsonl")
+STATUSES = ("preprint", "peer_reviewed")
 
 
 def register(subparsers) -> None:
-    parser = subparsers.add_parser("queue", help="the explain queue in the content repo", description=__doc__,
+    parser = subparsers.add_parser("queue", help="the backlog of papers waiting for a page", description=__doc__,
                                    formatter_class=argparse.RawDescriptionHelpFormatter)
     actions = parser.add_subparsers(dest="action", required=True)
 
@@ -36,20 +41,31 @@ def register(subparsers) -> None:
         p.add_argument("--content", type=Path, required=True, help="content repo checkout holding state/queue/")
         if work:
             p.add_argument("--work", type=Path, required=True, help="work folder")
+        p.add_argument("--now", help="RFC 3339 time to use as the current time (for tests)")
         return p
 
-    p = action("add", "queue the papers in work/judged.jsonl worth an explainer", work=True)
-    p.add_argument("--explain-floor", type=float, default=EXPLAIN_FLOOR, help=f"lowest significance worth an explainer (default {EXPLAIN_FLOOR})")
-    p.add_argument("--kinds", type=_kinds, help="comma separated full text kinds to queue (default: explain_fulltext_kinds in pipeline/config.json)")
-    p = action("take", "choose the best waiting papers for this run", work=True)
-    p.add_argument("--n", type=int, required=True, help="how many papers to take")
-    p = action("done", "remove a paper whose explainer is published")
+    p = action("add", "put the papers in work/judged.jsonl into the backlog", work=True)
+    p.add_argument("--explain-floor", type=float, default=EXPLAIN_FLOOR, help=f"lowest significance that may get a full explainer (default {EXPLAIN_FLOOR})")
+    p.add_argument("--kinds", type=_kinds, help="comma separated full text kinds that may get a full explainer (default: explain_fulltext_kinds in pipeline/config.json)")
+    p.add_argument("--push", action="store_true", help="commit and push the backlog, starting from origin/main")
+    p = action("take", "claim this run's papers", work=True)
+    p.add_argument("--full", type=_count, required=True, help="most papers to take for full explainers")
+    p.add_argument("--quick", type=_count, required=True, help="most papers to take for quick explainers")
+    p.add_argument("--days", type=_count, help="first prune papers that have waited longer than this many days")
+    p.add_argument("--claim-hours", type=float, default=backlog.CLAIM_HOURS, help=f"a claim older than this is stale and its paper can be taken again (default {backlog.CLAIM_HOURS})")
+    p.add_argument("--run", help="this run's name in its claims (default: the time and a random suffix)")
+    p.add_argument("--push", action="store_true", help="commit and push the claims, starting from origin/main; take again when the push is rejected")
+    p = action("done", "take a paper out of the backlog")
     p.add_argument("--id", required=True)
-    p = action("fail", "remove a paper that cannot be explained and record why")
+    p = action("fail", "take a paper out of the backlog without a page and record why", work=True)
     p.add_argument("--id", required=True)
     p.add_argument("--reason", required=True)
-    p = action("prune", "remove papers that have waited too long")
-    p.add_argument("--days", type=int, default=21)
+    p = action("back", "a full explainer failed: the paper waits again for a quick page", work=True)
+    p.add_argument("--id", required=True)
+    p.add_argument("--reason", required=True)
+    p = action("prune", "take out papers that have waited too long")
+    p.add_argument("--days", type=_count, default=7)
+    p.add_argument("--claim-hours", type=float, default=backlog.CLAIM_HOURS)
     action("list", "print the count and the top ten")
     parser.set_defaults(run=run)
 
@@ -58,139 +74,225 @@ def _kinds(text: str) -> list[str]:
     return [kind.strip() for kind in text.split(",") if kind.strip()]
 
 
+def _count(text: str) -> int:
+    value = int(text)
+    if value < 0:
+        raise argparse.ArgumentTypeError("must be 0 or more")
+    return value
+
+
+def _now(value: str | None) -> str:
+    moment = datetime.fromisoformat(value.replace("Z", "+00:00")) if value else datetime.now(timezone.utc)
+    return moment.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def run(args, *, now: str | None = None) -> int:
-    now = now or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    return ACTIONS[args.action](args, now)
+    now = now or _now(getattr(args, "now", None))
+    try:
+        return ACTIONS[args.action](args, now)
+    except (gitsync.GitError, PublishError) as error:
+        print(f"queue {args.action}: {error}", file=sys.stderr)
+        return 1
 
 
-def _failed_ids(content: Path) -> set[str]:
-    path = content / FAILED
-    if not path.exists():
-        return set()
-    return {json.loads(line)["id"] for line in path.read_text().splitlines() if line.strip()}
+# add
 
-
-def _waiting(content: Path) -> list[tuple[Path, dict]]:
-    entries = []
-    for path in sorted((content / QUEUE).glob("*.json")):
-        try:
-            entries.append((path, json.loads(path.read_text())))
-        except json.JSONDecodeError as error:
-            print(f"queue: {path} is not valid JSON, skipped: {error}", file=sys.stderr)
-    return entries
-
-
-def _best_first(entries: list[tuple[Path, dict]]) -> list[tuple[Path, dict]]:
-    ordered = sorted(entries, key=lambda e: e[1]["id"])
-    ordered.sort(key=lambda e: e[1]["published"], reverse=True)
-    ordered.sort(key=lambda e: e[1]["significance"], reverse=True)
-    return ordered
-
-
-def _record(entry: dict) -> dict:
-    return {k: v for k, v in entry.items() if k != "queued_at"}
-
-
-def _read_lines(path: Path) -> list[dict]:
-    if not path.exists():
-        return []
-    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+def _add_to(content: Path, records: list[dict], floor: float, kinds, now: str) -> dict:
+    repo = ContentRepo(content)
+    failed = backlog.failed_ids(content)
+    present = backlog.waiting(content)
+    counts = {"added": 0, "may_get_full": 0, "already_known": 0, "failed_before": 0}
+    entered = []
+    for rec in records:
+        if rec["id"] in failed:
+            counts["failed_before"] += 1
+            continue
+        if rec["id"] in present or repo.known(rec):
+            counts["already_known"] += 1
+            continue
+        entry = {**rec, "explain": worth_explaining(rec, floor, kinds), "queued_at": now}
+        backlog.write_entry(content, entry)
+        entered.append(backlog.ledger_entry(rec, now))
+        counts["added"] += 1
+        counts["may_get_full"] += entry["explain"]
+    backlog.append_ledger(content, entered)
+    counts["waiting"] = len(backlog.waiting(content))
+    return counts
 
 
 def _add(args, now: str) -> int:
     kinds = args.kinds if args.kinds is not None else explain_kinds()
-    failed = _failed_ids(args.content)
-    added = 0
-    for record in _read_lines(args.work / "judged.jsonl"):
-        if not worth_explaining(record, args.explain_floor, kinds) or record["id"] in failed:
-            continue
-        path = args.content / QUEUE / f"{record['id']}.json"
-        if path.exists():
-            continue
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps({**record, "queued_at": now}, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
-        added += 1
-    print(f"queue: added {added}, {len(_waiting(args.content))} waiting")
+    records = backlog.read_lines(args.work / "judged.jsonl")
+    for number, rec in enumerate(records, 1):
+        problems = schemas.errors("judged", rec)
+        if problems:
+            print(f"queue add: judged.jsonl line {number} is not a valid Judged record: {'; '.join(problems[:3])}", file=sys.stderr)
+            return 1
+    result = {}
+
+    def apply():
+        result.update(_add_to(args.content, records, args.explain_floor, kinds, now))
+
+    if args.push:
+        gitsync.sync(args.content, apply, start_from_origin=True, label="queue add")
+    else:
+        apply()
+    print(json.dumps(result))
     return 0
+
+
+# take
+
+def best_first(entries: list[dict]) -> list[dict]:
+    """Highest significance first, then newest published, then id."""
+    ordered = sorted(entries, key=lambda e: e["id"])
+    ordered.sort(key=lambda e: e["published"], reverse=True)
+    ordered.sort(key=lambda e: e["significance"], reverse=True)
+    return ordered
+
+
+def alternate(entries: list[dict]) -> list[dict]:
+    """Best first, alternating preprints and peer-reviewed papers one for one while both wait. The
+    kind of the best paper goes first; when one kind runs out the other follows in order."""
+    ordered = best_first(entries)
+    lanes = {status: [e for e in ordered if e["status"] == status] for status in STATUSES}
+    out, turn = [], ordered[0]["status"] if ordered else STATUSES[0]
+    while lanes["preprint"] and lanes["peer_reviewed"]:
+        out.append(lanes[turn].pop(0))
+        turn = STATUSES[1 - STATUSES.index(turn)]
+    return out + lanes["preprint"] + lanes["peer_reviewed"]
+
+
+def _prune_in(content: Path, days: int, now: str, claim_hours: float) -> int:
+    cutoff = backlog.parse_time(now) - timedelta(days=days)
+    claimed = backlog.fresh_claims(content, now, claim_hours)
+    pruned = 0
+    for paper_id, entry in backlog.waiting(content).items():
+        if paper_id in claimed:
+            continue
+        if backlog.parse_time(entry["queued_at"]) < cutoff:
+            backlog.leave(content, paper_id)
+            pruned += 1
+    waiting = backlog.waiting(content)
+    for paper_id in backlog.claims(content):
+        if paper_id not in waiting:
+            backlog.release(content, paper_id)
+    return pruned
+
+
+def _choose(content: Path, full: int, quick: int, now: str, claim_hours: float) -> tuple[list[dict], list[dict]]:
+    repo = ContentRepo(content)
+    failed = backlog.failed_ids(content)
+    claimed = backlog.fresh_claims(content, now, claim_hours)
+    free = []
+    for paper_id, entry in backlog.waiting(content).items():
+        if paper_id in failed or paper_id in claimed:
+            continue
+        problems = backlog.errors(entry)
+        if problems:
+            print(f"queue take: state/queue/{paper_id}.json is not a valid backlog entry, skipped: {'; '.join(problems[:3])}", file=sys.stderr)
+            continue
+        if repo.find(entry) is not None:  # already in the feed: its page is never replaced
+            continue
+        free.append(entry)
+    for_full = alternate([e for e in free if e["explain"]])[:full]
+    taken = {e["id"] for e in for_full}
+    for_quick = alternate([e for e in free if e["id"] not in taken])[:quick]
+    return for_full, for_quick
 
 
 def _take(args, now: str) -> int:
-    failed = _failed_ids(args.content)
-    chosen = []
-    for path, entry in _best_first(_waiting(args.content)):
-        if len(chosen) >= args.n:
-            break
-        if entry.get("id") in failed:
-            continue
-        record = _record(entry)
-        problems = schemas.errors("judged", record)
-        if problems:
-            print(f"queue: {path} is not a valid Judged record, skipped: {'; '.join(problems[:3])}", file=sys.stderr)
-            continue
-        chosen.append(record)
+    run_name = args.run or f"{now}-{secrets.token_hex(3)}"
+    result = {}
 
-    judged_path = args.work / "judged.jsonl"
-    present = {r["id"] for r in _read_lines(judged_path)}
+    def apply():
+        pruned = _prune_in(args.content, args.days, now, args.claim_hours) if args.days is not None else 0
+        for_full, for_quick = _choose(args.content, args.full, args.quick, now, args.claim_hours)
+        for page, entries in (("full", for_full), ("quick", for_quick)):
+            for entry in entries:
+                claim = {"id": entry["id"], "run": run_name, "page": page, "claimed_at": now}
+                path = args.content / backlog.CLAIMS / f"{entry['id']}.json"
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(backlog.dump(claim))
+        result.update(full=for_full, quick=for_quick, pruned=pruned)
+
+    if args.push:
+        gitsync.sync(args.content, apply, start_from_origin=True, label="queue take")
+    else:
+        apply()
+
     args.work.mkdir(parents=True, exist_ok=True)
+    judged_path = args.work / "judged.jsonl"
+    present = {r["id"] for r in backlog.read_lines(judged_path)}
     with judged_path.open("a") as judged:
-        for record in chosen:
-            folder = args.work / "papers" / record["id"]
+        for entry in result["full"] + result["quick"]:
+            rec = backlog.record(entry)
+            folder = args.work / "papers" / rec["id"]
             folder.mkdir(parents=True, exist_ok=True)
-            (folder / "candidate.json").write_text(json.dumps(record, indent=2, ensure_ascii=False) + "\n")
-            if record["id"] not in present:
-                judged.write(json.dumps(record, ensure_ascii=False) + "\n")
-    ids = [r["id"] for r in chosen]
-    (args.work / "explain-queue.txt").write_text("".join(i + "\n" for i in ids))
-    for paper_id in ids:
-        print(paper_id)
+            (folder / "candidate.json").write_text(json.dumps(rec, indent=2, ensure_ascii=False) + "\n")
+            if rec["id"] not in present:
+                judged.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    taken = {"run": run_name, "full": [e["id"] for e in result["full"]], "quick": [e["id"] for e in result["quick"]]}
+    (args.work / "take.json").write_text(json.dumps(taken, indent=2) + "\n")
+    summary = {**taken, "status": {e["id"]: e["status"] for e in result["full"] + result["quick"]},
+               "pruned": result["pruned"], "waiting": len(backlog.waiting(args.content))}
+    print(json.dumps(summary, indent=2))
     return 0
 
 
-def _remove(content: Path, paper_id: str) -> bool:
-    path = content / QUEUE / f"{paper_id}.json"
-    if not path.exists():
-        print(f"queue: {paper_id} is not in the queue", file=sys.stderr)
-        return False
-    path.unlink()
-    return True
-
+# done, fail, back, prune, list
 
 def _done(args, now: str) -> int:
-    return 0 if _remove(args.content, args.id) else 1
+    if not backlog.leave(args.content, args.id):
+        print(f"queue: {args.id} is not in the backlog", file=sys.stderr)
+        return 1
+    return 0
+
+
+def _note(work: Path, outcome: dict) -> None:
+    work.mkdir(parents=True, exist_ok=True)
+    with (work / "outcomes.jsonl").open("a") as out:
+        out.write(json.dumps(outcome, sort_keys=True, ensure_ascii=False) + "\n")
 
 
 def _fail(args, now: str) -> int:
-    entry = {"id": args.id, "reason": args.reason, "at": now}
-    problems = schemas.errors("queue-failed", entry)
+    problems = schemas.errors("queue-failed", {"id": args.id, "reason": args.reason, "at": now})
     if problems:
         print(f"queue: {'; '.join(problems)}", file=sys.stderr)
         return 1
-    _remove(args.content, args.id)  # recorded as failed even when it was no longer waiting
-    path = args.content / FAILED
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a") as failed:
-        failed.write(json.dumps(entry, sort_keys=True, ensure_ascii=False) + "\n")
+    backlog.fail(args.content, args.id, args.reason, now)  # recorded even when it was no longer waiting
+    _note(args.work, {"action": "fail", "id": args.id, "reason": args.reason, "at": now})
+    return 0
+
+
+def _back(args, now: str) -> int:
+    if not args.reason.strip():
+        print("queue: --reason must say why", file=sys.stderr)
+        return 1
+    if not backlog.back(args.content, args.id, args.reason):
+        print(f"queue: {args.id} is not in the backlog", file=sys.stderr)
+        return 1
+    _note(args.work, {"action": "back", "id": args.id, "reason": args.reason, "at": now})
     return 0
 
 
 def _prune(args, now: str) -> int:
-    cutoff = datetime.fromisoformat(now) - timedelta(days=args.days)
-    pruned = 0
-    for path, entry in _waiting(args.content):
-        if datetime.fromisoformat(entry["queued_at"]) < cutoff:
-            path.unlink()
-            pruned += 1
-    print(f"queue: pruned {pruned}, {len(_waiting(args.content))} waiting")
+    pruned = _prune_in(args.content, args.days, now, args.claim_hours)
+    print(f"queue: pruned {pruned}, {len(backlog.waiting(args.content))} waiting")
     return 0
 
 
 def _list(args, now: str) -> int:
-    failed = _failed_ids(args.content)
-    waiting = [e for _, e in _best_first(_waiting(args.content)) if e.get("id") not in failed]
-    print(f"{len(waiting)} papers waiting")
-    for entry in waiting[:10]:
-        print(f"{entry['significance']:g}\t{entry['id']}\t{entry['published']}\t{entry.get('hook', '')}")
+    failed = backlog.failed_ids(args.content)
+    entries = [e for e in backlog.waiting(args.content).values() if e.get("id") not in failed]
+    claimed = backlog.fresh_claims(args.content, now)
+    by_status = {s: sum(e["status"] == s for e in entries) for s in STATUSES}
+    print(f"{len(entries)} papers waiting ({by_status['preprint']} preprints, {by_status['peer_reviewed']} peer-reviewed; "
+          f"{sum(e['explain'] for e in entries)} may get a full explainer; {len(claimed)} claimed)")
+    for entry in best_first(entries)[:10]:
+        page = "full" if entry["explain"] else "quick"
+        print(f"{entry['significance']:g}\t{entry['id']}\t{entry['published']}\t{page}\t{entry.get('hook', '')}")
     return 0
 
 
-ACTIONS = {"add": _add, "take": _take, "done": _done, "fail": _fail, "prune": _prune, "list": _list}
+ACTIONS = {"add": _add, "take": _take, "done": _done, "fail": _fail, "back": _back, "prune": _prune, "list": _list}

@@ -1,7 +1,8 @@
 """discover: list newly released papers from the sources as candidates for the scout.
 
 Reads each source over its window, merges records of the same paper (see
-paperboy_pipeline.dedupe), skips papers already in the content repo's state/seen/, drops
+paperboy_pipeline.dedupe), skips papers already in the content repo's feed (state/seen/) or
+that ever entered its backlog (state/queued/), so no paper is judged twice, drops
 papers that still have no abstract (an honest summary cannot be written from a title), and
 writes WORK/candidates.jsonl, one Candidate per line, newest first. Prints one count line per
 source.
@@ -134,4 +135,4 @@ def _seen(repo: ContentRepo, paper: dedupe.Paper) -> bool:
     title = paper.record["title"]
     probes = [paper.record, *paper.members]
     probes += [{"id": ids.paper_id(doi=doi), "doi": doi, "title": title} for doi in paper.record.get("_aliases", [])]
-    return any(repo.find(probe) is not None for probe in probes)
+    return any(repo.known(probe) for probe in probes)

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Claim",
+  "description": "state/claims/<id>.json in the content repo: a run is building this paper's page. queue take writes and pushes it, so overlapping runs take different papers; publish deletes the run's claims. A claim older than three hours is stale and its paper can be taken again.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "run",
+    "page",
+    "claimed_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(arxiv|doi)-[a-z0-9._-]+$",
+      "description": "Stable paper id: arxiv-<id> or doi-<doi with every character outside a-z 0-9 . _ - replaced by ->, lowercase."
+    },
+    "run": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The name of the run that took the paper (queue take --run)."
+    },
+    "page": {
+      "enum": [
+        "full",
+        "quick"
+      ],
+      "description": "Which page the run is building: a full explainer or a quick explainer."
+    },
+    "claimed_at": {
+      "type": "string",
+      "description": "UTC time of the claim, RFC 3339."
+    }
+  }
+}

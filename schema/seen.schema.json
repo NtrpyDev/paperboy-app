@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Seen",
-  "description": "One paper already in the feed (one JSON object per line in state/seen/<YYYY-MM>.jsonl, the month taken from added_at). Publish appends these; discover reads them to skip papers already published.",
+  "description": "One paper in the feed (one JSON object per line in state/seen/<YYYY-MM>.jsonl, the month taken from added_at). Publish appends these; discover reads them, with state/queued/, to skip papers already judged.",
   "type": "object",
   "additionalProperties": false,
   "required": [

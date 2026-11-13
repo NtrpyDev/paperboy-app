@@ -6,7 +6,13 @@
       "id": "doi-10.1038-s41586-026-01234-5",
       "title": "Seasonal reorganization of hippocampal place fields in wild bats",
       "hook": "Wild bats redraw their mental maps when the seasons change",
+      "hook_turn": "when the seasons change",
       "summary": "Researchers recorded neurons in the hippocampus of bats flying outdoors over a full year. The cells that mark locations shifted their preferred spots between summer and winter, tracking where food was found.",
+      "readout": {
+        "value": "12",
+        "unit": "months",
+        "label": "Recording time, flights outdoors"
+      },
       "field": "neuroscience",
       "tags": [
         "navigation",
@@ -43,7 +49,12 @@
       "id": "arxiv-2611.03310",
       "title": "Soil microbes accelerate carbon loss under repeated drought",
       "hook": "Repeated droughts turn soil microbes into carbon emitters",
+      "hook_turn": "into carbon emitters",
       "summary": "Field plots that went through three droughts in a row released more carbon dioxide than plots that had one. The authors trace the change to microbes that switch to breaking down older soil carbon.",
+      "readout": {
+        "value": "3",
+        "label": "Droughts in a row, field plots"
+      },
       "field": "earth",
       "tags": [
         "climate",
@@ -62,7 +73,14 @@
       "id": "arxiv-2611.04821",
       "title": "Observation of a light-induced phase transition in twisted bilayer graphene",
       "hook": "A flash of light flips twisted graphene into a new state of matter",
+      "hook_turn": "into a new state of matter",
       "summary": "Two sheets of graphene stacked at a small twist angle switch into an insulating state when hit by a short laser pulse. The state lasts for nanoseconds and can be switched back with a second pulse.",
+      "readout": {
+        "value": "1.2",
+        "exponent": -9,
+        "unit": "seconds",
+        "label": "How long the new state lasts"
+      },
       "field": "physics",
       "tags": [
         "graphene",
@@ -79,7 +97,14 @@
       "hero": {
         "path": "papers/arxiv-2611.04821/hero.webp",
         "width": 1200,
-        "height": 675
+        "height": 708,
+        "night": {
+          "path": "papers/arxiv-2611.04821/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": false
       },
       "significance": 8.4,
       "added_at": "2026-11-12T07:30:00Z"
@@ -88,7 +113,13 @@
       "id": "doi-10.1056-nejmoa2609876",
       "title": "Once-weekly oral GLP-1 agonist versus placebo in adults with obesity",
       "hook": "A weekly pill matched injections for weight loss in a large trial",
+      "hook_turn": "in a large trial",
       "summary": "In a trial of 3,100 adults, a once-weekly pill led to an average weight loss of 14 percent over 68 weeks, compared with 2 percent on placebo. Side effects were mostly stomach upset early on.",
+      "readout": {
+        "value": "14",
+        "unit": "percent",
+        "label": "Average weight loss over 68 weeks"
+      },
       "field": "medicine",
       "tags": [
         "obesity",

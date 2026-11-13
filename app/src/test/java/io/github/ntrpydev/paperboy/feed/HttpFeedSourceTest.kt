@@ -59,7 +59,16 @@ class HttpFeedSourceTest {
 
         val upgrade = upgrades.getValue("arxiv-2609.10300")
         assertEquals("papers/arxiv-2609.10300/", upgrade.explainer)
-        assertEquals(Hero("papers/arxiv-2609.10300/hero.webp", 1200, 675), upgrade.hero)
+        assertEquals(
+            Hero(
+                path = "papers/arxiv-2609.10300/hero.webp",
+                width = 1200,
+                height = 708,
+                night = Still("papers/arxiv-2609.10300/hero-night.webp", 1200, 708),
+                kind = "data",
+            ),
+            upgrade.hero,
+        )
     }
 
     @Test fun `no upgrades file means no upgrades`() = runTest {

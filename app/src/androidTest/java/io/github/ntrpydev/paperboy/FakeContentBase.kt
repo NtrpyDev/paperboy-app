@@ -19,13 +19,24 @@ import okio.Buffer
 
 /**
  * Serves app/src/fixtures (packaged as test assets) by path, and 404 for anything else.
- * A test can replace the response for one path, and read every request that arrived.
+ * A test can replace the response for one path, read every request that was served, and
+ * take the server offline.
+ *
+ * Every response says `Connection: close`, so each request opens a new connection. That
+ * is what makes [offline] reliable: MockWebServer asks [peek] for the socket effect when it
+ * accepts a connection, and a pooled connection would never be asked again.
  */
 class AssetFixtureDispatcher : Dispatcher() {
     private val assets = InstrumentationRegistry.getInstrumentation().context.assets
     private val overrides = ConcurrentHashMap<String, () -> MockResponse>()
     val requested: MutableList<String> = Collections.synchronizedList(mutableListOf())
     val recorded: MutableList<RecordedRequest> = Collections.synchronizedList(mutableListOf())
+
+    /** While true, every new connection is closed as soon as it is accepted, like an unreachable server. */
+    @Volatile var offline = false
+
+    override fun peek(): MockResponse =
+        if (offline) MockResponse.Builder().onRequestStart(SocketEffect.CloseSocket()).build() else super.peek()
 
     fun override(path: String, response: () -> MockResponse) {
         overrides[path] = response
@@ -36,6 +47,12 @@ class AssetFixtureDispatcher : Dispatcher() {
     }
 
     override fun dispatch(request: RecordedRequest): MockResponse {
+        // A connection dropped while offline still reaches here for bookkeeping; it was not served.
+        if (offline) return peek()
+        return serve(request).newBuilder().setHeader("Connection", "close").build()
+    }
+
+    private fun serve(request: RecordedRequest): MockResponse {
         val path = request.url.encodedPath.removePrefix("/")
         requested += path
         recorded += request
@@ -61,9 +78,6 @@ fun jsonResponse(body: String): MockResponse =
     MockResponse.Builder().code(200).addHeader("Content-Type", "application/json").body(body).build()
 
 fun serverError(): MockResponse = MockResponse.Builder().code(503).build()
-
-/** The connection drops before any response, which the app sees the same way as being offline. */
-fun connectionDrop(): MockResponse = MockResponse.Builder().onRequestStart(SocketEffect.ShutdownConnection).build()
 
 /** A head naming [chunkCount] chunks. */
 fun headJson(chunkCount: Int, minApp: Int = 1) =

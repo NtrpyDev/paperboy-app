@@ -27,6 +27,10 @@ internal class FixtureDispatcher : Dispatcher() {
         overrides[path] = response
     }
 
+    fun clearOverride(path: String) {
+        overrides.remove(path)
+    }
+
     override fun dispatch(request: RecordedRequest): MockResponse {
         val path = request.url.encodedPath.removePrefix("/")
         requested += path

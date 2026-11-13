@@ -108,7 +108,17 @@ class HttpFeedSourceTest {
         val online = source.head()
         fixtures.override("feed/v1/head.json") { MockResponse.Builder().code(503).build() }
 
-        assertEquals(online, source.head(fresh = true))
+        assertEquals(online, source.head())
+    }
+
+    @Test fun `a fresh read reports the failure instead of using a cached copy`() = runTest {
+        val source = source()
+        source.head()
+        fixtures.override("feed/v1/head.json") { MockResponse.Builder().code(503).build() }
+
+        val error = runCatching { source.head(fresh = true) }.exceptionOrNull()
+
+        assertEquals(FeedUnavailableException.Reason.Server, (error as FeedUnavailableException).reason)
     }
 
     @Test fun `a server error with nothing cached is reported as a server problem`() = runTest {

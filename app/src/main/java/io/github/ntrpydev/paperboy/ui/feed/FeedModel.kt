@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.ntrpydev.paperboy.feed.FeedSession
 import io.github.ntrpydev.paperboy.feed.FeedState
+import io.github.ntrpydev.paperboy.feed.RefreshResult
 import io.github.ntrpydev.paperboy.rank.Rating
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,19 +25,32 @@ class FeedModel(private val session: FeedSession) : ViewModel() {
     /** Ids of cards that just left the feed after a less rating, for the undo message. */
     val collapsed: SharedFlow<String> = _collapsed.asSharedFlow()
 
+    private val _refreshed = MutableSharedFlow<RefreshResult>(extraBufferCapacity = 4)
+
+    /** What each pull to refresh found, for the message that says how many papers arrived. */
+    val refreshed: SharedFlow<RefreshResult> = _refreshed.asSharedFlow()
+
     init {
         viewModelScope.launch { session.start() }
-    }
-
-    fun loadMore() {
-        viewModelScope.launch { session.loadMore() }
     }
 
     fun retry() {
         viewModelScope.launch { session.retry() }
     }
 
-    fun reached(id: String) = session.reached(id)
+    fun refresh() {
+        viewModelScope.launch { _refreshed.emit(session.refresh()) }
+    }
+
+    /** The last card the reader can see. Near the end of the list, older papers load. */
+    fun reached(id: String) {
+        viewModelScope.launch { session.reached(id) }
+    }
+
+    /** The card [id] was half on screen for a second, or was opened. */
+    fun markSeen(id: String) {
+        viewModelScope.launch { session.markSeen(id) }
+    }
 
     /** A tap on one of a card's rating buttons. A less rating removes the card after a short moment. */
     fun rate(id: String, rating: Rating) {

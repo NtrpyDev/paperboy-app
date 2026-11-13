@@ -49,7 +49,8 @@ class HttpFeedSource(
 
     /**
      * The body at [path]. On a network failure or an error status, a cached copy is used
-     * if there is one. With [missingIsEmpty], a 404 gives null instead of an error.
+     * if there is one, except for a [fresh] read, which asked for the server's answer.
+     * With [missingIsEmpty], a 404 gives null instead of an error.
      */
     private suspend fun get(path: String, fresh: Boolean, missingIsEmpty: Boolean = false): String? =
         withContext(Dispatchers.IO) {
@@ -60,12 +61,14 @@ class HttpFeedSource(
             val response = try {
                 client.newCall(request).execute()
             } catch (e: IOException) {
-                return@withContext cached(request) ?: throw FeedUnavailableException(Reason.Offline, "Could not reach $url", e)
+                val saved = if (fresh) null else cached(request)
+                return@withContext saved ?: throw FeedUnavailableException(Reason.Offline, "Could not reach $url", e)
             }
             response.use {
                 if (it.code == 404 && missingIsEmpty) return@withContext null
                 if (!it.isSuccessful) {
-                    return@withContext cached(request) ?: throw FeedUnavailableException(Reason.Server, "HTTP ${it.code} for $path")
+                    val saved = if (fresh) null else cached(request)
+                    return@withContext saved ?: throw FeedUnavailableException(Reason.Server, "HTTP ${it.code} for $path")
                 }
                 readBody(it, path)
             }

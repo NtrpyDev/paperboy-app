@@ -1,16 +1,17 @@
 """discover: list newly released papers from the sources as candidates for the scout.
 
-Reads each source from its start date, merges records of the same paper (see
-paperboy_pipeline.dedupe), skips papers already in the content repo's state/seen/, drops papers that still have no abstract
-(an honest summary cannot be written from a title), and writes WORK/candidates.jsonl, one
-Candidate per line, newest first. Prints one count line per source.
+Reads each source over its window, merges records of the same paper (see
+paperboy_pipeline.dedupe), skips papers already in the content repo's state/seen/, drops
+papers that still have no abstract (an honest summary cannot be written from a title), and
+writes WORK/candidates.jsonl, one Candidate per line, newest first. Prints one count line per
+source.
 
 Each source's window is whole days, both ends inclusive (UTC). It ends on --until, by default
 yesterday. It starts on --since when given; otherwise the day after the source's cursor in
 CONTENT_REPO/state/cursors.json (the last day already processed); otherwise the day before
 --until, so the last two finished days. A source whose cursor is already at or past --until is
-skipped. Discover only reads the content repo. Exit status is 1 when a source failed or a record did not match the Candidate
-schema; the candidates that could be read are still written.
+skipped. Discover only reads the content repo. Exit status is 1 when a source failed or a
+record did not match the Candidate schema; the candidates that could be read are still written.
 """
 import argparse
 import json

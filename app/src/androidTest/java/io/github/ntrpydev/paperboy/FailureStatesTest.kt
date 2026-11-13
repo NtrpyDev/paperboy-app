@@ -72,9 +72,9 @@ class FailureStatesTest {
     private fun waitForText(text: String) =
         compose.waitUntil(TIMEOUT_MS) { compose.onAllNodes(hasText(text)).fetchSemanticsNodes().isNotEmpty() }
 
-    private fun retryButtonIn(tag: String) = compose.onNode(hasText("Retry") and hasAnyAncestor(hasTestTag(tag)))
+    private fun retryButtonIn(tag: String) = compose.onNode(hasText("Try again") and hasAnyAncestor(hasTestTag(tag)))
 
-    /** Taps Retry in [tag], scrolling it into view first when it sits in a scrolling list. */
+    /** Taps Try again in [tag], scrolling it into view first when it sits in a scrolling list. */
     private fun retryIn(tag: String, scroll: Boolean = true) {
         val button = retryButtonIn(tag)
         if (scroll) button.performScrollTo()
@@ -117,7 +117,8 @@ class FailureStatesTest {
             compose.onNodeWithTag("feed").performScrollToKey("footer")
             compose.waitForIdle()
         }
-        compose.onNodeWithText("Older papers could not load. The feed server had a problem.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Older papers did not load.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("The feed server had a problem. The papers above are still here.").performScrollTo().assertIsDisplayed()
         // The cards already loaded are all still there.
         assertTrue(compose.onAllNodes(isCard).fetchSemanticsNodes().isNotEmpty())
 

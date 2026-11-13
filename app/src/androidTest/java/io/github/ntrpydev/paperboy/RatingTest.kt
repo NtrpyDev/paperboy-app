@@ -39,7 +39,7 @@ class RatingTest {
         val now = System.currentTimeMillis()
         val hour = 3_600_000L
         val day = 24 * hour
-        // Four strong papers fill the screen, the math one on top.
+        // Four strong papers lead the feed, the math one on top.
         val top = listOf(
             itemJson("arxiv-m0", "A math result at the top of the feed", "math", "combinatorics", 9.5, now - hour),
             itemJson("arxiv-p1", "A physics result second in the feed", "physics", "optics", 9.0, now - 2 * hour),
@@ -74,11 +74,14 @@ class RatingTest {
     private fun button(card: String, label: String) =
         compose.onNode(hasContentDescription(label) and hasAnyAncestor(hasTestTag("card:$card")))
 
-    /** The first [n] cards below the ones that were on screen at the start. */
+    /**
+     * The first [n] of the ten weaker papers in the order the feed shows them. They all come
+     * after the four strong ones, whether all four fit on the screen or not.
+     */
     private fun firstCardsBelow(onScreen: List<String>, n: Int): List<String> {
-        compose.onNodeWithTag("feed").performScrollToIndex(onScreen.size)
+        compose.onNodeWithTag("feed").performScrollToIndex(maxOf(onScreen.size, STRONG.size))
         compose.waitForIdle()
-        return compose.cardsOnScreen().filter { it !in onScreen }.take(n)
+        return compose.cardsOnScreen().filter { it !in onScreen && it !in STRONG }.take(n)
     }
 
     @Test fun withoutRatingsTheNewerBiologyPapersComeFirstBelowTheScreen() {
@@ -139,5 +142,8 @@ class RatingTest {
 
     private companion object {
         const val TIMEOUT_MS = 15_000L
+
+        /** The four strong papers at the top of the fixture feed. */
+        val STRONG = setOf("arxiv-m0", "arxiv-p1", "arxiv-p2", "arxiv-p3")
     }
 }

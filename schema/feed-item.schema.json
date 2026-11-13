@@ -35,11 +35,48 @@
       "maxLength": 110,
       "description": "One-line plain-language headline. Not the paper's title."
     },
+    "hook_turn": {
+      "type": "string",
+      "minLength": 2,
+      "description": "The closing clause of the hook, set in the second voice (the light italic). Must be an exact suffix of hook. Written by whoever writes the hook, never guessed from position. Absent means the whole hook is set in the first voice."
+    },
     "summary": {
       "type": "string",
       "minLength": 40,
       "maxLength": 520,
       "description": "Two to four plain sentences in original words."
+    },
+    "readout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "label"
+      ],
+      "description": "The one number the card shows large, taken from the paper.",
+      "properties": {
+        "value": {
+          "type": "string",
+          "pattern": "^[<>~]?-?[0-9][0-9.,]*$",
+          "maxLength": 8,
+          "description": "The numeral as printed, for example 0.96, 42, >5.1. With exponent set, this is the mantissa."
+        },
+        "exponent": {
+          "type": "integer",
+          "description": "Power of ten. value 1.0 with exponent -21 prints as 1.0 times ten to the minus 21."
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 24,
+          "description": "Unit in words or symbols, for example angstroms. Absent for a pure number."
+        },
+        "label": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 56,
+          "description": "What the number measures, for example: Peak strain. Pitch 35 to 250 Hz."
+        }
+      }
     },
     "field": {
       "enum": [
@@ -103,15 +140,48 @@
       "properties": {
         "path": {
           "type": "string",
-          "description": "Path from the content base, for example papers/<id>/hero.webp"
+          "description": "The day plate at rest. Path from the content base, for example papers/<id>/hero.webp"
         },
         "width": {
           "type": "integer"
         },
         "height": {
           "type": "integer"
+        },
+        "night": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "width",
+            "height"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "The night plate at rest, for example papers/<id>/hero-night.webp"
+            },
+            "width": {
+              "type": "integer"
+            },
+            "height": {
+              "type": "integer"
+            }
+          }
+        },
+        "kind": {
+          "enum": [
+            "data",
+            "illustration"
+          ],
+          "description": "Whether the plate plots the paper's data or is an illustration."
+        },
+        "to_scale": {
+          "type": "boolean",
+          "description": "For an illustration: whether it is drawn to scale."
         }
-      }
+      },
+      "description": "The card's plate: a still of the explainer's hero in the day theme, with the night still beside it."
     },
     "significance": {
       "type": "number",

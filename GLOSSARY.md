@@ -5,12 +5,15 @@ The words this project uses, one meaning each.
 - **Paper**: one scientific work, whether a preprint or a peer-reviewed article. Identified by a stable **paper id** built from its DOI or arXiv id.
 - **Badge**: the label saying what kind of paper it is: `PREPRINT` or `PEER-REVIEWED`.
 - **Feed**: the endless list of papers the app shows, newest and best first.
-- **Card**: one paper as it appears in the feed. An **explained card** has a hero image and opens an explainer. A **short card** has only a summary and a link to the paper; paywalled papers and papers not yet explained are short cards.
+- **Card**: one paper as it appears in the feed. An **explained card** has a plate and opens an explainer. A **short card** has only a summary and a link to the paper; paywalled papers and papers not yet explained are short cards.
 - **Hook**: the one-line plain-language headline on a card. Not the paper's title.
+- **Second voice**: the closing clause of a hook, set in a second typeface (`hook_turn`). An exact suffix of the hook, marked by whoever writes the hook, never derived by code. Optional.
+- **Readout**: the one number from the paper that a card shows large, with its unit and a short label of what it measures. Optional.
 - **Summary**: the two to four plain sentences on a card, written by the pipeline. Never the paper's abstract.
 - **Explainer**: the interactive page that teaches one paper visually. One HTML document per paper.
-- **Hero**: the showpiece visual at the top of an explainer. Its still image is the card image.
-- **Kit**: the shared stylesheet and script every explainer loads. Versioned (`kit/v1`); old versions stay served forever.
+- **Hero**: the showpiece visual at the top of an explainer. Its stills at rest are the card's plate.
+- **Plate**: the picture on an explained card: the hero at rest, captured twice, as the day plate (`hero.webp`, light color scheme) and the night plate (`hero-night.webp`, dark color scheme). The card shows the one for the reader's theme.
+- **Kit**: the shared stylesheet and script every explainer loads. Versioned (`kit/v1`, `kit/v2`, ...); old versions stay served forever.
 - **Rating**: a reader's "more like this" or "less like this" on a card. Stored only on the phone.
 - **Taste**: the on-device model learned from ratings that reorders the feed for one reader.
 - **Chunk**: one numbered file of feed items. Chunks fill in order; a full chunk never changes.

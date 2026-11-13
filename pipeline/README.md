@@ -16,7 +16,7 @@ cd pipeline && uv run paperboy-pipeline <command> --help
 
 ## How the parts fit
 
-Each command is one module in `src/paperboy_pipeline/commands/` that exposes `register(subparsers)`. The record shapes the commands pass to each other are JSON schemas in the repo's `schema/` folder; load them with `paperboy_pipeline.schemas`. Paper ids come from `paperboy_pipeline.ids`.
+Each command is one module in `src/paperboy_pipeline/commands/` that exposes `register(subparsers)`. The record shapes the commands pass to each other are JSON schemas in the repo's `schema/` folder; load them with `paperboy_pipeline.schemas`. Its `errors()` also applies the one rule a schema cannot state: a `hook_turn` must be the hook's closing clause (an exact suffix of `hook` that starts at a word and is not the whole hook). Paper ids come from `paperboy_pipeline.ids`.
 
 ## The work folder
 
@@ -36,7 +36,8 @@ work/
     fulltext.md  source.json       fetch writes
     brief.md                       the expert writes
     explainer/index.html           the visualizer writes
-    explainer/hero.webp            check writes
+    explainer/hero.webp            check writes; the day plate
+    explainer/hero-night.webp      check writes; the night plate
     check.json  shots/             check writes
     review.json                    the checker writes: {"pass": true|false, "problems": [...]}
     made_by.json                   the orchestrator writes: {"expert", "visualizer", "checker"} model ids
@@ -52,8 +53,9 @@ paperboy-pipeline publish --work WORK --content CONTENT_REPO [--commit] [--push]
 
 Reads every Judged record in `WORK/judged.jsonl` and writes it into the content repo checkout at `CONTENT_REPO`, in file order.
 
-- **Explained card**: when `WORK/papers/<id>/explainer/index.html` and `explainer/hero.webp` exist and both `check.json` and `review.json` hold `"pass": true`, publish writes `papers/<id>/index.html`, `hero.webp`, and `meta.json`, and the feed item gets `has_explainer: true`, `explainer: "papers/<id>/"`, and `hero` with the image's pixel size.
+- **Explained card**: when `WORK/papers/<id>/explainer/index.html`, `explainer/hero.webp`, and `explainer/hero-night.webp` exist and both `check.json` and `review.json` hold `"pass": true`, publish writes `papers/<id>/index.html`, `hero.webp`, `hero-night.webp`, and `meta.json`, and the feed item gets `has_explainer: true`, `explainer: "papers/<id>/"`, and `hero`: the day plate's path and pixel size, `night` with the night plate's, and `kind` and `to_scale` copied from the hero in `check.json` when it has them.
 - **Short card**: otherwise only `papers/<id>/meta.json` is written and the item has `has_explainer: false`.
+- **Card text**: `hook_turn` and `readout` are copied from the Judged record to the feed item and `meta.json` when the record has them, for short and explained cards alike. Without them the fields are left out.
 - **Who made it**: an explained paper's `meta.json` gets `made_by` from `WORK/papers/<id>/made_by.json` (`{"expert", "visualizer", "checker"}`, each a model id) when that file exists. Without the file the field is left out.
 
 What it writes in the content repo (schemas in `schema/`):
@@ -62,7 +64,7 @@ What it writes in the content repo (schemas in `schema/`):
 feed/v1/head.json             Head: chunk count, total items, updated time, kit 1, min_app 1
 feed/v1/chunks/000001.json    Chunk: up to 40 items, oldest first
 feed/v1/upgrades.json         Upgrades: explainers added to items in closed chunks
-papers/<id>/meta.json         PaperMeta (plus index.html and hero.webp when explained)
+papers/<id>/meta.json         PaperMeta (plus index.html, hero.webp, and hero-night.webp when explained)
 state/seen/<YYYY-MM>.jsonl    Seen: one line per paper in the feed, by the month it was added
 ```
 
@@ -125,9 +127,9 @@ cd pipeline && uv run paperboy-pipeline check --explainer work/papers/<paper id>
 ```
 
 - `--explainer` is the folder holding `index.html`. `--kit` is the repo's `kit` folder. `--out` defaults to the explainer's parent.
-- It serves the explainer at `/papers/x/` and the kit at `/kit/` from a local server on a free port, then loads the page at 390 by 844 px, device scale factor 2, three times: light, dark, and light with reduced motion. Each time it waits for `data-pb-ready`, scrolls through the page once, and lets animations run for 1.5 seconds before measuring and capturing.
-- It writes `check.json` and `shots/` in the out folder, and the hero still as `explainer/hero.webp` (from the dark capture, at most 1200 px wide).
-- Exit code: 0 pass, 1 fail, 2 tool error (no `index.html`, no kit, no browser, or the browser would not start). On a tool error it writes no `check.json`.
+- It serves the explainer at `/papers/x/` and the kit at `/kit/` from a local server on a free port, then loads the page at 390 by 844 px, device scale factor 2, four times: light, dark, and with reduced motion in light and in dark. The color scheme and motion setting are the browser's emulated `prefers-color-scheme` and `prefers-reduced-motion`, so the check works with any kit version. Each time it waits for `data-pb-ready`, scrolls through the page once, and lets animations run for 1.5 seconds before measuring and capturing.
+- It writes `check.json` and `shots/` in the out folder, and the two plate stills, the hero `.pb-stage` at rest, at most 1200 px wide: `explainer/hero.webp` (the day plate, from the light capture with reduced motion) and `explainer/hero-night.webp` (the night plate, from the dark capture with reduced motion). Under kit v1 the stage is always dark, so the two look alike.
+- Exit code: 0 pass, 1 fail, 2 tool error (no `index.html`, no kit version folder such as `v1`, no browser, or the browser would not start). On a tool error it writes no `check.json`.
 
 Browser: `PAPERBOY_CHROME` (a path or a name on PATH), else the first of `google-chrome`, `chromium`, `chromium-browser`, `brave` on PATH. Nothing is downloaded. It always runs headless with `--no-sandbox` (needed when running as root, as in the cloud routine) and a throwaway profile. The tests skip when no browser is found.
 
@@ -138,13 +140,17 @@ Browser: `PAPERBOY_CHROME` (a path or a name on PATH), else the first of `google
   "pass": false,
   "checked_at": "2026-11-13T03:37:00Z",
   "problems": [{"rule": "overflow-x", "detail": "...", "theme": "light"}],
-  "shots": ["shots/light-01.png", "shots/dark-01.png", "shots/still-01.png"],
-  "hero": {"path": "explainer/hero.webp", "width": 700, "height": 526},
+  "shots": ["shots/light-01.png", "shots/dark-01.png", "shots/still-01.png", "shots/still-dark-01.png"],
+  "hero": {
+    "path": "explainer/hero.webp", "width": 700, "height": 526,
+    "night": {"path": "explainer/hero-night.webp", "width": 700, "height": 526},
+    "kind": "illustration", "to_scale": false
+  },
   "page": {"height_px": 5128, "figures": 2, "data_figures": 2}
 }
 ```
 
-`rule` is one of the ids in `EXPLAINER-CONTRACT.md`. `theme` is `light`, `dark`, or `still`; rules about the document itself are reported once, under `light`, and the hero is checked under `dark`. Shots are the full page cut into pieces at most 2400 px tall (`light-01.png`, `light-02.png`, ...). `hero` is `null` when the hero could not be captured.
+`rule` is one of the ids in `EXPLAINER-CONTRACT.md`. `theme` is `light`, `dark`, `still` (light with reduced motion), or `still-dark` (dark with reduced motion); rules about the document itself are reported once, under `light`, and the hero is captured under `still` and `still-dark`. Shots are the full page cut into pieces at most 2400 px tall (`light-01.png`, `light-02.png`, ...). `hero` is `null` when either plate still could not be captured. `kind` is the hero stage's `data-kind` when it is `data` or `illustration`; `to_scale` is present for an illustration and true only with `data-scale="true"`.
 
 ## fetch
 

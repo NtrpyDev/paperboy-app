@@ -2,30 +2,47 @@ package io.github.ntrpydev.paperboy.ui.explainer
 
 import android.annotation.SuppressLint
 import android.view.ViewGroup
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
+/** Why an explainer page did not load. */
+private enum class PageFailure { Offline, Server }
+
 /**
  * A full-screen WebView showing one explainer. Pages on the content base load here;
- * every other address goes to [onOpenExternal] (the browser).
+ * every other address goes to [onOpenExternal] (the browser). When the page cannot
+ * load, a message with a retry takes its place instead of the WebView's own error page.
  */
 @Composable
 fun ExplainerScreen(
@@ -36,40 +53,80 @@ fun ExplainerScreen(
     val openExternal by rememberUpdatedState(onOpenExternal)
     var webView by remember { mutableStateOf<WebView?>(null) }
     var canGoBack by remember { mutableStateOf(false) }
+    var failure by remember { mutableStateOf<PageFailure?>(null) }
 
-    BackHandler(enabled = canGoBack) { webView?.goBack() }
+    BackHandler(enabled = canGoBack && failure == null) { webView?.goBack() }
 
-    AndroidView(
-        modifier = Modifier
+    Box(
+        Modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.systemBars)
-            .testTag("explainer"),
-        factory = { context ->
-            WebView(context).apply {
-                configureForExplainers(settings)
-                webViewClient = object : WebViewClient() {
-                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                        val target = request.url.toString()
-                        if (isOnContentBase(target, contentBase)) return false
-                        openExternal(target)
-                        return true
-                    }
+            .windowInsetsPadding(WindowInsets.systemBars),
+    ) {
+        AndroidView(
+            modifier = Modifier
+                .fillMaxSize()
+                .testTag("explainer"),
+            factory = { context ->
+                WebView(context).apply {
+                    configureForExplainers(settings)
+                    webViewClient = object : WebViewClient() {
+                        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                            val target = request.url.toString()
+                            if (isOnContentBase(target, contentBase)) return false
+                            openExternal(target)
+                            return true
+                        }
 
-                    override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
-                        canGoBack = view.canGoBack()
+                        override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
+                            canGoBack = view.canGoBack()
+                        }
+
+                        override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                            if (request.isForMainFrame) failure = PageFailure.Offline
+                        }
+
+                        override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
+                            if (request.isForMainFrame && response.statusCode >= 400) failure = PageFailure.Server
+                        }
                     }
+                    loadUrl(url)
+                    webView = this
                 }
-                loadUrl(url)
-                webView = this
+            },
+            onRelease = { view ->
+                (view.parent as? ViewGroup)?.removeView(view)
+                view.stopLoading()
+                view.destroy()
+                webView = null
+            },
+        )
+        failure?.let { reason ->
+            PageFailed(reason) {
+                failure = null
+                webView?.reload()
             }
-        },
-        onRelease = { view ->
-            (view.parent as? ViewGroup)?.removeView(view)
-            view.stopLoading()
-            view.destroy()
-            webView = null
-        },
-    )
+        }
+    }
+}
+
+/** Covers the WebView, so its built-in error page never shows. */
+@Composable
+private fun PageFailed(reason: PageFailure, onRetry: () -> Unit) {
+    Surface(Modifier.fillMaxSize().testTag("explainer-error")) {
+        Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("This explainer could not load", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    when (reason) {
+                        PageFailure.Offline -> "You are offline, or the server cannot be reached."
+                        PageFailure.Server -> "The server had a problem."
+                    },
+                    textAlign = TextAlign.Center,
+                )
+                Button(onClick = onRetry) { Text("Retry") }
+            }
+        }
+    }
 }
 
 /**

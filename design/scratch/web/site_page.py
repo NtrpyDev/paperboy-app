@@ -196,7 +196,8 @@ head = f"""<!doctype html>
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The Paperboy wordmark over Plate 1: an engraved field of blue rings with a red line drawn across it.">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:,">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 {preload}
 <link rel="stylesheet" href="/kit/v2/fonts/fonts.css">
 <style>

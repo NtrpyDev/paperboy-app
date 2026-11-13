@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from paperboy_pipeline import ids, schemas
 from paperboy_pipeline.cli import main
 
 FIXTURES = Path(__file__).parent / "fixtures" / "publish"
@@ -211,3 +212,126 @@ def test_closed_chunks_are_never_modified(tmp_path):
     after = tree(content)
     assert {k: after[k] for k in closed} == closed
     assert chunk_ids(content, 3) == [f"arxiv-2611.{n:05d}" for n in range(81, 101)]
+
+
+LATER = "2026-11-14T10:30:00Z"
+HERO = {"path": "papers/arxiv-2611.00001/hero.webp", "width": 120, "height": 63}
+
+
+def test_short_card_in_the_open_chunk_gains_its_explainer_in_place(tmp_path):
+    content = tmp_path / "content"
+    publish(write_work(tmp_path / "w1", [judged(1), judged(2)]), content)
+
+    work = write_work(tmp_path / "w2", [judged(1)], explained={"arxiv-2611.00001": {}})
+    assert publish(work, content, now=LATER) == 0
+
+    first, second = read_json(content / "feed/v1/chunks/000001.json")["items"]
+    assert first["has_explainer"] is True
+    assert first["explainer"] == "papers/arxiv-2611.00001/"
+    assert first["hero"] == HERO
+    assert first["added_at"] == NOW
+    assert second["has_explainer"] is False
+    assert not (content / "feed/v1/upgrades.json").exists()
+    meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
+    assert (meta["has_explainer"], meta["added_at"], meta["explained_at"]) == (True, NOW, LATER)
+    assert (content / "papers/arxiv-2611.00001/index.html").exists()
+    assert read_json(content / "feed/v1/head.json")["updated_at"] == LATER
+    assert read_json(content / "feed/v1/head.json")["total_items"] == 2
+
+
+def test_short_card_in_a_closed_chunk_gains_its_explainer_through_upgrades(tmp_path):
+    content = tmp_path / "content"
+    publish(write_work(tmp_path / "w1", [judged(n) for n in range(1, 42)]), content)
+    closed = (content / "feed/v1/chunks/000001.json").read_bytes()
+
+    work = write_work(tmp_path / "w2", [judged(1)], explained={"arxiv-2611.00001": {}})
+    assert publish(work, content, now=LATER) == 0
+
+    assert (content / "feed/v1/chunks/000001.json").read_bytes() == closed
+    assert read_json(content / "feed/v1/upgrades.json") == {
+        "v": 1,
+        "upgrades": {"arxiv-2611.00001": {"explainer": "papers/arxiv-2611.00001/", "hero": HERO, "explained_at": LATER}},
+    }
+    assert read_json(content / "papers/arxiv-2611.00001/meta.json")["has_explainer"] is True
+    assert (content / "papers/arxiv-2611.00001/hero.webp").exists()
+
+    before = tree(content)
+    assert publish(work, content, now="2026-11-15T00:00:00Z") == 0
+    assert tree(content) == before
+
+
+def test_seen_state_records_each_paper_by_month_added(tmp_path):
+    content = tmp_path / "content"
+    publish(write_work(tmp_path / "w1", [judged(1, doi="10.1000/x")]), content)
+    publish(write_work(tmp_path / "w2", [judged(2)]), content, now="2026-12-01T00:00:00Z")
+
+    assert (content / "state/seen/2026-11.jsonl").read_text().splitlines() == [
+        json.dumps(
+            {
+                "added_at": NOW,
+                "arxiv_id": "2611.00001",
+                "chunk": 1,
+                "doi": "10.1000/x",
+                "id": "arxiv-2611.00001",
+                "title_key": ids.title_key("Observation number 1 of a thing in a place"),
+            }
+        )
+    ]
+    [december] = (content / "state/seen/2026-12.jsonl").read_text().splitlines()
+    assert json.loads(december)["id"] == "arxiv-2611.00002"
+
+
+def test_cursors_hold_the_newest_published_date_per_source(tmp_path):
+    content = tmp_path / "content"
+    publish(
+        write_work(
+            tmp_path / "w1",
+            [
+                judged(1, published="2026-11-09"),
+                judged(2, published="2026-11-11"),
+                judged(3, published="2026-11-10"),
+                judged(4, id="doi-10.1101-1", arxiv_id=None, doi="10.1101/1", source="biorxiv", published="2026-11-08"),
+            ],
+        ),
+        content,
+    )
+    assert read_json(content / "state/cursors.json") == {"v": 1, "cursors": {"arxiv": "2026-11-11", "biorxiv": "2026-11-08"}}
+
+    publish(write_work(tmp_path / "w2", [judged(5, published="2026-11-01")]), content)
+    assert read_json(content / "state/cursors.json")["cursors"]["arxiv"] == "2026-11-11"
+
+
+SCHEMA_FOR = [
+    ("feed/v1/head.json", "head"),
+    ("feed/v1/chunks/*.json", "chunk"),
+    ("feed/v1/upgrades.json", "upgrades"),
+    ("papers/*/meta.json", "paper-meta"),
+    ("state/cursors.json", "cursors"),
+    ("state/seen/*.jsonl", "seen"),
+]
+
+
+def test_every_output_file_matches_its_schema(tmp_path):
+    content = tmp_path / "content"
+    publish(write_work(tmp_path / "w1", [judged(n) for n in range(1, 42)], explained={"arxiv-2611.00002": {}}), content)
+    publish(write_work(tmp_path / "w2", [judged(1), judged(41)], explained={"arxiv-2611.00001": {}, "arxiv-2611.00041": {}}), content)
+
+    checked = set()
+    for pattern, schema in SCHEMA_FOR:
+        for path in content.glob(pattern):
+            lines = path.read_text().splitlines() if path.suffix == ".jsonl" else [path.read_text()]
+            for line in lines:
+                assert schemas.errors(schema, json.loads(line)) == [], path
+            checked.add(path.relative_to(content).as_posix())
+    json_files = {k for k in tree(content) if k.endswith((".json", ".jsonl"))}
+    assert json_files == checked
+    assert "feed/v1/upgrades.json" in checked
+    assert schemas.errors("feed-item", read_json(content / "feed/v1/chunks/000002.json")["items"][0]) == []
+    assert read_json(content / "feed/v1/chunks/000002.json")["items"][0]["has_explainer"] is True
+
+
+def test_schemas_reject_what_publish_must_never_write():
+    assert schemas.errors("chunk", {"v": 1, "number": 1, "items": [{"id": "arxiv-1"}]})
+    assert schemas.errors("upgrades", {"v": 1, "upgrades": {"arxiv-1": {"explainer": "papers/arxiv-1/", "hero": {"path": "x"}, "explained_at": NOW}}})
+    assert schemas.errors("cursors", {"v": 1, "cursors": {"nature": "2026-11-01"}})
+    assert schemas.errors("seen", {"id": "arxiv-1", "doi": None, "arxiv_id": "1", "title_key": "x", "chunk": 1, "added_at": NOW})

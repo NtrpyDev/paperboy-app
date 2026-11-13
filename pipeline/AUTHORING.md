@@ -299,7 +299,7 @@ KaTeX renders `\( ... \)` inline and `\[ ... \]` on its own line. Number an equa
 
 ```js
 PB.plate("#hero", {
-  band: function (w) { return w >= 1160 ? 320 : w >= 930 ? 284 : w >= 700 ? 250 : 196; },
+  band: function () { var v = window.innerWidth; return v >= 1160 ? 320 : v >= 930 ? 284 : v >= 700 ? 250 : 196; },
   label: "Illustration of the signal: a wave that rises in pitch ...",
   draw: function (p) {
     // p.print, p.key, p.live: d3 groups for the three layers

@@ -300,7 +300,7 @@ PB.ready(function () {
 
   /* ---- Plate 1: the wave field, the two wells, and the chirp crossing them on a time ruler */
   PB.plate("#hero", {
-    band: function (w) { return w >= 1160 ? 320 : w >= 930 ? 284 : w >= 700 ? 250 : 196; },
+    band: function () { var v = window.innerWidth; return v >= 1160 ? 320 : v >= 930 ? 284 : v >= 700 ? 250 : 196; },
     label: "Illustration of the signal: a wave that rises in pitch from 35 hertz to 250 hertz over about 0.2 seconds, then dies away",
     draw: function (p) {
       var k = p.band / 196;
@@ -317,7 +317,7 @@ PB.ready(function () {
         near: [50, 66, 0.62], ramp: [46, 118], avoid: [wells.inside(60), wells.inside(76)]
       });
       var c = chirp(p.left, p.band - 39 * k, p.right - p.left, 29 * k);
-      timeRuler(p.live, p.left, c.merger, p.rulerY, p.width, p.width >= 1160 ? [0, 0.05, 0.1, 0.15, 0.2, 0.25] : null);
+      timeRuler(p.live, p.left, c.merger, p.rulerY, p.width, window.innerWidth >= 1160 ? [0, 0.05, 0.1, 0.15, 0.2, 0.25] : null);
       PB.live(p.live, c.d, { carriage: p.rulerY, pulse: true });
     }
   });

@@ -1,6 +1,10 @@
 package io.github.ntrpydev.paperboy
 
 import android.os.Looper
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollToKey
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -78,7 +82,11 @@ class HeroImageTest {
 
     @Test fun theHeroIsDecodedOffTheMainThreadAtTheCardsSize() {
         val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
-        compose.setContent { PaperboyTheme { PaperboyRoot(graph) } }
+        var systemDark = false
+        compose.setContent {
+            systemDark = isSystemInDarkTheme()
+            PaperboyTheme { PaperboyRoot(graph) }
+        }
         compose.waitUntil(TIMEOUT_MS) { compose.onAllNodes(hasText(TOP_HOOK)).fetchSemanticsNodes().isNotEmpty() }
 
         compose.waitUntil(TIMEOUT_MS) { decodedWidths.isNotEmpty() }
@@ -89,7 +97,41 @@ class HeroImageTest {
         assertTrue("card is $cardWidth px", cardWidth < 1200)
         assertTrue("decoded ${decodedWidths.first()} px for a $cardWidth px card", decodedWidths.first() <= cardWidth + 1)
         assertFalse("decoded on the main thread", decodedOnMain.any { it })
-        assertEquals(1, fixtures.requested.count { it == "papers/arxiv-2611.04821/hero.webp" })
+        // The app follows the system theme here, so it asks for the still of that theme, once.
+        val still = if (systemDark) "papers/arxiv-2611.04821/hero-night.webp" else "papers/arxiv-2611.04821/hero.webp"
+        assertEquals(1, fixtures.requested.count { it == still })
+    }
+
+    @Test fun aCardWhosePlateIsMissingOrFailsToLoadShowsWithoutAnImageBox() {
+        val now = System.currentTimeMillis()
+        val items = listOf(
+            // A plate that loads, to show the check below can see a plate.
+            itemJson("arxiv-good", "A paper whose plate loads", "physics", "optics", 9.5, now),
+            // The plate's stills are not on the server: the load fails.
+            itemJson("arxiv-gone", "A paper whose plate did not load", "physics", "optics", 9.0, now, plate = "missing-plate"),
+            // No plate at all.
+            itemJson("arxiv-none", "A paper with no plate", "physics", "optics", 8.0, now, plate = null),
+        )
+        fixtures.override("feed/v1/head.json") { jsonResponse(headJson(chunkCount = 1)) }
+        fixtures.override("feed/v1/chunks/000001.json") { jsonResponse(chunkJson(1, items)) }
+        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
+        compose.setContent { PaperboyTheme { PaperboyRoot(graph) } }
+
+        compose.waitUntil(TIMEOUT_MS) { compose.onAllNodes(hasText("A paper whose plate loads")).fetchSemanticsNodes().isNotEmpty() }
+        // A card merges its text into itself, so these look in the unmerged tree.
+        fun plates(id: String) =
+            compose.onAllNodes(hasTestTag("plate") and hasAnyAncestor(hasTestTag("card:$id")), useUnmergedTree = true).fetchSemanticsNodes()
+        assertEquals(1, plates("arxiv-good").size)
+
+        for (id in listOf("arxiv-gone", "arxiv-none")) {
+            compose.onNodeWithTag("feed").performScrollToKey(id)
+            compose.waitForIdle()
+            if (id == "arxiv-gone") compose.waitUntil(TIMEOUT_MS) { fixtures.requested.any { it.startsWith("missing-plate/") } }
+            compose.waitUntil(TIMEOUT_MS) { plates(id).isEmpty() }
+            val inCard = hasAnyAncestor(hasTestTag("card:$id"))
+            compose.onNode(hasText("See it explained") and inCard, useUnmergedTree = true).assertExists()
+            compose.onNode(hasText("A summary of the paper $id that is long enough for a card.") and inCard, useUnmergedTree = true).assertExists()
+        }
     }
 
     private companion object {

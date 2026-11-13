@@ -85,7 +85,11 @@ fun headJson(chunkCount: Int, minApp: Int = 1) =
 
 fun chunkJson(number: Int, items: List<String>) = """{"v":1,"number":$number,"items":[${items.joinToString(",")}]}"""
 
-/** One short card as chunk JSON. */
+/**
+ * One paper as chunk JSON. By default it is explained, with an explainer path and a plate
+ * whose stills are the shared fixture stills in fixture-plates/0/. With [explained] false it
+ * has no page, so the feed does not show it. [plate] null gives an explained paper no plate.
+ */
 fun itemJson(
     id: String,
     hook: String,
@@ -93,9 +97,18 @@ fun itemJson(
     tag: String,
     significance: Double,
     addedAtMillis: Long,
+    status: String = "preprint",
+    explained: Boolean = true,
+    plate: String? = "fixture-plates/0",
 ) = """{"id":"$id","title":"Title of $id","hook":"$hook","summary":"A summary of the paper $id that is long enough for a card.",""" +
-    """"field":"$field","tags":["$tag"],"status":"preprint","venue":"arXiv","published":"2026-11-01",""" +
-    """"authors_short":"Someone et al.","url":"https://arxiv.org/abs/$id","has_explainer":false,""" +
+    """"field":"$field","tags":["$tag"],"status":"$status","venue":"arXiv","published":"2026-11-01",""" +
+    """"authors_short":"Someone et al.","url":"https://arxiv.org/abs/$id","has_explainer":$explained,""" +
+    (if (explained) """"explainer":"papers/$id/",""" else "") +
+    (if (explained && plate != null) {
+        """"hero":{"path":"$plate/hero.webp","width":1200,"height":708,"night":{"path":"$plate/hero-night.webp","width":1200,"height":708},"kind":"data"},"""
+    } else {
+        ""
+    }) +
     """"significance":$significance,"added_at":"${rfc3339(addedAtMillis)}"}"""
 
 fun rfc3339(millis: Long): String =

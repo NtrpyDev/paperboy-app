@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>[Hook]</title>
+<link rel="stylesheet" href="/kit/v2/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="/kit/v2/paperboy.css">
+<script src="/kit/v2/vendor/d3.min.js"></script>
+<script src="/kit/v2/vendor/plot.umd.min.js"></script>
+<script src="/kit/v2/vendor/katex/katex.min.js"></script>
+<script src="/kit/v2/vendor/katex/auto-render.min.js"></script>
+<script src="/kit/v2/paperboy.js"></script>
+</head>
+<body>
+<!-- Quick explainer starter (pipeline/QUICK.md). Copy it to explainer/index.html, replace every
+     [bracket] and every block marked REPLACE, and delete this comment. Keep data-depth="abstract"
+     and the ledger's last row word for word. -->
+<article class="pb" data-depth="abstract">
+
+<header class="pb-hero">
+  <div class="pb-kicker">
+    <span class="pb-tag">[Field]</span>
+    <span class="pb-badge" data-status="preprint">Preprint</span>
+    <a class="pb-journal" href="https://[url]">[Venue]</a>
+  </div>
+  <h1 class="pb-title">[Hook up to its turn] <em>[hook_turn]</em></h1>
+  <div class="pb-stage" id="hero" data-kind="illustration"></div>
+  <div class="pb-readout-row">
+    <div>
+      <div class="pb-readout">[value]<span class="pb-unit">[unit]</span></div>
+      <span class="pb-label">[Readout label]</span>
+    </div>
+    <div class="pb-plate-slug">Plate 1<br>Illustration,<br>not to scale</div>
+  </div>
+  <p class="pb-dek">[Two or three plain sentences: what was found, then what the plate shows.]</p>
+</header>
+
+<div class="pb-callout" data-kind="key">
+  <span class="pb-callout-label">Key idea</span>
+  <p>[The one sentence a reader should keep.]</p>
+</div>
+
+<section class="pb-section" data-section="question">
+  <p class="pb-eyebrow">The question</p>
+  <h2>[What was not known,] <em>[the turn.]</em></h2>
+  <p>[Textbook background in plain words, then the open question the abstract names.]</p>
+  <figure class="pb-fig" data-kind="illustration" data-slug="Fig. 1">
+    <p class="pb-fig-title">[Figure title]</p>
+    <div id="fig1"></div>
+    <figcaption>[One sentence: what to notice.]</figcaption>
+  </figure>
+</section>
+
+<section class="pb-section" data-section="method">
+  <p class="pb-eyebrow">What they did</p>
+  <h2>[The method,] <em>[the turn.]</em></h2>
+  <p>[One to three sentences: the method as the abstract states it.]</p>
+</section>
+
+<section class="pb-section" data-section="findings">
+  <p class="pb-eyebrow">What they found</p>
+  <h2>[The finding,] <em>[the turn.]</em></h2>
+  <p>[One to three sentences: the result, no stronger than the abstract states it.]</p>
+  <figure class="pb-fig" data-kind="data" data-slug="Fig. 2">
+    <p class="pb-fig-title">[Figure title]</p>
+    <div id="fig2"></div>
+    <div id="fig2-table"></div>
+    <figcaption>[What the numbers are], from the abstract.</figcaption>
+  </figure>
+</section>
+
+<section class="pb-section" data-section="confidence">
+  <h2>How sure <em>is this?</em></h2>
+  <ul class="pb-confidence">
+    <li class="pb-confidence-head">Strengths</li>
+    <li><b>[Strength]</b><span class="note">[Evidence the abstract states: a proof, a sample size, an uncertainty, an agreement.]</span></li>
+    <li class="pb-confidence-head">Limits</li>
+    <li><b>Review</b><span class="v"><span class="pb-badge" data-status="preprint">Preprint</span></span><span class="note">Not yet peer reviewed.</span></li>
+    <li><b>[Limit]</b><span class="note">[A limit the abstract states, or one that follows from the method it states.]</span></li>
+    <li data-kind="standing"><b>This explainer</b>Built from the paper's abstract, not its full text. Every number here is printed in the abstract. Machine written, and it can be wrong. Check it against the paper.</li>
+  </ul>
+</section>
+
+<section class="pb-section" data-section="matters">
+  <p class="pb-eyebrow">Why it matters</p>
+  <h2>[What changes,] <em>[the turn.]</em></h2>
+  <p>[One or two sentences, no stronger than the abstract.]</p>
+</section>
+
+<footer class="pb-source">
+  <p class="pb-eyebrow">Source</p>
+  <cite>[Paper title]</cite>
+  <p class="pb-authors">[Authors]</p>
+  <small>[Venue and id]</small>
+  <small>[Month D, YYYY]. [Preprint, not peer reviewed. | Peer-reviewed.]</small>
+  <a class="pb-btn" href="https://[url]">Read the paper</a>
+  <p class="pb-note">This page was written by a machine from the paper's abstract and can be wrong. The paper is the source.</p>
+</footer>
+
+</article>
+<script>
+PB.ready(function () {
+  /* A mark label on a ground knockout, so it never sits on a field. o: anchor ("start", "middle",
+     "end"), strong (a name), finding (the live mark's own label), muted, asIs (keep the case as typed:
+     mark labels are set in capitals, which would turn a unit like "m/day" into "M/DAY"). Lowercase
+     Greek letters always keep their case, so π stays π. Returns the text node's selection. */
+  function label(g, x, y, text, o) {
+    o = o || {};
+    var lg = g.append("g");
+    var r = lg.append("rect").attr("class", "pb-ground");
+    var t = lg.append("text").attr("class", "pb-mark-label").attr("x", x).attr("y", y).attr("text-anchor", o.anchor || "start");
+    String(text).split(/([α-ω]+)/).forEach(function (part, i) {
+      if (part) t.append("tspan").text(part).style("text-transform", i % 2 || o.asIs ? "none" : null);
+    });
+    if (o.strong) t.attr("data-strong", "");
+    if (o.finding) t.attr("data-finding", "");
+    if (o.muted) t.attr("data-muted", "");
+    var b = t.node().getBBox();
+    r.attr("x", b.x - 3).attr("y", b.y - 1).attr("width", b.width + 6).attr("height", b.height + 2);
+    return t;
+  }
+
+  /* Engrave a field f(x, y) as contour lines in plate ink, clipped to the box o.x0, o.y0, o.x1, o.y1
+     (px), one line at each value in o.levels. The print for anything with a shape in space: a flow,
+     a density, terrain, a sea surface, a potential. o.step is the grid in px (2). */
+  function engrave(g, f, o) {
+    var st = o.step || 2, m = 8, x0 = o.x0 - m, y0 = o.y0 - m;
+    var nx = Math.ceil((o.x1 - o.x0 + 2 * m) / st) + 1, ny = Math.ceil((o.y1 - o.y0 + 2 * m) / st) + 1;
+    var v = new Float64Array(nx * ny);
+    for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++) v[j * nx + i] = f(x0 + i * st, y0 + j * st);
+    var path = d3.geoPath(d3.geoIdentity().scale(st).translate([x0, y0]));
+    var out = g.append("g");
+    var cid = "clip-" + Math.random().toString(36).slice(2, 8);
+    out.append("clipPath").attr("id", cid).append("rect").attr("x", o.x0).attr("y", o.y0).attr("width", o.x1 - o.x0).attr("height", o.y1 - o.y0);
+    var lines = out.append("g").attr("clip-path", "url(#" + cid + ")");
+    d3.contours().size([nx, ny]).thresholds(o.levels)(v).forEach(function (c) {
+      lines.append("path").attr("class", "pb-field-hair").attr("d", path(c));
+    });
+    return out;
+  }
+
+  /* ---- Plate 1. REPLACE with this paper's picture (QUICK.md, "The plate"). This placeholder only
+     makes the starter pass the check: it shows nothing. */
+  PB.plate("#hero", {
+    band: function () { var v = window.innerWidth; return v >= 1160 ? 400 : v >= 930 ? 360 : v >= 700 ? 320 : 272; },
+    label: "[What the plate shows, with its numbers]",
+    draw: function (p) {
+      var x = d3.scaleLinear().domain([0, 10]).range([p.left, p.right]);
+      engrave(p.print, function (a, b) { return b + 3 * Math.sin(a / 13 + b / 7); }, { x0: 0, y0: 0, x1: p.width, y1: p.band, levels: d3.range(-6, p.band + 6, 3.6) });
+      PB.ruler(p.live, { x: x, y: p.rulerY, x1: 0, x2: p.width, major: [0, 5, 10], minor: 1, labels: [0, 5], unit: "[UNIT]", unitAt: "end", unitX: p.right });
+      label(p.live, x(7), p.band * 0.5 - 14, "[THE FINDING]", { anchor: "middle", finding: true });
+      PB.live(p.live, "M" + x(0) + " " + p.band * 0.5 + "H" + x(7), { carriage: p.rulerY, pulse: true });
+    }
+  });
+
+  /* ---- Fig. 1. REPLACE: a drawing that sets up the question. */
+  PB.svg("#fig1", { height: 160, label: "[What Fig. 1 shows]" }, function (svg, s) {
+    PB.fillShape(svg, "context", 1, function (q) { return q.append("circle").attr("cx", s.width / 2).attr("cy", 86).attr("r", 56); });
+    label(svg, s.width / 2, 14, "[NAME THE THING]", { anchor: "middle", strong: true });
+  });
+
+  /* ---- Fig. 2. REPLACE: the abstract's numbers. With none worth drawing, make it an illustration:
+     data-kind="illustration", and remove the table and its div. */
+  PB.barRows("#fig2", {
+    domain: [0, 10], unit: "[UNIT]", major: [0, 5, 10], minor: 1,
+    label: "[Data from the abstract: every value in words]",
+    rows: [
+      { label: "[Row A]", note: "[what it is]", segments: [{ from: 0, to: 4, kind: "solid", figure: "4" }] },
+      { label: "[Row B]", note: "[what it is]", segments: [{ from: 0, to: 7, kind: "live", figure: "7" }] }
+    ]
+  });
+  PB.table("#fig2-table", {
+    caption: "[What the numbers are], from the abstract.",
+    columns: [{ key: "what", label: "What" }, { key: "v", label: "[Unit]", numeric: true }],
+    rows: [{ what: "[Row A]", v: "4" }, { what: "[Row B]", v: "7" }]
+  });
+});
+</script>
+</body>
+</html>

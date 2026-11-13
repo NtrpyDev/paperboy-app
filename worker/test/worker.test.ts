@@ -277,3 +277,17 @@ describe("explainer security policy", () => {
     expect(res.headers.get("content-security-policy")).toBeNull();
   });
 });
+
+describe("explainer address", () => {
+  it("serves a paper folder's index.html for the folder path", async () => {
+    const { origin, get } = setup({ "papers/arxiv-1/index.html": "<!doctype html><title>x</title>" });
+
+    const res = await get("/papers/arxiv-1/");
+
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe("<!doctype html><title>x</title>");
+    expect(res.headers.get("content-type")).toBe("text/html; charset=utf-8");
+    expect(res.headers.get("content-security-policy")).toContain("default-src 'none'");
+    expect(origin.calls).toEqual([`${ORIGIN}papers/arxiv-1/index.html`]);
+  });
+});

@@ -87,8 +87,9 @@ export function createHandler(deps: Deps) {
 
   return {
     async fetch(request: Request, env: Env): Promise<Response> {
-      const key = new URL(request.url).pathname.slice(1);
+      let key = new URL(request.url).pathname.slice(1);
       if (!key.startsWith("papers/") && !key.startsWith("feed/")) return notFound();
+      if (key.startsWith("papers/") && key.endsWith("/")) key += "index.html";
       const changing = await isChanging(env, key);
 
       const stored = await env.CONTENT.get(key);

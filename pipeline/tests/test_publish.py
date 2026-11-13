@@ -30,7 +30,8 @@ def judged(n: int, **overrides) -> dict:
 
 
 def write_work(work: Path, records: list[dict], explained: dict[str, dict] | None = None) -> Path:
-    """explained maps paper id to {"check": bool, "review": bool, "files": bool}; missing keys default to True."""
+    """explained maps paper id to {"check": bool, "review": bool, "files": bool, "night": bool, "hero": dict};
+    missing keys default to True, and "hero" (the hero check.json reports) defaults to none."""
     work.mkdir(parents=True, exist_ok=True)
     (work / "judged.jsonl").write_text("".join(json.dumps(r) + "\n" for r in records))
     for paper_id, opts in (explained or {}).items():
@@ -39,7 +40,12 @@ def write_work(work: Path, records: list[dict], explained: dict[str, dict] | Non
         if opts.get("files", True):
             (folder / "explainer" / "index.html").write_bytes((FIXTURES / "explainer.html").read_bytes())
             (folder / "explainer" / "hero.webp").write_bytes((FIXTURES / "hero.webp").read_bytes())
-        (folder / "check.json").write_text(json.dumps({"pass": opts.get("check", True), "problems": []}))
+            if opts.get("night", True):
+                (folder / "explainer" / "hero-night.webp").write_bytes((FIXTURES / "hero-night.webp").read_bytes())
+        check = {"pass": opts.get("check", True), "problems": []}
+        if "hero" in opts:
+            check["hero"] = opts["hero"]
+        (folder / "check.json").write_text(json.dumps(check))
         (folder / "review.json").write_text(json.dumps({"pass": opts.get("review", True), "problems": []}))
     return work
 
@@ -107,11 +113,17 @@ def test_paper_with_a_passing_explainer_is_published_as_an_explained_card(tmp_pa
     [item] = read_json(content / "feed/v1/chunks/000001.json")["items"]
     assert item["has_explainer"] is True
     assert item["explainer"] == "papers/arxiv-2611.00001/"
-    assert item["hero"] == {"path": "papers/arxiv-2611.00001/hero.webp", "width": 120, "height": 63}
+    assert item["hero"] == {
+        "path": "papers/arxiv-2611.00001/hero.webp",
+        "width": 120,
+        "height": 63,
+        "night": {"path": "papers/arxiv-2611.00001/hero-night.webp", "width": 120, "height": 63},
+    }
     paper = content / "papers/arxiv-2611.00001"
-    assert sorted(p.name for p in paper.iterdir()) == ["hero.webp", "index.html", "meta.json"]
+    assert sorted(p.name for p in paper.iterdir()) == ["hero-night.webp", "hero.webp", "index.html", "meta.json"]
     assert (paper / "index.html").read_bytes() == (FIXTURES / "explainer.html").read_bytes()
     assert (paper / "hero.webp").read_bytes() == (FIXTURES / "hero.webp").read_bytes()
+    assert (paper / "hero-night.webp").read_bytes() == (FIXTURES / "hero-night.webp").read_bytes()
     meta = read_json(paper / "meta.json")
     assert meta["has_explainer"] is True
     assert meta["explained_at"] == NOW
@@ -146,9 +158,134 @@ def test_made_by_without_every_role_aborts_with_nothing_written(tmp_path, capsys
 
 
 @pytest.mark.parametrize(
+    "rendered, expected",
+    [
+        ({"kind": "illustration", "to_scale": True}, {"kind": "illustration", "to_scale": True}),
+        ({"kind": "data"}, {"kind": "data"}),
+        (None, {}),
+    ],
+    ids=["illustration to scale", "data", "check.json without a hero"],
+)
+def test_plate_kind_comes_from_the_hero_the_render_check_reported(tmp_path, rendered, expected):
+    opts = {} if rendered is None else {"hero": {"path": "explainer/hero.webp", "width": 600, "height": 450, **rendered}}
+    work = write_work(tmp_path / "work", [judged(1)], explained={"arxiv-2611.00001": opts})
+    content = tmp_path / "content"
+
+    assert publish(work, content) == 0
+
+    [item] = read_json(content / "feed/v1/chunks/000001.json")["items"]
+    assert item["hero"] == {**HERO, **expected}
+
+
+TURN = "Earth felt space stretch."
+CARD_TEXT = {
+    "hook": "Two black holes merged. " + TURN,
+    "hook_turn": TURN,
+    "readout": {"value": "1.0", "exponent": -21, "label": "Peak strain. Pitch 35 to 250 Hz"},
+}
+
+
+@pytest.mark.parametrize("explained", [False, True], ids=["short card", "explained card"])
+def test_second_voice_and_readout_reach_the_feed_item_and_the_paper_record(tmp_path, explained):
+    paywalled = {"fulltext": {"available": False, "kind": None, "url": None}} if not explained else {}
+    record = judged(1, **CARD_TEXT, **paywalled)
+    work = write_work(tmp_path / "work", [record, judged(2)], explained={"arxiv-2611.00001": {}} if explained else None)
+    content = tmp_path / "content"
+
+    assert publish(work, content) == 0
+
+    first, second = read_json(content / "feed/v1/chunks/000001.json")["items"]
+    assert first["has_explainer"] is explained
+    meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
+    for published in (first, meta):
+        assert {k: published[k] for k in CARD_TEXT} == CARD_TEXT
+    other_meta = read_json(content / "papers/arxiv-2611.00002/meta.json")
+    for published in (second, other_meta):
+        assert "hook_turn" not in published and "readout" not in published
+
+
+@pytest.mark.parametrize(
+    "turn",
+    ["Earth felt space stretch", "Two black holes merged. Earth felt space stretch.", "arth felt space stretch.", " Earth felt space stretch."],
+    ids=["not a suffix", "the whole hook", "starts inside a word", "starts with a space"],
+)
+def test_hook_turn_that_is_not_the_closing_clause_aborts_with_nothing_changed(tmp_path, capsys, turn):
+    content = published_repo(tmp_path)
+    before = tree(content)
+    work = write_work(tmp_path / "work", [judged(60), judged(61, **{**CARD_TEXT, "hook_turn": turn})])
+
+    assert publish(work, content) == 1
+
+    assert tree(content) == before
+    err = capsys.readouterr().err
+    assert "line 2" in err and "hook_turn" in err
+
+
+@pytest.mark.parametrize(
+    "readout",
+    [
+        {"value": "about 5", "label": "Peak strain"},
+        {"value": "5", "label": "x"},
+        {"value": "5"},
+        {"value": "5", "label": "Peak strain", "note": "extra"},
+        {"value": "5", "exponent": 2.5, "label": "Peak strain"},
+    ],
+    ids=["value with words", "label too short", "no label", "unknown field", "fractional exponent"],
+)
+def test_schemas_reject_a_malformed_readout(readout):
+    record = judged(1, readout=readout)
+    assert schemas.errors("judged", record)
+    item = {k: v for k, v in record.items() if k in ("id", "title", "hook", "summary", "field", "tags", "status", "venue", "published", "url", "significance")}
+    item.update(authors_short="Lovelace et al.", has_explainer=False, added_at=NOW, readout=readout)
+    assert schemas.errors("feed-item", item)
+
+
+def test_hook_turn_rule_applies_to_every_item_in_a_chunk():
+    record = judged(1)
+    item = {k: record[k] for k in ("id", "title", "hook", "summary", "field", "tags", "status", "venue", "published", "url", "significance")}
+    item.update(authors_short="Lovelace et al.", has_explainer=False, added_at=NOW)
+    good = {**item, "hook_turn": "where nobody looked"}
+    bad = {**item, "hook_turn": "where nobody looks"}
+    assert schemas.errors("chunk", {"v": 1, "number": 1, "items": [item, good]}) == []
+    assert schemas.errors("chunk", {"v": 1, "number": 1, "items": [good, bad]}) == [
+        "items/1/hook_turn: hook_turn is not an exact suffix of hook: 'where nobody looks'"
+    ]
+
+
+def test_content_published_before_plates_and_readouts_still_validates_and_publishes(tmp_path):
+    # A repo written before hero.night, hero.kind, hook_turn, and readout existed: one-image heroes,
+    # in a closed chunk, in the open chunk, and in upgrades.json.
+    content = tmp_path / "content"
+    publish(write_work(tmp_path / "w1", [judged(n) for n in range(1, 42)], explained={"arxiv-2611.00002": {}, "arxiv-2611.00041": {}}), content)
+    publish(write_work(tmp_path / "w2", [judged(1)], explained={"arxiv-2611.00001": {}}), content, now=LATER)
+    for path in content.glob("feed/v1/chunks/*.json"):
+        chunk = read_json(path)
+        for item in chunk["items"]:
+            if "hero" in item:
+                item["hero"].pop("night")
+        path.write_text(json.dumps(chunk, indent=2, sort_keys=True) + "\n")
+    upgrades = read_json(content / "feed/v1/upgrades.json")
+    for entry in upgrades["upgrades"].values():
+        entry["hero"].pop("night")
+    (content / "feed/v1/upgrades.json").write_text(json.dumps(upgrades, indent=2, sort_keys=True) + "\n")
+    for path in content.glob("papers/*/hero-night.webp"):
+        path.unlink()
+
+    assert publish(write_work(tmp_path / "w3", [judged(42), judged(43)], explained={"arxiv-2611.00043": {}}), content, now="2026-11-15T00:00:00Z") == 0
+
+    for pattern, schema in SCHEMA_FOR:
+        for path in content.glob(pattern):
+            lines = path.read_text().splitlines() if path.suffix == ".jsonl" else [path.read_text()]
+            for line in lines:
+                assert schemas.errors(schema, json.loads(line)) == [], path
+    assert "night" not in read_json(content / "feed/v1/chunks/000001.json")["items"][1]["hero"]
+    assert read_json(content / "feed/v1/chunks/000002.json")["items"][-1]["hero"]["night"]["path"] == "papers/arxiv-2611.00043/hero-night.webp"
+
+
+@pytest.mark.parametrize(
     "opts",
-    [{"check": False}, {"review": False}, {"files": False}],
-    ids=["render check failed", "review failed", "explainer files missing"],
+    [{"check": False}, {"review": False}, {"files": False}, {"night": False}],
+    ids=["render check failed", "review failed", "explainer files missing", "night plate missing"],
 )
 def test_explainer_that_is_missing_or_failed_gives_a_short_card(tmp_path, opts):
     work = write_work(tmp_path / "work", [judged(1)], explained={"arxiv-2611.00001": opts})
@@ -242,7 +379,12 @@ def test_closed_chunks_are_never_modified(tmp_path):
 
 
 LATER = "2026-11-14T10:30:00Z"
-HERO = {"path": "papers/arxiv-2611.00001/hero.webp", "width": 120, "height": 63}
+HERO = {
+    "path": "papers/arxiv-2611.00001/hero.webp",
+    "width": 120,
+    "height": 63,
+    "night": {"path": "papers/arxiv-2611.00001/hero-night.webp", "width": 120, "height": 63},
+}
 
 
 def test_short_card_in_the_open_chunk_gains_its_explainer_in_place(tmp_path):
@@ -281,6 +423,7 @@ def test_short_card_in_a_closed_chunk_gains_its_explainer_through_upgrades(tmp_p
     }
     assert read_json(content / "papers/arxiv-2611.00001/meta.json")["has_explainer"] is True
     assert (content / "papers/arxiv-2611.00001/hero.webp").exists()
+    assert (content / "papers/arxiv-2611.00001/hero-night.webp").exists()
 
     before = tree(content)
     assert publish(work, content, now="2026-11-15T00:00:00Z") == 0
@@ -394,6 +537,11 @@ def test_unreadable_explainer_files_abort_with_nothing_changed(tmp_path):
     assert tree(content) == before
 
     (work / "papers/arxiv-2611.00061/explainer/hero.webp").write_bytes((FIXTURES / "hero.webp").read_bytes())
+    (work / "papers/arxiv-2611.00061/explainer/hero-night.webp").write_bytes(b"not an image")
+    assert publish(work, content) == 1
+    assert tree(content) == before
+
+    (work / "papers/arxiv-2611.00061/explainer/hero-night.webp").write_bytes((FIXTURES / "hero-night.webp").read_bytes())
     (work / "papers/arxiv-2611.00061/review.json").write_text("{")
     assert publish(work, content) == 1
     assert tree(content) == before

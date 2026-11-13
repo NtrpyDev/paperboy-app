@@ -10,7 +10,8 @@ Layout (paths relative to the content repo root):
     feed/v1/chunks/000001.json     Chunk, up to 40 items, oldest first
     feed/v1/upgrades.json          Upgrades: explainers added to items in closed chunks
     papers/<id>/index.html         the explainer (explained papers only)
-    papers/<id>/hero.webp          the card image (explained papers only)
+    papers/<id>/hero.webp          the day plate, the card image in the light theme (explained papers only)
+    papers/<id>/hero-night.webp    the night plate, the card image in the dark theme (explained papers only)
     papers/<id>/meta.json          PaperMeta
     state/seen/<YYYY-MM>.jsonl     one Seen line per paper in the feed, by month added
     state/cursors.json             Cursors: the last day each source is processed through

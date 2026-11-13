@@ -1,8 +1,10 @@
 """publish: write judged papers from a work folder into a content repo checkout.
 
-Each Judged record in WORK/judged.jsonl becomes one feed item. It is an explained card when
-WORK/papers/<id>/explainer/ holds index.html and hero.webp and both check.json and
-review.json say {"pass": true}; otherwise it is a short card. An explained paper's meta.json gets
+Each Judged record in WORK/judged.jsonl becomes one feed item, carrying the record's hook_turn
+and readout when it has them. It is an explained card when WORK/papers/<id>/explainer/ holds
+index.html, hero.webp (the day plate), and hero-night.webp (the night plate) and both check.json
+and review.json say {"pass": true}; otherwise it is a short card. The plate's kind and to_scale
+come from the hero in check.json. An explained paper's meta.json gets
 "made_by" from WORK/papers/<id>/made_by.json when that file exists. A paper already in the feed is
 not added again, but a short card gains its explainer once one passes. See content_repo for
 the layout and the rules that keep closed chunks unchanged.
@@ -32,6 +34,9 @@ META_FIELDS = (
     "id", "doi", "arxiv_id", "title", "authors", "venue", "published", "status", "license",
     "url", "field", "tags", "hook", "summary", "significance",
 )
+# Card text a Judged record may carry. Copied to the feed item and meta.json only when present.
+OPTIONAL_CARD_FIELDS = ("hook_turn", "readout")
+PLATE_FILES = {"day": "hero.webp", "night": "hero-night.webp"}
 
 
 def register(subparsers) -> None:
@@ -103,9 +108,11 @@ def _publish_one(repo: ContentRepo, record: dict, folder: Path, now: str) -> Non
     explained = _explainer(record["id"], folder)
     seen = repo.find(record)
     if seen is None:
+        optional = {k: record[k] for k in OPTIONAL_CARD_FIELDS if k in record}
         item = {k: record[k] for k in FEED_FIELDS}
-        item.update(authors_short=authors_short(record["authors"]), has_explainer=False, added_at=now)
+        item.update(optional, authors_short=authors_short(record["authors"]), has_explainer=False, added_at=now)
         meta = {k: record.get(k) for k in META_FIELDS}
+        meta.update(optional)
         meta.update(has_explainer=False, added_at=now, explained_at=None, kit=None, fulltext_source=None)
         files = {}
         if explained:
@@ -139,13 +146,15 @@ def _explain_meta(meta: dict, record: dict, explained: dict, now: str) -> dict[s
     )
     if explained["made_by"] is not None:
         meta["made_by"] = explained["made_by"]
-    return {"index.html": explained["index_html"], "hero.webp": explained["hero_bytes"]}
+    return {"index.html": explained["index_html"], **explained["plate_bytes"]}
 
 
 def _explainer(paper_id: str, folder: Path) -> dict | None:
     """The finished explainer for this paper, or None when it is missing or has not passed both checks."""
-    page, hero = folder / "explainer" / "index.html", folder / "explainer" / "hero.webp"
-    if not (page.is_file() and hero.is_file() and (folder / "check.json").is_file() and (folder / "review.json").is_file()):
+    page = folder / "explainer" / "index.html"
+    plates = {name: folder / "explainer" / filename for name, filename in PLATE_FILES.items()}
+    files = [page, *plates.values(), folder / "check.json", folder / "review.json"]
+    if not all(path.is_file() for path in files):
         return None
     verdicts = {}
     for name in ("check", "review"):
@@ -163,18 +172,26 @@ def _explainer(paper_id: str, folder: Path) -> dict | None:
             made_by = json.loads((folder / "made_by.json").read_text())
         except json.JSONDecodeError as error:
             raise PublishError(f"{folder / 'made_by.json'} is not valid JSON: {error}")
-    hero_bytes = hero.read_bytes()
-    try:
-        with Image.open(io.BytesIO(hero_bytes)) as image:
-            width, height = image.size
-    except OSError as error:
-        raise PublishError(f"{hero} is not a readable image: {error}")
     base = content_repo.paper_dir(paper_id).as_posix()
+    plate_bytes, sizes = {}, {}
+    for name, path in plates.items():
+        data = path.read_bytes()
+        try:
+            with Image.open(io.BytesIO(data)) as image:
+                width, height = image.size
+        except OSError as error:
+            raise PublishError(f"{path} is not a readable image: {error}")
+        plate_bytes[path.name] = data
+        sizes[name] = {"path": f"{base}/{path.name}", "width": width, "height": height}
+    hero = {**sizes["day"], "night": sizes["night"]}
+    rendered = verdicts["check"].get("hero")
+    if isinstance(rendered, dict):
+        hero.update({k: rendered[k] for k in ("kind", "to_scale") if k in rendered})
     return {
         "explainer": f"{base}/",
-        "hero": {"path": f"{base}/hero.webp", "width": width, "height": height},
+        "hero": hero,
         "index_html": page.read_bytes(),
-        "hero_bytes": hero_bytes,
+        "plate_bytes": plate_bytes,
         "check": verdicts["check"],
         "review": verdicts["review"],
         "made_by": made_by,

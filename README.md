@@ -1,6 +1,6 @@
 # Paperboy
 
-Paperboy is a free, open source Android app: an endless feed of newly released science and math papers, peer-reviewed and preprints, each labeled as one or the other. Papers with a free legal full text get a visual explainer, a page of diagrams, charts drawn from the paper's reported numbers, and plain text. Every card links to the original paper. No account, no ads.
+Paperboy is a free, open source Android app: an endless feed of newly released science and math papers, peer-reviewed and preprints, each labeled as one or the other. Every paper in the feed has its own picture and opens its own visual explainer, a page of diagrams, charts drawn from the paper's reported numbers, and plain text: the best few are built from the paper's free legal full text, the rest from its abstract, and each page says which. Every page links to the original paper. No account, no ads.
 
 - Website: https://paperboy.ntrpydev.workers.dev/
 - Download: the latest APK is on the [releases page](https://github.com/NtrpyDev/paperboy-app/releases). Not on Google Play yet.
@@ -10,15 +10,16 @@ Explainers are machine written and can be wrong. Each one says so and links its 
 
 ## How it works
 
-1. A scheduled cloud run follows `pipeline/RUNBOOK.md`: it finds the day's new papers, AI agents judge them and write the feed cards, and for papers with a free legal full text three agents (an expert reader, a visualizer, and a checker) build and verify an explainer page with the kit.
-2. The run publishes cards and explainers to the content repo.
-3. A Cloudflare Worker serves the feed, the explainers, the kit, and the website from that repo.
-4. The app reads the feed, ranks it on the phone from your "More like this" and "Less like this" taps, and opens explainers in place. Ratings never leave the phone.
+1. A scheduled cloud run follows `pipeline/RUNBOOK.md`. Once a day's papers are out, AI agents read their titles and abstracts, keep the best, and write each one's card text. The kept papers wait in a backlog in the content repo; nothing reaches the feed yet.
+2. Each hourly run takes the best papers waiting, alternating preprints and peer-reviewed papers, and builds a page for each. The very best with a free legal full text get a full explainer, built and verified from the full text by three agents (an expert reader, a visualizer, and a checker). The rest get a quick explainer, built by one agent from the title and abstract and checked by code so that every number it prints is in the abstract. Runs pace themselves through the week, so papers that wait more than a week without a page age out.
+3. A paper enters the feed only when its page passes. The run publishes the card, its picture, and its page to the content repo together.
+4. A Cloudflare Worker serves the feed, the explainers, the kit, and the website from that repo.
+5. The app reads the feed, ranks it on the phone from your "More like this" and "Less like this" taps, and opens explainers in place. Ratings never leave the phone.
 
 ## Repo layout
 
 ```
-.claude/             Agent definitions the pipeline run uses: triage, scout, expert, visualizer, checker
+.claude/             Agent definitions the pipeline run uses: triage, scout, quick, expert, visualizer, checker
 .github/             GitHub Actions workflows: tests on every push, and the signed release APK
 app/                 Android app (Kotlin, Jetpack Compose)
 design/              Design system, build handoff, and the Claude Design artboards

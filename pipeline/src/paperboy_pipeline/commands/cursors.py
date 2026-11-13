@@ -1,7 +1,7 @@
 """cursors: record that sources are processed through a day.
 
 A cursor in CONTENT_REPO/state/cursors.json is the last day (UTC) whose papers from that source
-have been discovered, judged, and published. Discover starts each source the day after its
+have been discovered, judged, and put in the backlog. Discover starts each source the day after its
 cursor. This command only moves a cursor forward; a date before the current cursor leaves it.
 With --push it commits and pushes the cursors itself, starting from origin/main and moving them
 again on a newer main when the push is rejected (paperboy_pipeline.gitsync).

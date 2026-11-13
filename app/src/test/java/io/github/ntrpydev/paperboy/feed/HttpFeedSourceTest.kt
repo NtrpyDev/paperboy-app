@@ -5,7 +5,6 @@ import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -28,75 +27,111 @@ class HttpFeedSourceTest {
 
     private fun source() = HttpFeedSource(contentBase = server.url("/"), client = client)
 
-    @Test fun `newest page is the highest numbered chunk the head names`() = runTest {
-        val page = source().loadNewest()
+    private fun resource(path: String) = javaClass.classLoader!!.getResource(path)!!.readText()
 
-        assertEquals(2, page.chunkNumber)
-        assertEquals(
-            listOf("arxiv-2611.03310", "arxiv-2611.04821", "doi-10.1056-nejmoa2609876"),
-            page.items.map { it.id },
-        )
+    @Test fun `the head names the highest chunk and the minimum app version`() = runTest {
+        val head = source().head()
+
+        assertEquals(9, head.chunkCount)
+        assertEquals(1, head.minApp)
     }
 
-    @Test fun `older pages go back one chunk at a time and end after chunk 1`() = runTest {
+    @Test fun `a chunk gives its items oldest first`() = runTest {
         val source = source()
-        val newest = source.loadNewest()
 
-        val older = source.loadOlder(newest)!!
-        assertEquals(1, older.chunkNumber)
-        assertEquals(listOf("doi-10.1038-s41586-026-01234-5", "arxiv-2611.01177"), older.items.map { it.id })
-
-        assertNull(source.loadOlder(older))
+        assertEquals(
+            listOf(
+                "doi-10.1038-s41586-026-01234-5",
+                "arxiv-2611.01177",
+                "arxiv-2611.03310",
+                "arxiv-2611.04821",
+                "doi-10.1056-nejmoa2609876",
+            ),
+            source.chunk(9).map { it.id },
+        )
+        val oldest = source.chunk(1)
+        assertEquals(40, oldest.size)
+        assertEquals("arxiv-2609.10000", oldest.first().id)
     }
 
-    @Test fun `an empty feed gives an empty page and asks for no chunk`() = runTest {
-        fixtures.override("feed/v1/head.json") {
-            json("""{"v":1,"updated_at":"2026-11-12T00:00:00Z","chunk_count":0,"total_items":0,"chunk_size":40,"kit":1,"min_app":1}""")
-        }
+    @Test fun `upgrades give explainers to papers in closed chunks`() = runTest {
+        val upgrades = source().upgrades()
 
-        val page = source().loadNewest()
+        val upgrade = upgrades.getValue("arxiv-2609.10300")
+        assertEquals("papers/arxiv-2609.10300/", upgrade.explainer)
+        assertEquals(Hero("papers/arxiv-2609.10300/hero.webp", 1200, 675), upgrade.hero)
+    }
 
-        assertEquals(emptyList<FeedItem>(), page.items)
-        assertNull(source().loadOlder(page))
-        assertEquals(listOf("feed/v1/head.json"), fixtures.requested)
+    @Test fun `no upgrades file means no upgrades`() = runTest {
+        fixtures.override("feed/v1/upgrades.json") { MockResponse.Builder().code(404).build() }
+
+        assertEquals(emptyMap<String, Upgrade>(), source().upgrades())
     }
 
     @Test fun `a closed chunk is read from the HTTP cache the second time`() = runTest {
-        val closedChunk = javaClass.classLoader!!.getResource("feed/v1/chunks/000001.json")!!.readText()
+        val closedChunk = resource("feed/v1/chunks/000001.json")
         fixtures.override("feed/v1/chunks/000001.json") {
             json(closedChunk, cacheControl = "public, max-age=31536000, immutable")
         }
         val source = source()
-        val newest = source.loadNewest()
 
-        val first = source.loadOlder(newest)
-        val second = source.loadOlder(newest)
+        val first = source.chunk(1)
+        val second = source.chunk(1)
 
         assertEquals(first, second)
         assertEquals(1, fixtures.requested.count { it == "feed/v1/chunks/000001.json" })
     }
 
-    @Test fun `a server error on the head is reported as a server problem`() = runTest {
+    @Test fun `a fresh read goes past the HTTP cache to the server`() = runTest {
+        val head = resource("feed/v1/head.json")
+        fixtures.override("feed/v1/head.json") { json(head, cacheControl = "public, max-age=3600") }
+        val source = source()
+
+        source.head()
+        source.head()
+        assertEquals(1, fixtures.requested.count { it == "feed/v1/head.json" })
+
+        source.head(fresh = true)
+        assertEquals(2, fixtures.requested.count { it == "feed/v1/head.json" })
+    }
+
+    @Test fun `when the content base cannot be reached, a cached copy is used`() = runTest {
+        val source = source()
+        val online = source.chunk(9)
+        server.close()
+
+        assertEquals(online, source.chunk(9))
+    }
+
+    @Test fun `when the server fails, a cached copy is used`() = runTest {
+        val source = source()
+        val online = source.head()
         fixtures.override("feed/v1/head.json") { MockResponse.Builder().code(503).build() }
 
-        val error = runCatching { source().loadNewest() }.exceptionOrNull()
+        assertEquals(online, source.head(fresh = true))
+    }
+
+    @Test fun `a server error with nothing cached is reported as a server problem`() = runTest {
+        fixtures.override("feed/v1/head.json") { MockResponse.Builder().code(503).build() }
+
+        val error = runCatching { source().head() }.exceptionOrNull()
 
         assertEquals(FeedUnavailableException.Reason.Server, (error as FeedUnavailableException).reason)
     }
 
     @Test fun `a chunk that does not match the wire format is reported as bad data`() = runTest {
-        fixtures.override("feed/v1/chunks/000002.json") { json("""{"v":1,"number":2,"items":[{"id":"arxiv-1"}]}""") }
+        fixtures.override("feed/v1/chunks/000009.json") { json("""{"v":1,"number":9,"items":[{"id":"arxiv-1"}]}""") }
 
-        val error = runCatching { source().loadNewest() }.exceptionOrNull()
+        val error = runCatching { source().chunk(9) }.exceptionOrNull()
 
         assertEquals(FeedUnavailableException.Reason.BadData, (error as FeedUnavailableException).reason)
     }
 
-    @Test fun `an unreachable content base is reported as offline`() = runTest {
+    @Test fun `an unreachable content base with nothing cached is reported as offline`() = runTest {
         val source = source()
         server.close()
 
-        val error = runCatching { source.loadNewest() }.exceptionOrNull()
+        val error = runCatching { source.head() }.exceptionOrNull()
 
         assertEquals(FeedUnavailableException.Reason.Offline, (error as FeedUnavailableException).reason)
     }
@@ -106,9 +141,6 @@ class HttpFeedSourceTest {
             json("""{"v":1,"updated_at":"2026-11-12T00:00:00Z","chunk_count":1,"total_items":2,"chunk_size":40,"kit":1,"min_app":1,"future_field":true}""")
         }
 
-        val page = source().loadNewest()
-
-        assertEquals(1, page.chunkNumber)
-        assertEquals(2, page.items.size)
+        assertEquals(1, source().head().chunkCount)
     }
 }

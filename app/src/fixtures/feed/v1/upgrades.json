@@ -1,0 +1,14 @@
+{
+  "v": 1,
+  "upgrades": {
+    "arxiv-2609.10300": {
+      "explainer": "papers/arxiv-2609.10300/",
+      "hero": {
+        "path": "papers/arxiv-2609.10300/hero.webp",
+        "width": 1200,
+        "height": 675
+      },
+      "explained_at": "2026-11-12T16:00:00Z"
+    }
+  }
+}

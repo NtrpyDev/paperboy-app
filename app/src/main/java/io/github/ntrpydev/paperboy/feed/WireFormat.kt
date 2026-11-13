@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 // The app's single definition of the feed wire format. It mirrors
-// schema/head.schema.json, schema/chunk.schema.json and schema/feed-item.schema.json.
+// schema/head.schema.json, schema/chunk.schema.json, schema/feed-item.schema.json and
+// schema/upgrades.schema.json.
 // Unknown keys are ignored so a newer feed with extra fields still parses.
 
 internal val FeedJson = Json { ignoreUnknownKeys = true }
@@ -68,3 +69,23 @@ data class Hero(
     val width: Int,
     val height: Int,
 )
+
+/** feed/v1/upgrades.json: explainers added to papers whose chunk closed before the explainer existed. */
+@Serializable
+data class Upgrades(
+    val v: Int,
+    val upgrades: Map<String, Upgrade>,
+)
+
+@Serializable
+data class Upgrade(
+    /** Path from the content base, for example papers/<id>/. */
+    val explainer: String,
+    val hero: Hero,
+    /** UTC time the explainer was published, RFC 3339. */
+    @SerialName("explained_at") val explainedAt: String,
+)
+
+/** [this] item as an explained card, when [upgrade] gives it an explainer. */
+fun FeedItem.upgradedWith(upgrade: Upgrade?): FeedItem =
+    if (upgrade == null) this else copy(hasExplainer = true, explainer = upgrade.explainer, hero = upgrade.hero)

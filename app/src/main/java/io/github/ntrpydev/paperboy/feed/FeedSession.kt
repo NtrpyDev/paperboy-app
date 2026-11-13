@@ -49,7 +49,10 @@ class FeedSession(
     private var arranged: List<FeedItem> = emptyList()
     private var reached = 0
     private val collapsed = HashSet<String>()
-    private var oldestLoaded: FeedPage? = null
+    private var head: Head? = null
+
+    /** The oldest chunk number loaded so far, or 0 before the first. */
+    private var oldestLoaded = 0
     private val saveLock = Mutex()
 
     /** Reads the saved taste and loads the newest chunk. */
@@ -99,14 +102,14 @@ class FeedSession(
     private suspend fun load() {
         _state.value = _state.value.copy(loading = true, error = null)
         try {
-            val previous = oldestLoaded
-            val page = if (previous == null) source.loadNewest() else source.loadOlder(previous)
-            if (page != null) {
-                oldestLoaded = page
-                pool = pool + page.items
+            val head = head ?: source.head().also { head = it }
+            val next = if (oldestLoaded == 0) head.chunkCount else oldestLoaded - 1
+            if (next >= 1) {
+                pool = pool + source.chunk(next)
+                oldestLoaded = next
             }
             rearrange()
-            _state.value = _state.value.copy(loading = false, reachedEnd = page == null || page.chunkNumber <= 1)
+            _state.value = _state.value.copy(loading = false, reachedEnd = next <= 1)
         } catch (e: FeedUnavailableException) {
             _state.value = _state.value.copy(loading = false, error = e.reason)
         }

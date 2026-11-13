@@ -1,5 +1,7 @@
 """Loading an explainer in a headless browser in each theme, measuring it, and saving
-the screenshots and the hero still."""
+the screenshots and the hero still. The three themes load in parallel, one browser
+context each."""
+import asyncio
 import io
 from dataclasses import dataclass, field
 from importlib import resources
@@ -7,9 +9,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from PIL import Image
-from playwright.sync_api import Error as PlaywrightError
-from playwright.sync_api import TimeoutError as PlaywrightTimeout
-from playwright.sync_api import sync_playwright
+from playwright.async_api import TimeoutError as PlaywrightTimeout
+from playwright.async_api import async_playwright
 
 VIEWPORT = {"width": 390, "height": 844}
 SCALE = 2
@@ -22,6 +23,8 @@ HERO_MIN_CSS_WIDTH = 300
 
 # name, color scheme, reduced motion
 THEMES = (("light", "light", "no-preference"), ("dark", "dark", "no-preference"), ("still", "light", "reduce"))
+STRUCTURE_THEME = "light"  # rules about the document itself are reported once, from this theme
+HERO_THEME = "dark"
 
 PROBE = resources.files(__package__).joinpath("probe.js").read_text()
 
@@ -60,12 +63,12 @@ class Result:
     page: dict = field(default_factory=dict)
 
 
-def _save_pieces(page, height: int, shots_dir: Path, theme: str) -> list[Path]:
+async def _save_pieces(page, height: int, shots_dir: Path, theme: str) -> list[Path]:
     saved = []
     y, n = 0, 1
     while y < height:
         h = min(PIECE_CSS_PX, height - y)
-        png = page.screenshot(full_page=True, clip={"x": 0, "y": y, "width": VIEWPORT["width"], "height": h})
+        png = await page.screenshot(full_page=True, clip={"x": 0, "y": y, "width": VIEWPORT["width"], "height": h})
         path = shots_dir / f"{theme}-{n:02d}.png"
         path.write_bytes(png)
         saved.append(path)
@@ -79,24 +82,23 @@ def _is_flat(png: bytes) -> bool:
     return all(lo == hi for lo, hi in image.getextrema())
 
 
-def _save_hero(page, hero_path: Path, theme: str, result: Result):
-    stage = page.locator("article.pb .pb-hero .pb-stage").first
-    if stage.count() == 0:
-        result.problems.append(Problem("hero-not-capturable", "no .pb-stage inside .pb-hero", theme))
-        return
-    box = stage.bounding_box()
+async def _save_hero(page, hero_path: Path, theme: str, result: Result):
+    def fail(detail):
+        result.problems.append(Problem("hero-not-capturable", detail, theme))
+
+    stage = page.locator(".pb-hero .pb-stage").first
+    if await stage.count() == 0:
+        return fail("no .pb-stage inside .pb-hero")
+    box = await stage.bounding_box()
     if not box or box["width"] < HERO_MIN_CSS_WIDTH or box["height"] < 1:
         width = round(box["width"]) if box else 0
-        result.problems.append(Problem("hero-not-capturable", f"hero stage is {width} px wide, needs at least {HERO_MIN_CSS_WIDTH}", theme))
-        return
-    if stage.evaluate("el => el.childElementCount === 0 && !el.textContent.trim()"):
-        result.problems.append(Problem("hero-not-capturable", "hero stage is empty", theme))
-        return
-    stage.scroll_into_view_if_needed()
-    png = stage.screenshot()
+        return fail(f"hero stage is {width} px wide, needs at least {HERO_MIN_CSS_WIDTH}")
+    if await stage.evaluate("el => el.childElementCount === 0 && !el.textContent.trim()"):
+        return fail("hero stage is empty")
+    await stage.scroll_into_view_if_needed()
+    png = await stage.screenshot()
     if _is_flat(png):
-        result.problems.append(Problem("hero-not-capturable", "hero stage screenshot is a single flat color", theme))
-        return
+        return fail("hero stage screenshot is a single flat color")
     image = Image.open(io.BytesIO(png)).convert("RGB")
     if image.width > HERO_MAX_WIDTH:
         image = image.resize((HERO_MAX_WIDTH, round(image.height * HERO_MAX_WIDTH / image.width)), Image.LANCZOS)
@@ -104,37 +106,80 @@ def _save_hero(page, hero_path: Path, theme: str, result: Result):
     result.hero = {"path": hero_path, "width": image.width, "height": image.height}
 
 
-def render(url: str, browser_path: str, shots_dir: Path, hero_path: Path) -> Result:
-    """Load `url` in each theme. Raises PlaywrightError if the browser cannot start."""
+async def _one_theme(browser, url: str, theme: str, scheme: str, motion: str, shots_dir: Path, hero_path: Path, result: Result):
     origin = urlsplit(url).netloc
+    problems = []
+
+    def add(rule, detail):
+        problems.append(Problem(rule, detail, theme))
+
+    external = []
+
+    async def only_this_host(route):
+        parts = urlsplit(route.request.url)
+        if parts.scheme in ("http", "https") and parts.netloc == origin:
+            await route.continue_()
+        else:
+            if route.request.url not in external:
+                external.append(route.request.url)
+            await route.abort("blockedbyclient")
+
+    context = await browser.new_context(viewport=VIEWPORT, device_scale_factor=SCALE, color_scheme=scheme, reduced_motion=motion)
+    await context.route("**/*", only_this_host)
+    try:
+        page = await context.new_page()
+        page_errors = []
+        page.on("pageerror", lambda error: page_errors.append(error.message or str(error)))
+        page.on("websocket", lambda ws: external.append(ws.url))
+        await page.goto(url, wait_until="load")
+        try:
+            await page.wait_for_selector('html[data-pb-ready="1"]', state="attached", timeout=READY_TIMEOUT_MS)
+        except PlaywrightTimeout:
+            add("not-ready", f'html[data-pb-ready="1"] did not appear within {READY_TIMEOUT_MS // 1000} s')
+        await page.evaluate(SCROLL_THROUGH)
+        await page.wait_for_timeout(SETTLE_MS)
+        probe = await page.evaluate(PROBE)
+
+        kit_errors = probe["errors"] or []
+        errors = kit_errors + [m for m in page_errors if not any(m in k for k in kit_errors)]
+        for message in errors:
+            add("script-error", message.strip().splitlines()[0][:300] if message.strip() else "(empty error)")
+        for request_url in external:
+            add("external-request", f"request to another host was blocked: {request_url[:300]}")
+        for rule, detail in probe["layout"]:
+            add(rule, detail)
+        if theme == STRUCTURE_THEME:
+            for rule, detail in probe["structure"]:
+                add(rule, detail)
+            result.page = {"height_px": probe["height"], "figures": probe["figures"], "data_figures": probe["dataFigures"]}
+        result.shots += await _save_pieces(page, probe["height"], shots_dir, theme)
+        if theme == HERO_THEME:
+            await _save_hero(page, hero_path, theme, result)
+    finally:
+        await context.close()
+    result.problems += problems
+
+
+async def _render(url: str, browser_path: str, shots_dir: Path, hero_path: Path) -> Result:
     result = Result()
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(executable_path=browser_path, headless=True, args=["--no-sandbox"])
+        try:
+            await asyncio.gather(*(
+                _one_theme(browser, url, theme, scheme, motion, shots_dir, hero_path, result)
+                for theme, scheme, motion in THEMES
+            ))
+        finally:
+            await browser.close()
+    order = {name: i for i, (name, _, _) in enumerate(THEMES)}
+    result.shots.sort(key=lambda s: (order[s.stem.rsplit("-", 1)[0]], s.name))
+    result.problems.sort(key=lambda p: order[p.theme])
+    return result
+
+
+def render(url: str, browser_path: str, shots_dir: Path, hero_path: Path) -> Result:
+    """Load `url` in each theme. Raises playwright's Error if the browser cannot start."""
     shots_dir.mkdir(parents=True, exist_ok=True)
     for old in shots_dir.glob("*.png"):
         old.unlink()
-    with sync_playwright() as p:
-        browser = p.chromium.launch(executable_path=browser_path, headless=True, args=["--no-sandbox"])
-        try:
-            for theme, scheme, motion in THEMES:
-                context = browser.new_context(
-                    viewport=VIEWPORT, device_scale_factor=SCALE, color_scheme=scheme, reduced_motion=motion
-                )
-                try:
-                    page = context.new_page()
-                    page.goto(url, wait_until="load")
-                    try:
-                        page.wait_for_selector('html[data-pb-ready="1"]', state="attached", timeout=READY_TIMEOUT_MS)
-                    except PlaywrightTimeout:
-                        result.problems.append(Problem("not-ready", f'html[data-pb-ready="1"] did not appear within {READY_TIMEOUT_MS // 1000} s', theme))
-                    page.evaluate(SCROLL_THROUGH)
-                    page.wait_for_timeout(SETTLE_MS)
-                    probe = page.evaluate(PROBE)
-                    if theme == "light":
-                        result.page = {"height_px": probe["height"], "figures": probe["figures"], "data_figures": probe["dataFigures"]}
-                    result.shots += _save_pieces(page, probe["height"], shots_dir, theme)
-                    if theme == "dark":
-                        _save_hero(page, hero_path, theme, result)
-                finally:
-                    context.close()
-        finally:
-            browser.close()
-    return result
+    return asyncio.run(_render(url, browser_path, shots_dir, hero_path))

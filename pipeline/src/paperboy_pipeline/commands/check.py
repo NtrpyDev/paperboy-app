@@ -7,7 +7,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from playwright.sync_api import Error as PlaywrightError
+from playwright.async_api import Error as PlaywrightError
 
 from ..render import browser, capture, server
 

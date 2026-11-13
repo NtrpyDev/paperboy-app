@@ -63,7 +63,7 @@ def run(args, *, transport: httpx.BaseTransport | None = None, clock=time.monoto
     fetched: dict[str, list[dict]] = {}
     failed: dict[str, str] = {}
     with make_client(transport) as client:
-        http = Http(client, clock=clock, sleep=sleep)
+        http = Http(client, clock=clock, sleep=sleep, today=lambda: today)
         for name in args.sources:
             since = _since(args.since, cursors.get(name), today)
             try:

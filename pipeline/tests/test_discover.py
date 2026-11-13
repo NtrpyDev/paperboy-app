@@ -123,3 +123,95 @@ def test_arxiv_new_papers_become_candidates(tmp_path):
     abstract = by_id(records)["arxiv-2611.13622"]["abstract"]
     assert abstract.startswith("We study the stochastic dynamics of a system of $N$ polymer rings")
     assert "$y/\\sqrt{t}$" in abstract
+
+
+def test_arxiv_requests_are_three_seconds_apart_and_follow_the_resumption_token(tmp_path):
+    _, _, sources = run(tmp_path, "--sources", "arxiv", "--since", "2026-11-11")
+    times = sources.times("oaipmh.arxiv.org")
+    assert len(times) == 2
+    assert times[1] - times[0] >= 3.0
+    assert "from=2026-11-11" in sources.urls("oaipmh.arxiv.org")[0]
+    assert "resumptionToken=" in sources.urls("oaipmh.arxiv.org")[1]
+
+
+def test_arxiv_author_line_splits_into_names(tmp_path):
+    _, records, _ = run(tmp_path, "--sources", "arxiv", "--since", "2026-11-11")
+    papers = by_id(records)
+    assert papers["arxiv-2611.13440"]["authors"] == ["Joshua Evan Greene", "Shiyu Liang", "John Luecke"]
+    assert papers["arxiv-2611.11868"]["authors"] == ["Francisco M. L\\'{o}pez", "Francisco Cruz"]
+    assert papers["arxiv-2611.13070"]["authors"][-1] == "for the Alzheimer's Disease Neuroimaging Initiative"
+
+
+def test_arxiv_keeps_the_journal_doi_and_license_it_states(tmp_path):
+    _, records, _ = run(tmp_path, "--sources", "arxiv", "--since", "2026-11-11")
+    paper = by_id(records)["arxiv-2611.13192"]
+    assert paper["doi"] == "10.1145/3841645.3843276"
+    assert paper["license"] == "cc-by-nc-nd"
+    assert paper["status"] == "preprint"
+    assert by_id(records)["arxiv-2611.13070"]["license"] == "cc-by-nc-sa"
+
+
+def test_limit_caps_new_papers_per_source_and_stops_paging(tmp_path):
+    _, records, sources = run(tmp_path, "--sources", "arxiv", "--since", "2026-11-11", "--limit", "2")
+    assert len(records) == 2
+    assert len(sources.times("oaipmh.arxiv.org")) == 1
+
+
+def test_arxiv_no_records_match_means_no_candidates(tmp_path):
+    no_records = (
+        b'<?xml version="1.0" encoding="UTF-8"?>\n<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/">'
+        b"<responseDate>2026-11-13T03:30:22Z</responseDate><request>http://oaipmh.arxiv.org/oai</request>"
+        b"<error code='noRecordsMatch'>No records</error></OAI-PMH>"
+    )
+    (tmp_path / "none.xml").write_bytes(no_records)
+    code, records, _ = run(tmp_path, "--sources", "arxiv", overrides={"oaipmh.arxiv.org": str(tmp_path / "none.xml")})
+    assert code == 0
+    assert records == []
+
+
+def test_biorxiv_and_medrxiv_first_versions_become_candidates(tmp_path):
+    code, records, sources = run(tmp_path, "--sources", "biorxiv,medrxiv", "--since", "2026-11-11")
+    assert code == 0
+    assert sorted(by_id(records)) == [
+        "doi-10.64898-2026.11.08.765212",
+        "doi-10.64898-2026.11.09.26367690",
+        "doi-10.64898-2026.11.09.26367692",
+        "doi-10.64898-2026.11.09.764949",
+        "doi-10.64898-2026.11.09.765261",
+    ]
+    paper = by_id(records)["doi-10.64898-2026.11.09.764949"]
+    assert {k: v for k, v in paper.items() if k != "abstract"} == {
+        "id": "doi-10.64898-2026.11.09.764949",
+        "doi": "10.64898/2026.11.09.764949",
+        "arxiv_id": None,
+        "title": paper["title"],
+        "authors": ["Stine, G. M.", "Gabel, J.", "Watters, N.", "Jazayeri, M."],
+        "venue": "bioRxiv",
+        "published": "2026-11-11",
+        "status": "preprint",
+        "license": "cc-by",
+        "url": "https://doi.org/10.64898/2026.11.09.764949",
+        "source": "biorxiv",
+        "categories": ["neuroscience"],
+        "fulltext": {
+            "available": True,
+            "kind": "biorxiv",
+            "url": "https://www.biorxiv.org/content/early/2026/11/11/2026.11.09.764949.source.xml",
+        },
+    }
+    assert paper["title"].startswith("OpenDrive: An Open-Source Microdrive")
+    assert paper["abstract"].startswith("Neuropixels-NHP probes have ushered in a new era")
+    assert by_id(records)["doi-10.64898-2026.11.09.26367690"]["venue"] == "medRxiv"
+    assert by_id(records)["doi-10.64898-2026.11.09.26367690"]["fulltext"]["kind"] == "biorxiv"
+    assert by_id(records)["doi-10.64898-2026.11.08.765212"]["license"] == "other"
+    assert sources.urls("api.biorxiv.org") == [
+        "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-13/0/json",
+        "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-13/3/json",
+        "https://api.biorxiv.org/details/medrxiv/2026-11-11/2026-11-13/0/json",
+    ]
+
+
+def test_biorxiv_no_posts_found_means_no_candidates(tmp_path):
+    code, records, _ = run(tmp_path, "--sources", "biorxiv", overrides={"api.biorxiv.org": "empty/biorxiv.json"})
+    assert code == 0
+    assert records == []

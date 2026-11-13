@@ -7,7 +7,7 @@ Requests are spaced from the start of the previous request to the same host grou
 import time
 from collections.abc import Callable
 from email.utils import parsedate_to_datetime
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import httpx
 
@@ -44,13 +44,16 @@ class Http:
         spacing: dict[str, float] = SPACING,
         retries: int = RETRIES,
         backoff: float = BACKOFF,
+        today: Callable[[], date] = lambda: datetime.now(timezone.utc).date(),
     ):
+        """today gives the end of every date window (UTC by default), so tests can fix it."""
         self.client = client
         self.clock = clock
         self.sleep = sleep
         self.spacing = spacing
         self.retries = retries
         self.backoff = backoff
+        self.today = today
         self._last_start: dict[str, float] = {}
 
     def get(self, url: str, params: dict | None = None, *, retry_if: Callable[[httpx.Response], bool] | None = None) -> httpx.Response:

@@ -28,6 +28,7 @@ THEMES = (
     ("still", "light", "reduce"),
     ("still-dark", "dark", "reduce"),
 )
+LIST_LIMIT = 5  # examples listed per rule, as in probe.js
 STRUCTURE_THEME = "light"  # rules about the document itself are reported once, from this theme
 # The plate stills are the hero stage at rest (reduced motion), one per color scheme. The
 # browser's emulated color scheme drives which form the page draws, whatever the kit version.
@@ -72,6 +73,8 @@ class Result:
     hero_kind: str | None = None  # data-kind of the hero stage when it is data or illustration
     hero_to_scale: bool | None = None  # for an illustration: data-scale="true" on the hero stage
     page: dict = field(default_factory=dict)
+    # The page's printed text as (zone, text) runs, from every theme, for the numbers check.
+    text: list = field(default_factory=list)
 
 
 async def _save_pieces(page, height: int, shots_dir: Path, theme: str) -> list[Path]:
@@ -156,6 +159,9 @@ async def _one_theme(browser, url: str, theme: str, scheme: str, motion: str, sh
         await page.evaluate(SCROLL_THROUGH)
         await page.wait_for_timeout(SETTLE_MS)
         probe = await page.evaluate(PROBE)
+        for zone, text in probe["text"]:
+            if (zone, text) not in result.text:
+                result.text.append((zone, text))
 
         kit_errors = probe["errors"] or []
         errors = kit_errors + [m for m in page_errors if not any(m in k for k in kit_errors)]

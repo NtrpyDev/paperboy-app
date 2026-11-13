@@ -13,3 +13,9 @@ __pycache__/
 *.iml
 .kotlin/
 captures/
+.private/
+design/shots/
+design/reference/
+work/
+*.egg-info/
+.pytest_cache/

@@ -40,6 +40,8 @@ Done when the cursors push succeeded. If a push is rejected because the remote m
 
 ## 4. Explain papers from the queue
 
+Runs start every hour and this step can take longer than that, so first make sure no other run is in it. `git -C CONTENT pull --ff-only`, then look at `CONTENT/state/running.json`. If it exists and its `started_at` is less than three hours old, another run is explaining papers: skip this step and step 5, and go to step 6. Otherwise write `{"started_at": "<now, UTC, RFC 3339>"}` to that file (replacing a stale one), and commit and push that one file with the message `Marker that a pipeline run is explaining papers`. If the push is rejected because the remote moved, pull again and repeat this check from the start.
+
 1. `uv run paperboy-pipeline queue prune --content CONTENT --days 21` drops papers that have waited three weeks.
 2. `uv run paperboy-pipeline queue take --content CONTENT --work ../work --n 3` prints this run's papers, best first, and writes them to `work/explain-queue.txt` with a `work/papers/<id>/candidate.json` each. If it prints nothing, go to step 5.
 
@@ -59,9 +61,9 @@ Done with a paper when it is closed with `queue done` or `queue fail`. A paper l
 
 ## 5. Publish
 
-`uv run paperboy-pipeline publish --work ../work --content CONTENT --commit --push`.
+Delete `CONTENT/state/running.json`, then `uv run paperboy-pipeline publish --work ../work --content CONTENT --commit --push`. The publish commits the deletion with the rest of `state/`. If publish reports nothing to write, commit and push the deletion yourself with the message `Pipeline bookkeeping: papers in the feed, source cursors, and the explain queue`.
 
-Done when the push succeeded. A rejected push is handled as in step 3.
+Done when the push succeeded and `state/running.json` is gone from the remote. A rejected push is handled as in step 3.
 
 ## 6. Report
 

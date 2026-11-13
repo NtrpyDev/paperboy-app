@@ -123,8 +123,20 @@ class Table:
     head_rows: int = 0  # leading rows that form the header
 
 
+_MATH_SPAN = re.compile(r"(?<!\\)\$(?:\\.|[^$\\])*?\$")
+
+
 def _cell_text(text: str) -> str:
-    return squash(text).replace("|", "\\|")
+    """Cell text safe inside a Markdown table row. A bar in prose is escaped as \\|; a bar
+    inside math becomes \\vert (and \\| becomes \\Vert), because \\| is a norm in LaTeX."""
+    text = squash(text)
+    out, pos = [], 0
+    for match in _MATH_SPAN.finditer(text):
+        out.append(text[pos:match.start()].replace("|", "\\|"))
+        out.append(match.group(0).replace("\\|", "\\Vert ").replace("|", "\\vert "))
+        pos = match.end()
+    out.append(text[pos:].replace("|", "\\|"))
+    return "".join(out)
 
 
 def table_markdown(table: Table) -> str:

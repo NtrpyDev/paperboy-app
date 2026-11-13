@@ -193,6 +193,14 @@ def convert(el) -> str:
     return _join([convert(k) for k in kids])
 
 
+_MATHRM_RUN = re.compile(r"(?:\\mathrm\{[^{}\\]*\}){2,}")
+
+
+def _merge_mathrm(tex: str) -> str:
+    """\\mathrm{l}\\mathrm{i}\\mathrm{n} (one <mi> per letter, as some publishers set words) to \\mathrm{lin}."""
+    return _MATHRM_RUN.sub(lambda m: r"\mathrm{" + "".join(re.findall(r"\\mathrm\{([^{}\\]*)\}", m.group(0))) + "}", tex)
+
+
 def to_latex(math) -> str:
     """LaTeX for a <math> element (any namespace prefix)."""
-    return convert(math).strip()
+    return _merge_mathrm(convert(math).strip())

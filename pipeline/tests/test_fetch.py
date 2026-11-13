@@ -612,3 +612,36 @@ def test_europepmc_article_outside_the_open_access_subset_is_unavailable(tmp_pat
     source = json.loads((folder / "source.json").read_text())
     assert source["available"] is False and "PMC1" in source["reason"]
     assert not (folder / "fulltext.md").exists()
+
+
+def test_a_bar_inside_table_math_stays_an_absolute_value(tmp_path):
+    folder = put_candidate(tmp_path, arxiv_candidate())
+    run_fetch(tmp_path, "arxiv-2611.15301", arxiv_web())
+    md, _ = read_outputs(folder)
+
+    # Table 3 of arXiv:2611.15301 has |B_MS| < 50 degrees; "\|" would be LaTeX for a norm.
+    assert "| $\\vert B_{\\rm MS}\\vert <50^{\\circ}$ |" in md
+    assert "\\|B_{\\rm MS}" not in md
+
+
+def test_mathml_letters_set_one_by_one_become_one_word(tmp_path):
+    # Equation (2) of doi:10.7554/eLife.102635 as Europe PMC serves it: "linear" is six <mi> elements.
+    xml = (
+        '<article><front><article-meta><title-group><article-title>T</article-title></title-group>'
+        '</article-meta></front><body><sec><title>Results</title><p>The slope'
+        '<disp-formula id="equ2"><label>(2)</label><mml:math xmlns:mml="http://www.w3.org/1998/Math/MathML"'
+        ' display="block"><mml:mstyle displaystyle="true" scriptlevel="0"><mml:mrow><mml:mstyle displaystyle="true"'
+        ' scriptlevel="0"><mml:msup><mml:mi>s</mml:mi><mml:mrow><mml:mrow><mml:mi mathvariant="normal">l</mml:mi>'
+        '<mml:mi mathvariant="normal">i</mml:mi><mml:mi mathvariant="normal">n</mml:mi><mml:mi mathvariant="normal">'
+        'e</mml:mi><mml:mi mathvariant="normal">a</mml:mi><mml:mi mathvariant="normal">r</mml:mi></mml:mrow></mml:mrow>'
+        '</mml:msup><mml:mo>=</mml:mo><mml:msub><mml:mrow><mml:mo fence="true" stretchy="true" symmetric="true"/>'
+        '<mml:mfrac><mml:mrow><mml:mi>d</mml:mi><mml:mi>x</mml:mi></mml:mrow><mml:mrow><mml:mi>d</mml:mi><mml:mi>t'
+        '</mml:mi></mml:mrow></mml:mfrac><mml:mo>|</mml:mo></mml:mrow><mml:mrow><mml:mi>t</mml:mi></mml:mrow>'
+        '</mml:msub></mml:mstyle></mml:mrow></mml:mstyle></mml:math></disp-formula></p></sec></body></article>'
+    ).encode()
+    record = europepmc_candidate(pmcid="PMC13727076", doi="10.7554/elife.102635")
+    folder = put_candidate(tmp_path, record)
+    web = FakeWeb({f"{EPMC}/PMC13727076/fullTextXML": (200, XML, xml)})
+
+    assert run_fetch(tmp_path, record["id"], web) == 0
+    assert "$$\ns^{\\mathrm{linear}}=\\frac{dx}{dt}|_{t} \\tag{2}\n$$" in read_outputs(folder)[0]

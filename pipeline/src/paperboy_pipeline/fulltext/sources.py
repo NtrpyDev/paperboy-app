@@ -119,7 +119,11 @@ def _rxiv(candidate: dict, client: PoliteClient) -> Fetched:
 
 
 def _europepmc(candidate: dict, client: PoliteClient) -> Fetched:
-    places = " ".join(filter(None, [candidate["fulltext"].get("url"), candidate.get("url")]))
+    given = (candidate["fulltext"].get("url") or "").strip()
+    match = re.fullmatch(re.escape(EUROPEPMC_REST) + r"/([A-Za-z]+\d+)/fullTextXML", given)
+    if match:  # discover's link, which may name a non-PMC full text id
+        return _europepmc_xml(candidate, client, match.group(1))
+    places = " ".join(filter(None, [given, candidate.get("url")]))
     match = re.search(r"PMC\d+", places, flags=re.I)
     pmcid = match.group(0).upper() if match else None
     if not pmcid:
@@ -141,6 +145,10 @@ def _europepmc(candidate: dict, client: PoliteClient) -> Fetched:
         if hit.get("isOpenAccess") != "Y":
             raise Unavailable(f"{hit['pmcid']} is not in the Europe PMC open access subset")
         pmcid = hit["pmcid"]
+    return _europepmc_xml(candidate, client, pmcid)
+
+
+def _europepmc_xml(candidate: dict, client: PoliteClient, pmcid: str) -> Fetched:
     url = f"{EUROPEPMC_REST}/{pmcid}/fullTextXML"
     response = client.get(url, accept="application/xml")
     if response.status_code == 404:

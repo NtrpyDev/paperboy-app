@@ -645,3 +645,17 @@ def test_mathml_letters_set_one_by_one_become_one_word(tmp_path):
 
     assert run_fetch(tmp_path, record["id"], web) == 0
     assert "$$\ns^{\\mathrm{linear}}=\\frac{dx}{dt}|_{t} \\tag{2}\n$$" in read_outputs(folder)[0]
+
+
+@pytest.mark.parametrize("text_id", ["PMC13749077", "PPR1234567"])
+def test_europepmc_fulltextxml_link_from_discover_is_fetched_as_given(tmp_path, text_id):
+    # discover writes {BASE}/{fullTextId}/fullTextXML, and a full text id is not always a PMCID.
+    url = f"{EPMC}/{text_id}/fullTextXML"
+    record = europepmc_candidate(fulltext_url=url)
+    folder = put_candidate(tmp_path, record)
+    web = FakeWeb({url: (200, XML, fixture("europepmc-PMC13749077.xml"))})
+
+    assert run_fetch(tmp_path, record["id"], web) == 0
+
+    assert web.urls() == [url]
+    assert read_outputs(folder)[1]["url"] == url

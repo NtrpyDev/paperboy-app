@@ -135,3 +135,16 @@ Commit 538c4ad on branch claude/env-probe.
 | `git push origin HEAD:refs/heads/probe/non-claude-branch` | Succeeded (exit 0), new branch created on origin. No error. |
 
 No push to main. No pull request opened.
+
+## Second probe: reading usage inside a cloud run (2026-11-13)
+
+A second one-off run tested the headless usage reading and the pipeline package in the cloud environment.
+
+| Command | Result |
+|---|---|
+| `bash tools/usage-probe.sh` | exit 0, `{"five_hour": {"used_percentage": 6.0, ...}, "seven_day": {"used_percentage": 9.0, ...}}` |
+| `cd pipeline && uv sync` | exit 0 |
+| `cd pipeline && uv run pytest -q` | 13 passed (Python 3.11.18) |
+| `cd pipeline && uv run paperboy-pipeline gate` | exit 0, `{"decision": "go", "weekly_used_percentage": 9.0, "max": 50.0, ...}` |
+
+So a nested headless `claude -p` call works inside a cloud run and reports the same weekly usage the dev machine sees. The usage gate can run inside the routine itself.

@@ -1,0 +1,63 @@
+{
+ "messages": [
+  {
+   "status": "ok",
+   "category": "all",
+   "interval": "2026-11-11:2026-11-12",
+   "cursor": 0,
+   "count": 3,
+   "count_new_papers": "338",
+   "total": "5"
+  }
+ ],
+ "collection": [
+  {
+   "title": "Temporal Dynamics of Multi-Item Working Memory Maintenance in Human Gaze Patterns and EEG",
+   "authors": "Broehl, F.; Bielefeldt, A. A.; Linde-Domingo, J.; Spitzer, B.",
+   "author_corresponding": "Felix Broehl",
+   "author_corresponding_institution": "TU Dresden",
+   "doi": "10.64898/2026.11.09.765261",
+   "date": "2026-11-11",
+   "version": "1",
+   "type": "new results",
+   "license": "cc_by_nc_nd",
+   "category": "neuroscience",
+   "jatsxml": "https://www.biorxiv.org/content/early/2026/11/11/2026.11.09.765261.source.xml",
+   "abstract": "Maintaining multiple items in working memory (WM) requires the allocation of limited resources, which may involve prioritizing individual items over others. Previous work has suggested that attentional prioritization can vary rhythmically between WM samples, but direct empirical evidence for such temporal fluctuations remains scarce. Here, we recorded eye-tracking and EEG to track the temporal dynamics of multi-item processing while participants maintained up to three object orientations in WM. Whereas EEG encoding was only short-lived, miniature gaze patterns reflected the orientations of all three items throughout the entire WM delay and showed systematic load and serial position effects. Contrary to rhythmic sampling accounts, however, we found no evidence that eye movements alternated between the concurrently maintained items. Furthermore, the strength of WM encoding in gaze was not modulated by frontal theta activity in EEG, suggesting that oculomotor encoding was not directly coupled to rhythmic neural dynamics associated with WM and internal attention. Together, our findings indicate that the oculomotor signature of visuospatial WM processing was rather stably shaped by all of the simultaneously maintained items. The results further corroborate that eye-tracking and EEG provide complementary windows into the temporal dynamics of WM.",
+   "published": "NA",
+   "server": "bioRxiv"
+  },
+  {
+   "title": "OpenDrive: An Open-Source Microdrive for Large-Scale Neurophysiology",
+   "authors": "Stine, G. M.; Gabel, J.; Watters, N.; Jazayeri, M.",
+   "author_corresponding": "Mehrdad Jazayeri",
+   "author_corresponding_institution": "Massachusetts Institute of Technology",
+   "doi": "10.64898/2026.11.09.764949",
+   "date": "2026-11-11",
+   "version": "1",
+   "type": "new results",
+   "license": "cc_by",
+   "category": "neuroscience",
+   "jatsxml": "https://www.biorxiv.org/content/early/2026/11/11/2026.11.09.764949.source.xml",
+   "abstract": "Neuropixels-NHP probes have ushered in a new era of high-density neurophysiology recording in large animal models. Here, we present OpenDrive, an open-source microdrive system designed specifically for acute insertion of Neuropixels-NHPs. OpenDrive combines a custom motorized microdrive, six-drive control console, and software platform. Compared with commercially available options, OpenDrive offers (1) low cost, (2) precise, accurate, and stable probe movement, (3) scalability to many-probe recording, and (4) open-source hardware designs and software. In our experiments, OpenDrive has already supported recordings from thousands of neurons across a variety of cortical and subcortical structures. By lowering technical barriers and enabling community-driven development with OpenDrive, we aim to accelerate Neuropixels recording in large animal models.",
+   "published": "NA",
+   "server": "bioRxiv"
+  },
+  {
+   "title": "Endogenous Mechanical Reporters Encode the Global Mechanical Landscape of Morphogenesis",
+   "authors": "Xu, R.; Gao, H.; Li, F.; Tang, L.-h.; Zhu, H.; Zhou, Z.; Guo, H.",
+   "author_corresponding": "Hanqing Guo",
+   "author_corresponding_institution": "Westlake University",
+   "doi": "10.64898/2026.11.08.765212",
+   "date": "2026-11-11",
+   "version": "1",
+   "type": "new results",
+   "license": "cc_no",
+   "category": "developmental biology",
+   "jatsxml": "https://www.biorxiv.org/content/early/2026/11/11/2026.11.08.765212.source.xml",
+   "abstract": "Developmental systems usually comprise multiple genetically programmed morphogenetic events within a mechanically continuous environment, yet how individual processes interact and contribute to the overall mechanical landscape remains unknown. Here, we introduce the concept of mechanical reporter: endogenous tissues function as in situ probes of the embedded mechanical landscape. We exemplified cephalic furrow (CF) migration as a mechanical reporter in gastrulating Drosophila. Using optogenetics and genetics, we revealed that CF displacement reflects the combined effect of both force and tissue mechanical properties. By incorporating condition-specific mechanical landscape into a continuum minimal-response model, we developed a framework to quantitatively predict the reporter dynamics. Using different genetic mutants, we successfully decoded changes in the mechanical landscape from CF dynamics in gastrulating Drosophila. Overall, we established a predictive framework that uses CF dynamics to infer changes in the global mechanical landscape. Beyond this, the concept of mechanical reporter provides a general strategy for systematically understanding and decoding complex mechanical environments in living systems.",
+   "published": "NA",
+   "server": "bioRxiv"
+  }
+ ]
+}

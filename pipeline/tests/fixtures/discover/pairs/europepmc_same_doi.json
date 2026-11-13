@@ -1,0 +1,159 @@
+{
+ "version": "6.9",
+ "hitCount": 1,
+ "nextCursorMark": "AoJwwKSw4aEDKDU2ODk1ODYz",
+ "request": {
+  "queryString": "OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[2026-11-10 TO 2026-11-12]",
+  "resultType": "core",
+  "cursorMark": "AoJwwKSw4aEDKDU2ODk1ODYz",
+  "pageSize": 100,
+  "sort": "FIRST_PDATE_D desc",
+  "synonym": false
+ },
+ "resultList": {
+  "result": [
+   {
+    "id": "PPR1334369",
+    "source": "PPR",
+    "fullTextIdList": {
+     "fullTextId": [
+      "PPR1334369"
+     ]
+    },
+    "doi": "10.64898/2026.10.02.26364570",
+    "title": "Genetic support for an adverse effect of calcium channel blockers on the human thoracic aorta",
+    "authorString": "Horjus J, Jurgens SJ, Bezzina CR, Grewal N.",
+    "authorList": {
+     "author": [
+      {
+       "fullName": "Horjus J",
+       "lastName": "Horjus",
+       "firstName": "Julia",
+       "initials": "J",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Department of Experimental Cardiology, , Cardiomyopathy & Arrhythmia, , ,"
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Jurgens SJ",
+       "lastName": "Jurgens",
+       "firstName": "Sean",
+       "initials": "SJ",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Department of Experimental Cardiology, , Cardiomyopathy & Arrhythmia, , ,"
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Bezzina CR",
+       "lastName": "Bezzina",
+       "firstName": "Connie",
+       "initials": "CR",
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Department of Experimental Cardiology, , Cardiomyopathy & Arrhythmia, , ,"
+         }
+        ]
+       }
+      },
+      {
+       "fullName": "Grewal N",
+       "lastName": "Grewal",
+       "firstName": "Nimrat",
+       "initials": "N",
+       "authorId": {
+        "type": "ORCID",
+        "value": "0000-0001-9981-8336"
+       },
+       "authorAffiliationDetailsList": {
+        "authorAffiliation": [
+         {
+          "affiliation": "Department of Cardiothoracic Surgery, , Cardiomyopathy & Arrhythmia, , ,"
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "authorIdList": {
+     "authorId": [
+      {
+       "type": "ORCID",
+       "value": "0000-0001-9981-8336"
+      }
+     ]
+    },
+    "dataLinksTagsList": {
+     "dataLinkstag": [
+      "supporting_data"
+     ]
+    },
+    "pubYear": "2026",
+    "abstractText": "Despite the widespread use of L-type calcium channel blockers (CCBs), recent observational and murine functional work has suggested a potential adverse effect of this medication class on the aorta. Here, we apply a Mendelian randomization (MR) framework to assess the potential causal role of  CACNA1C - the principal target of L-type CCBs in the human aorta - on thoracic aortic aneurysm and dissection (TAA/D). Genetic instrumental variables were derived from aortic expression quantitative trait locus data, and combined with large-scale genome-wide association data of TAA/D and ascending aortic diameter. Mirroring the on-target vascular effects of L-type CCBs, higher genetically predicted  CACNA1C expression was linked to higher blood pressure, and to higher risks of hypertension and coronary artery disease. In contrast, higher predicted aortic expression of  CACNA1C was linked to lower risk of TAA/D (β=-0.18,  P =0.005) and to a smaller ascending aortic diameter in the general population (β=-0.08,  P =0.005). While we caution against overinterpretation of our MR results in isolation, the convergence with observational and functional data calls for dedicated clinical trials to assess the safety of CCBs in the context of aortic disease.",
+    "pubTypeList": {
+     "pubType": [
+      "Preprint"
+     ]
+    },
+    "bookOrReportDetails": {
+     "publisher": "medRxiv",
+     "yearOfPublication": 2026
+    },
+    "fullTextUrlList": {
+     "fullTextUrl": [
+      {
+       "availability": "Free",
+       "availabilityCode": "F",
+       "documentStyle": "doi",
+       "site": "DOI",
+       "url": "https://doi.org/10.64898/2026.10.02.26364570"
+      },
+      {
+       "availability": "Open access",
+       "availabilityCode": "OA",
+       "documentStyle": "html",
+       "site": "Europe_PMC",
+       "url": "https://europepmc.org/article/PPR/PPR1334369"
+      }
+     ]
+    },
+    "isOpenAccess": "Y",
+    "inEPMC": "N",
+    "inPMC": "N",
+    "citedByCount": 0,
+    "hasReferences": "N",
+    "hasTextMinedTerms": "Y",
+    "hasDbCrossReferences": "N",
+    "hasPDF": "N",
+    "hasBook": "N",
+    "hasSuppl": "Y",
+    "hasLabsLinks": "N",
+    "hasData": "Y",
+    "license": "cc by-nc",
+    "authMan": "N",
+    "epmcAuthMan": "Y",
+    "nihAuthMan": "N",
+    "manuscriptId": "EMS219721",
+    "hasTMAccessionNumbers": "Y",
+    "tmAccessionTypeList": {
+     "accessionType": [
+      "doi"
+     ]
+    },
+    "dateOfCreation": "2026-10-06",
+    "firstPublicationDate": "2026-10-05",
+    "firstIndexDate": "2026-10-06",
+    "fullTextReceivedDate": "2026-11-04",
+    "hasEvaluations": "N"
+   }
+  ]
+ }
+}

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-13T03:20:04Z</responseDate>
+                <request verb="ListRecords" metadataPrefix="arXivRaw" from="2026-11-11">http://oaipmh.arxiv.org/oai</request>
+
+
+    <ListRecords>
+                    <record>
+                <header>
+        <identifier>oai:arXiv.org:1309.6045</identifier>
+        <datestamp>2026-11-11</datestamp>
+            <setSpec>math:math:KT</setSpec>
+    </header>
+
+            <metadata>
+                        <arXivRaw xmlns="http://arxiv.org/OAI/arXivRaw/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/OAI/arXivRaw/ https://oaipmh.arxiv.org/OAI/arXivRaw.xsd">
+        <id>1309.6045</id>
+        <submitter>Roy Joshua</submitter>
+            <version version="v1">
+                <date>Tue, 24 Sep 2013 04:57:11 GMT</date>
+                <size>39kb</size>
+            </version>
+            <version version="v2">
+                <date>Thu, 26 Sep 2013 14:21:20 GMT</date>
+                <size>39kb</size>
+            </version>
+            <version version="v3">
+                <date>Mon, 09 Nov 2026 20:52:48 GMT</date>
+                <size>37kb</size>
+            </version>
+        <title>Algebraic K-theory of geometric fields: rigidity</title>
+        <authors>Gunnar Carlsson and Roy Joshua</authors>
+        <categories>math.KT</categories>
+            <comments>27 pages</comments>
+            <msc-class>14L30, 19E08</msc-class>
+            <license>http://creativecommons.org/licenses/by-nc-nd/4.0/</license>
+            <abstract>In this paper we consider the problem of Galois descent for suitably completed algebraic K-theory of fields. One of the main results in the present paper is a suitable form of rigidity for Borel-style generalized equivariant cohomology with respect to certain spectra, which includes mod-${\ell}$ Algebraic K-theory, for $\ell$ -invertible in the base field. Such a rigidity theorem in fact provides a determination of the mod-$\ell$ Algebraic K-theory of geometric fields, i.e., fields that contain an algebraically closed sub-field in terms of the absolute Galois group of the bigger field and proves one conjecture due to the first author.
+  What remains in a proof of a related conjecture of the first author (see [C13]) is a derived completion theorem for equivariant algebraic K-theory with respect to the action of profinite groups. Such a derived completion theorem, with certain restrictions, is proven in the paper, [CJ26-2]. What we do in the remaining part of this paper is to provide a comparison of the generalized Borel style equivariant K-theory considered in [CJ26-2] and also in [C13], with the generalized Borel style equivariant K-theory defined using more standard models of geometric classifying spaces. This enables us to apply the rigidity results proven in this paper to the generalized Borel style equivariant K-theory considered in [CJ26-2], thereby enabling us to provide an affirmative solution to the above mentioned conjecture in many cases.</abstract>
+    </arXivRaw>
+
+            </metadata>
+        </record>
+
+                    <record>
+                <header>
+        <identifier>oai:arXiv.org:2611.11868</identifier>
+        <datestamp>2026-11-11</datestamp>
+            <setSpec>cs:cs:RO</setSpec>
+            <setSpec>cs:cs:LG</setSpec>
+    </header>
+
+            <metadata>
+                        <arXivRaw xmlns="http://arxiv.org/OAI/arXivRaw/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/OAI/arXivRaw/ https://oaipmh.arxiv.org/OAI/arXivRaw.xsd">
+        <id>2611.11868</id>
+        <submitter>Francisco M. L\&#39;opez</submitter>
+            <version version="v1">
+                <date>Mon, 09 Nov 2026 04:44:59 GMT</date>
+                <size>335kb</size>
+            </version>
+            <version version="v2">
+                <date>Tue, 10 Nov 2026 06:06:58 GMT</date>
+                <size>335kb</size>
+            </version>
+        <title>Fade to... Red? Scheduling Coloured Noise Exploration Supports Efficient Robot Learning with Reduced Movement Jerk</title>
+        <authors>Francisco M. L\&#39;{o}pez and Francisco Cruz</authors>
+        <categories>cs.RO cs.LG</categories>
+            <comments>10 pages, 4 figures, 1 table. Accepted at the ACRA 2026 conference. Cite as: &#34;L\&#39;{o}pez, F. M., and Cruz, F. (2026). Fade to... Red? Scheduling Coloured Noise Exploration Supports Efficient Robot Learning with Reduced Movement Jerk. In Proceedings of the Australasian Conference on Robotics and Automation (ACRA). Australian Robotics and Automation Association (ARAA).&#34;</comments>
+            <license>http://creativecommons.org/licenses/by/4.0/</license>
+            <abstract>Exploration in deep reinforcement learning (RL) for continuous control is commonly driven by temporally uncorrelated Gaussian (white) action noise, which leads to jerky motions with locally constrained exploration. In contrast, temporally correlated coloured noise, particularly pink noise, has been shown to support more efficient exploration in RL. Motivated by these findings, we inquire whether scheduling changes to the noise colour over the course of training can outperform white noise for continuous control robotics. We perform a systematic study of 49 linear schedules between white and red noise, together with generalised state-dependent exploration (gSDE), on four sparse-reward manipulation tasks with a Fetch arm and a Shadow Dexterous Hand. We find that the noise colour at the end of training does not affect learning efficiency or end performance, whereas fading towards red noise halves the jerk of exploration in every task. Balancing learning efficiency, end performance and smoothness, red noise emerges as the preferred strategy: it learns as efficiently as pink noise with almost 2-fold less movement jerk. We therefore recommend exploration schedulers that fade towards red noise as the default for off-policy robot learning.</abstract>
+    </arXivRaw>
+
+            </metadata>
+        </record>
+
+                    <record>
+                <header>
+        <identifier>oai:arXiv.org:2611.13070</identifier>
+        <datestamp>2026-11-11</datestamp>
+            <setSpec>cs:cs:LG</setSpec>
+            <setSpec>q-bio:q-bio:NC</setSpec>
+    </header>
+
+            <metadata>
+                        <arXivRaw xmlns="http://arxiv.org/OAI/arXivRaw/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/OAI/arXivRaw/ https://oaipmh.arxiv.org/OAI/arXivRaw.xsd">
+        <id>2611.13070</id>
+        <submitter>Yang Zhang</submitter>
+            <version version="v1">
+                <date>Mon, 09 Nov 2026 18:59:24 GMT</date>
+                <size>5727kb</size>
+            </version>
+        <title>IC-GNN: Modeling Individualized Brain Community Organization for Disease Prediction</title>
+        <authors>Yang Zhang, Xiao Zhou, Jonathan Warrell, Avram Holmes, Xuan Zhang, Mark Gerstein, for the Alzheimer&#39;s Disease Neuroimaging Initiative</authors>
+        <categories>cs.LG q-bio.NC</categories>
+            <license>http://creativecommons.org/licenses/by-nc-sa/4.0/</license>
+            <abstract>Brain networks exhibit modular organization, where community structures vary substantially across individuals and diseases. Understanding these individual differences is crucial for advancing both basic neuroscience research and precision medicine. However, widely used predefined group-level brain atlases often overlook this heterogeneity. While individualized functional parcellations capture subject-specific variability in community boundaries, they often require lengthy scan times to achieve fine-grained resolution and complicate cross-subject comparisons. To address this trade-off and investigate how individualized community organization captures disease-associated changes across individuals, we propose IC-GNN, an atlas-anchored model that forms distinct, individualized functional communities directly over atlas-defined brain regions. IC-GNN derives discrete, individualized multiscale communities from resting-state functional magnetic resonance imaging (fMRI) data, refines community-guided connections, and adapts shared regional weights to each subject&#39;s community context to enable both individualized modeling and group-level comparisons. Across more than 30,000 participants from ABIDE (autism spectrum disorder), ADNI (Alzheimer&#39;s disease), and the UK Biobank (depression), IC-GNN achieves the highest performance compared with 15 baseline methods. We further demonstrate that these individualized communities are reproducible within scans and across sessions, and carry predictive power on their own. Furthermore, IC-GNN identifies disease-related shifts in community organization that align with established literature, highlighting a promising approach for modeling individualized community structure for disease prediction and biomarker discovery.</abstract>
+    </arXivRaw>
+
+            </metadata>
+        </record>
+
+                    <record>
+                <header>
+        <identifier>oai:arXiv.org:2611.13192</identifier>
+        <datestamp>2026-11-11</datestamp>
+            <setSpec>cs:cs:CV</setSpec>
+            <setSpec>cs:cs:AI</setSpec>
+    </header>
+
+            <metadata>
+                        <arXivRaw xmlns="http://arxiv.org/OAI/arXivRaw/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/OAI/arXivRaw/ https://oaipmh.arxiv.org/OAI/arXivRaw.xsd">
+        <id>2611.13192</id>
+        <submitter>Izzeddin Teeti</submitter>
+            <version version="v1">
+                <date>Mon, 09 Nov 2026 20:13:18 GMT</date>
+                <size>17543kb</size>
+            </version>
+        <title>Multimodal Road Closure Mapping via Cross-Modal Graph Attention</title>
+        <authors>Izzeddin Teeti, Vaibhav Kango, Nidhi Sridhar, Mohamed Moustafa</authors>
+        <categories>cs.CV cs.AI</categories>
+            <comments>Published at ACM SIGSPATIAL 2026. 11 pages, 4 figures</comments>
+            <acm-class>I.2.10; I.4.8; H.2.8</acm-class>
+            <doi>10.1145/3841645.3843276</doi>
+            <license>http://creativecommons.org/licenses/by-nc-nd/4.0/</license>
+            <abstract>Accurate and timely identification of road closures is critical for large-scale navigation and logistics systems, yet remains challenging due to the need to jointly reason over visual evidence, spatial context, and road network topology. Existing approaches either rely on manual map updates or focus on detecting closure-related objects without resolving which road segment is affected. In this work, we introduce a unified multimodal and multitask framework that jointly performs road closure classification (no, partial, complete) and road segment association within a single learning architecture. Our model integrates graph-structured map data, satellite imagery augmented with projected street-level detections, and street-view images using modality-specific encoders and cross-modal transformer attention, enabling explicit reasoning over visual cues and network topology. Evaluated on nearly 20K real-world scenarios collected from a large-scale commercial vehicle fleet, our approach achieves 72.7% closure classification accuracy and 60% road segment association accuracy, outperforming frontier vision-language models by over 28 percentage points on closure classification while being over 4,000x smaller and 100x faster at inference. Extensive ablations demonstrate the importance of cross-modal attention, edge-aware pooling, and graph message passing for accurate geospatial reasoning. This work establishes the first benchmark for joint road closure classification and segment-level attribution, and shows that task-specific architectural inductive biases substantially outperform general-purpose multimodal models for structured geospatial understanding.</abstract>
+    </arXivRaw>
+
+            </metadata>
+        </record>
+
+                    <resumptionToken expirationDate='2026-11-14T00:00:00Z'>verb%3DListRecords%26metadataPrefix%3DarXivRaw%26from%3D2026-11-11%26skip%3D1300</resumptionToken>
+    </ListRecords>
+</OAI-PMH>

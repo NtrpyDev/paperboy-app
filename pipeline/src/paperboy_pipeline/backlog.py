@@ -176,5 +176,28 @@ def replay(content: Path, work: Path) -> None:
                 release(content, paper_id)
 
 
+STATUSES = ("preprint", "peer_reviewed")
+
+
+def best_first(entries: list[dict], *, by_id: bool = True) -> list[dict]:
+    """Highest significance first, then newest published, then id (or, without by_id, the order given)."""
+    ordered = sorted(entries, key=lambda e: e["id"]) if by_id else list(entries)
+    ordered.sort(key=lambda e: e["published"], reverse=True)
+    ordered.sort(key=lambda e: e["significance"], reverse=True)
+    return ordered
+
+
+def alternate(entries: list[dict], *, by_id: bool = True) -> list[dict]:
+    """Best first, alternating preprints and peer-reviewed papers one for one while both kinds are
+    left. The kind of the best paper goes first; when one kind runs out the other follows in order."""
+    ordered = best_first(entries, by_id=by_id)
+    lanes = {status: [e for e in ordered if e["status"] == status] for status in STATUSES}
+    out, turn = [], ordered[0]["status"] if ordered else STATUSES[0]
+    while lanes["preprint"] and lanes["peer_reviewed"]:
+        out.append(lanes[turn].pop(0))
+        turn = STATUSES[1 - STATUSES.index(turn)]
+    return out + lanes["preprint"] + lanes["peer_reviewed"]
+
+
 def errors(entry: dict) -> list[str]:
     return schemas.errors("queue-entry", entry)

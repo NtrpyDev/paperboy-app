@@ -28,7 +28,7 @@ from .. import backlog, gitsync, schemas
 from ..content_repo import ContentRepo, PublishError
 from ..explaining import EXPLAIN_FLOOR, explain_kinds, worth_explaining
 
-STATUSES = ("preprint", "peer_reviewed")
+STATUSES = backlog.STATUSES
 
 
 def register(subparsers) -> None:
@@ -143,24 +143,8 @@ def _add(args, now: str) -> int:
 
 # take
 
-def best_first(entries: list[dict]) -> list[dict]:
-    """Highest significance first, then newest published, then id."""
-    ordered = sorted(entries, key=lambda e: e["id"])
-    ordered.sort(key=lambda e: e["published"], reverse=True)
-    ordered.sort(key=lambda e: e["significance"], reverse=True)
-    return ordered
-
-
-def alternate(entries: list[dict]) -> list[dict]:
-    """Best first, alternating preprints and peer-reviewed papers one for one while both wait. The
-    kind of the best paper goes first; when one kind runs out the other follows in order."""
-    ordered = best_first(entries)
-    lanes = {status: [e for e in ordered if e["status"] == status] for status in STATUSES}
-    out, turn = [], ordered[0]["status"] if ordered else STATUSES[0]
-    while lanes["preprint"] and lanes["peer_reviewed"]:
-        out.append(lanes[turn].pop(0))
-        turn = STATUSES[1 - STATUSES.index(turn)]
-    return out + lanes["preprint"] + lanes["peer_reviewed"]
+best_first = backlog.best_first
+alternate = backlog.alternate
 
 
 def _prune_in(content: Path, days: int, now: str, claim_hours: float) -> int:

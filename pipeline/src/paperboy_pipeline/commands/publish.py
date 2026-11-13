@@ -67,7 +67,10 @@ def run(args) -> int:
 
     def apply():
         repo = ContentRepo(args.content)
-        added = [r["id"] for r in records if _publish_one(repo, r, args.work / "papers" / r["id"], now)]
+        # A run's papers enter best first, alternating preprints and peer-reviewed papers, as
+        # queue take chose them; ties keep the order of judged.jsonl.
+        ordered = backlog.alternate(records, by_id=False)
+        added = [r["id"] for r in ordered if _publish_one(repo, r, args.work / "papers" / r["id"], now)]
         result.update(written=repo.save(now), added=added)
         for record in records:
             if repo.find(record) is not None:

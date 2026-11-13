@@ -981,3 +981,15 @@ def test_a_rejected_push_is_built_again_on_top_of_the_newer_remote(tmp_path):
     assert len((run_a / "state/seen/2026-11.jsonl").read_text().splitlines()) == 2
     assert "arxiv-2611.00009" in (run_a / "state/queue-failed.jsonl").read_text()
     assert git(run_a, "status", "--porcelain").strip() == ""
+
+
+def test_a_runs_papers_enter_best_first_alternating_preprints_and_peer_reviewed_papers(tmp_path):
+    def peer(n, significance):
+        return judged(n, id=f"doi-10.1-{n}", arxiv_id=None, doi=f"10.1/{n}", status="peer_reviewed", significance=significance)
+
+    records = [judged(1, significance=6.0), judged(2, significance=9.0), judged(3, significance=7.0), peer(4, 8.0), peer(5, 5.0)]
+    content = tmp_path / "content"
+
+    assert publish(write_work(tmp_path / "work", records), content) == 0
+
+    assert chunk_ids(content, 1) == ["arxiv-2611.00002", "doi-10.1-4", "arxiv-2611.00003", "doi-10.1-5", "arxiv-2611.00001"]

@@ -56,7 +56,7 @@ work/
 paperboy-pipeline publish --work WORK --content CONTENT_REPO [--commit] [--push] [--now RFC3339]
 ```
 
-Reads every Judged record in `WORK/judged.jsonl` and puts each paper that has a passing page into the content repo checkout at `CONTENT_REPO`, in file order. Records without one are skipped: no page, no card.
+Reads every Judged record in `WORK/judged.jsonl` and puts each paper that has a passing page into the content repo checkout at `CONTENT_REPO`. Records without one are skipped: no page, no card. The run's papers enter best first (significance, then newest `published`), alternating preprints and peer-reviewed papers one for one while both kinds are left, as `queue take` orders them; ties keep the order of `judged.jsonl`.
 
 - **A passing page**: `WORK/papers/<id>/explainer/index.html`, `explainer/hero.webp`, and `explainer/hero-night.webp` exist, `check.json` holds `"pass": true`, and by the page's depth (`check.json` `page.depth`, `"full"` when absent):
   - **full explainer**: `review.json` holds `"pass": true`;

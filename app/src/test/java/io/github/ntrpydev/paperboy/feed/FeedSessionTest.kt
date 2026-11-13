@@ -129,9 +129,9 @@ class FeedSessionTest {
 
         session.start()
 
-        // Chunk 9 has 5 papers and 8 and 7 have 40 each: 45 is too few, 85 is enough.
+        // Chunk 9 shows 4 papers and 8 and 7 show 39 each (one in each has no page): 43 is too few, 82 is enough.
         assertEquals(listOf(9, 8, 7), chunksRequested())
-        assertEquals(85, session.state.value.items.size)
+        assertEquals(82, session.state.value.items.size)
         assertFalse(session.state.value.reachedEnd)
     }
 
@@ -141,9 +141,9 @@ class FeedSessionTest {
 
         session.start()
 
-        // 85 loaded minus 30 seen is 55, so one more chunk.
+        // 82 shown minus 29 seen (paper 297 has no page) is 53, so one more chunk.
         assertEquals(listOf(9, 8, 7, 6), chunksRequested())
-        assertEquals(125 - 30, session.state.value.items.size)
+        assertEquals(121 - 29, session.state.value.items.size)
     }
 
     @Test fun `reaching within 8 cards of the end loads the next two older chunks`() = runTest {
@@ -156,9 +156,9 @@ class FeedSessionTest {
 
         session.reached(ids[ids.size - 8])
         assertEquals(listOf(9, 8, 7, 6, 5), chunksRequested())
-        assertEquals(165, session.state.value.items.size)
-        // The 78 cards reached so far kept their places; the new ones went below them.
-        assertEquals(ids.take(78), session.ids().take(78))
+        assertEquals(160, session.state.value.items.size)
+        // The 75 cards reached so far kept their places; the new ones went below them.
+        assertEquals(ids.take(75), session.ids().take(75))
     }
 
     @Test fun `after chunk 1 the feed says it has reached the end`() = runTest {
@@ -172,7 +172,8 @@ class FeedSessionTest {
         }
 
         assertEquals(listOf(9, 8, 7, 6, 5, 4, 3, 2, 1), chunksRequested())
-        assertEquals(325, session.state.value.items.size)
+        // 329 papers, of which 316 have a page: 13 have none (tools/make-feed-fixtures.py).
+        assertEquals(316, session.state.value.items.size)
     }
 
     @Test fun `a seen paper stays for this session and is left out of the next`() = runTest {
@@ -221,23 +222,29 @@ class FeedSessionTest {
 
     private fun resource(path: String) = javaClass.classLoader!!.getResource(path)!!.readText()
 
-    /** A short card as chunk JSON, added now. */
-    private fun newItem(id: String) =
+    /** A paper as chunk JSON, added now: explained with a plate, or with [explained] false, without a page. */
+    private fun newItem(id: String, explained: Boolean = true) =
         """{"id":"$id","title":"Title of $id","hook":"A new paper that arrived on refresh","summary":"A summary of a paper that arrived after the session started.",""" +
             """"field":"physics","tags":["optics"],"status":"preprint","venue":"arXiv","published":"2026-11-12",""" +
-            """"authors_short":"New et al.","url":"https://arxiv.org/abs/$id","has_explainer":false,"significance":5,"added_at":"2026-11-12T23:00:00Z"}"""
+            """"authors_short":"New et al.","url":"https://arxiv.org/abs/$id","has_explainer":$explained,""" +
+            (if (explained) """"explainer":"papers/$id/","hero":{"path":"papers/$id/hero.webp","width":1200,"height":708},""" else "") +
+            """"significance":5,"added_at":"2026-11-12T23:00:00Z"}"""
 
     @Test fun `refresh adds the new papers above the first card and says how many arrived`() = runTest {
         val session = session()
         session.start()
         val before = session.ids()
         session.reached(before[3])
-        // One new paper in the open chunk 9, which has since closed, and two in a new chunk 10.
+        // One new paper in the open chunk 9, which has since closed, and two in a new chunk 10,
+        // plus one in chunk 10 without a page, which is not shown and not counted.
         val chunk9 = resource("feed/v1/chunks/000009.json").trimEnd().removeSuffix("]\n}").removeSuffix("]}")
             .let { it.substring(0, it.lastIndexOf('}') + 1) } + "," + newItem("arxiv-2611.20001") + "]}"
         fixtures.override("feed/v1/chunks/000009.json") { json(chunk9) }
         fixtures.override("feed/v1/chunks/000010.json") {
-            json("""{"v":1,"number":10,"items":[${newItem("arxiv-2611.20002")},${newItem("arxiv-2611.20003")}]}""")
+            json(
+                """{"v":1,"number":10,"items":[${newItem("arxiv-2611.20002")},""" +
+                    """${newItem("arxiv-2611.20004", explained = false)},${newItem("arxiv-2611.20003")}]}""",
+            )
         }
         fixtures.override("feed/v1/head.json") {
             json(resource("feed/v1/head.json").replace("\"chunk_count\": 9", "\"chunk_count\": 10"))
@@ -248,23 +255,30 @@ class FeedSessionTest {
         assertEquals(RefreshResult.Arrived(3), result)
         assertEquals(setOf("arxiv-2611.20001", "arxiv-2611.20002", "arxiv-2611.20003"), session.ids().take(3).toSet())
         assertEquals(before, session.ids().drop(3))
+        assertFalse("arxiv-2611.20004" in session.ids())
     }
 
-    @Test fun `refresh reads the upgrades again and explains cards in place`() = runTest {
+    @Test fun `refresh reads the upgrades again, and a paper an upgrade explains joins the cards below the reader`() = runTest {
         val session = session()
         session.start()
         val before = session.ids()
-        val target = "arxiv-2609.10301"
+        session.reached(before[3])
+        // Paper 297, in chunk 8, has no explainer, so it is not shown until an upgrade gives it one.
+        val target = "arxiv-2609.10297"
+        assertFalse(target in before)
         fixtures.override("feed/v1/upgrades.json") {
             json(
                 """{"v":1,"upgrades":{"$target":{"explainer":"papers/$target/","hero":{"path":"papers/$target/hero.webp","width":800,"height":450},"explained_at":"2026-11-12T20:00:00Z"}}}""",
             )
         }
 
+        // It is not a new paper at the top, so the count is 0.
         assertEquals(RefreshResult.Arrived(0), session.refresh())
 
-        assertEquals(before, session.ids())
+        assertEquals(before.take(4), session.ids().take(4))
+        assertTrue(target in session.ids().drop(4))
         assertTrue(session.state.value.items.single { it.id == target }.hasExplainer)
+        assertEquals(before.size + 1, session.ids().size)
     }
 
     @Test fun `a failed refresh says why and keeps every card`() = runTest {
@@ -285,7 +299,7 @@ class FeedSessionTest {
         val old = session(appVersionCode = 1)
         old.start()
         assertTrue(old.state.value.updateNeeded)
-        assertEquals(85, old.state.value.items.size)
+        assertEquals(82, old.state.value.items.size)
 
         val current = session(appVersionCode = 2)
         current.start()
@@ -306,7 +320,7 @@ class FeedSessionTest {
         session.retry()
 
         assertNull(session.state.value.error)
-        assertEquals(85, session.state.value.items.size)
+        assertEquals(82, session.state.value.items.size)
     }
 
     @Test fun `a first load while offline with nothing cached is reported as offline`() = runTest {
@@ -335,7 +349,7 @@ class FeedSessionTest {
         fixtures.clearOverride("feed/v1/chunks/000006.json")
         session.retry()
         assertNull(session.state.value.error)
-        assertEquals(165, session.state.value.items.size)
+        assertEquals(160, session.state.value.items.size)
     }
 
     @Test fun `older chunks holding only seen papers do not stall the feed`() = runTest {
@@ -347,8 +361,172 @@ class FeedSessionTest {
 
         session.reached(before.last())
 
-        // Nothing new in 6 and 5, so 4 and 3 load too, and the list grows.
+        // Nothing new in 6 and 5, so 4 and 3 load too, and the list grows by their 78 papers with a page.
         assertEquals(listOf(9, 8, 7, 6, 5, 4, 3), chunksRequested())
-        assertEquals(before.size + 80, session.ids().size)
+        assertEquals(before.size + 78, session.ids().size)
+    }
+
+    // Papers with no explainer page are not shown.
+
+    @Test fun `only papers with an explainer page are shown, including those an upgrade explains`() = runTest {
+        val session = session()
+
+        session.start()
+
+        val ids = session.ids()
+        // Each has no explainer and no upgrade: the bat paper in chunk 9, and 297 and 257 in chunks 8 and 7.
+        for (hidden in listOf("doi-10.1038-s41586-026-01234-5", "arxiv-2609.10297", "arxiv-2609.10257")) {
+            assertFalse(hidden in ids)
+        }
+        assertTrue("arxiv-2609.10300" in ids)
+        assertTrue(session.state.value.items.all { it.hasPage })
+    }
+
+    @Test fun `the feed alternates preprints and peer-reviewed papers`() = runTest {
+        val session = session()
+        session.start()
+        val kinds = session.state.value.items.map { it.isPeerReviewed }
+
+        // Chunks 9, 8 and 7 show 43 preprints and 39 peer-reviewed papers: they take turns for
+        // 78 cards, and the 4 preprints left over follow.
+        assertEquals(39, kinds.count { it })
+        assertEquals(43, kinds.count { !it })
+        assertTrue(kinds.take(78).zipWithNext().all { (a, b) -> a != b })
+        assertEquals(List(4) { false }, kinds.drop(78))
+    }
+
+    /**
+     * True when, from [from] on, each card is the other kind from the card above it for as
+     * long as both kinds are left below it.
+     */
+    private fun alternatesFrom(items: List<FeedItem>, from: Int): Boolean {
+        for (i in maxOf(from, 1) until items.size) {
+            val rest = items.subList(i, items.size)
+            val bothLeft = rest.any { it.isPeerReviewed } && rest.any { !it.isPeerReviewed }
+            if (bothLeft && items[i].isPeerReviewed == items[i - 1].isPeerReviewed) return false
+        }
+        return true
+    }
+
+    @Test fun `loading older chunks and rating keep the reached cards and carry on the alternation below them`() = runTest {
+        val session = session()
+        session.start()
+        // The first 82 cards take turns until the peer-reviewed papers run out, then 4 preprints.
+        val first = session.state.value.items
+        assertTrue(alternatesFrom(first, 0))
+        assertEquals(List(4) { false }, first.drop(78).map { it.isPeerReviewed })
+
+        // Reaching the end loads 6 and 5, then reaching the end again loads the lopsided 4 and 3.
+        repeat(2) { session.reached(session.ids().last()) }
+        assertEquals(listOf(9, 8, 7, 6, 5, 4, 3), chunksRequested())
+        val loaded = session.ids()
+        // Each time, the reached cards keep their places, and the alternation carries on below
+        // the last of them (a preprint both times) with a peer-reviewed paper instead of
+        // starting over. Chunks 6 and 5 show 40 preprints and 38 peer-reviewed papers, so the
+        // reader had reached 2 preprints in a row at the bottom before 4 and 3 loaded.
+        val items = session.state.value.items
+        assertEquals(first.map { it.id }, loaded.take(82))
+        assertTrue(items[82].isPeerReviewed)
+        assertTrue(alternatesFrom(items.take(158), 82))
+        assertEquals(listOf(false, false), items.subList(158, 160).map { it.isPeerReviewed })
+        assertTrue(items[160].isPeerReviewed)
+        assertTrue(alternatesFrom(items, 160))
+        // Preprints outnumber peer-reviewed papers in 4 and 3, so the feed ends with a run of preprints.
+        assertFalse(items.last().isPeerReviewed)
+    }
+
+    @Test fun `a rating reorders the cards below the reached ones and they still alternate`() = runTest {
+        val session = session()
+        session.start()
+        val before = session.state.value.items
+        // The reader is on the 11th card and rates it.
+        val rated = before[10]
+        session.reached(rated.id)
+
+        session.toggleRating(rated.id, Rating.More)
+
+        val after = session.state.value.items
+        assertEquals(before.take(11), after.take(11))
+        assertTrue(after[11].isPeerReviewed != rated.isPeerReviewed)
+        assertTrue(alternatesFrom(after, 11))
+        // The rating changed the order below.
+        assertTrue(before.drop(11).map { it.id } != after.drop(11).map { it.id })
+    }
+
+    @Test fun `older chunks with no paper to show are passed over until one has some`() = runTest {
+        // Chunks 6, 5 and 4 hold only papers without a page.
+        for (n in 4..6) {
+            val name = "feed/v1/chunks/%06d.json".format(n)
+            fixtures.override(name) { json(resource(name).replace("\"has_explainer\": true", "\"has_explainer\": false")) }
+        }
+        val session = session()
+        session.start()
+        val before = session.ids()
+
+        session.reached(before.last())
+
+        // Chunk 3 is the first with papers to show, so loading stops there, each chunk asked for once.
+        assertEquals(listOf(9, 8, 7, 6, 5, 4, 3), chunksRequested())
+        assertEquals(before.size + 39, session.ids().size)
+        assertFalse(session.state.value.reachedEnd)
+    }
+
+    /**
+     * The live feed's shape on the day 0.1.1 was made: 12 chunks, 461 papers, none explained
+     * in its chunk, and two upgrades, for papers in chunks 8 and 11.
+     */
+    private fun liveShapedFeed() {
+        val sizes = List(11) { 40 } + 21
+        fixtures.override("feed/v1/head.json") {
+            json("""{"v":1,"updated_at":"2026-11-13T17:54:17Z","chunk_count":12,"total_items":461,"chunk_size":40,"kit":1,"min_app":1}""")
+        }
+        var k = 0
+        for ((index, size) in sizes.withIndex()) {
+            val number = index + 1
+            val items = (0 until size).map { newItem("arxiv-2611.%05d".format(10000 + k++), explained = false) }
+            fixtures.override("feed/v1/chunks/%06d.json".format(number)) {
+                json("""{"v":1,"number":$number,"items":[${items.joinToString(",")}]}""")
+            }
+        }
+        val upgrade = { id: String ->
+            """"$id":{"explainer":"papers/$id/","hero":{"path":"papers/$id/hero.webp","width":1200,"height":708},"explained_at":"2026-11-13T12:00:00Z"}"""
+        }
+        // Paper 290 is in chunk 8 (280 to 319), paper 410 in chunk 11 (400 to 439).
+        fixtures.override("feed/v1/upgrades.json") {
+            json("""{"v":1,"upgrades":{${upgrade("arxiv-2611.10290")},${upgrade("arxiv-2611.10410")}}}""")
+        }
+    }
+
+    @Test fun `a feed with two papers to show in 12 chunks loads each chunk once, shows the two, and ends`() = runTest {
+        liveShapedFeed()
+        val session = session()
+
+        session.start()
+
+        assertEquals((12 downTo 1).toList(), chunksRequested())
+        assertEquals(setOf("arxiv-2611.10290", "arxiv-2611.10410"), session.ids().toSet())
+        assertTrue(session.state.value.reachedEnd)
+        assertFalse(session.state.value.loading)
+        assertNull(session.state.value.error)
+
+        // Scrolling to the end again asks the server for nothing more.
+        val requests = fixtures.requested.size
+        repeat(5) { session.reached(session.ids().last()) }
+        assertEquals(requests, fixtures.requested.size)
+        assertTrue(session.state.value.reachedEnd)
+        assertFalse(session.state.value.loading)
+    }
+
+    @Test fun `a feed with no paper to show loads to chunk 1 and ends empty`() = runTest {
+        liveShapedFeed()
+        fixtures.override("feed/v1/upgrades.json") { json("""{"v":1,"upgrades":{}}""") }
+        val session = session()
+
+        session.start()
+
+        assertEquals((12 downTo 1).toList(), chunksRequested())
+        assertEquals(emptyList<String>(), session.ids())
+        assertTrue(session.state.value.reachedEnd)
+        assertFalse(session.state.value.loading)
     }
 }

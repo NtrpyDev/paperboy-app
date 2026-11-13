@@ -45,6 +45,10 @@ sealed interface RefreshResult {
  * reached keep their places; ratings and newly loaded papers only reorder the cards
  * below them.
  *
+ * Only papers with an explainer page ([FeedItem.hasPage]) are shown. The pool keeps every
+ * loaded paper, so one that an upgrade later explains joins the feed then; every count
+ * that decides when to load more, and the count a refresh reports, is of shown papers.
+ *
  * Methods are meant to be called from one thread (the main thread in the app).
  */
 class FeedSession(
@@ -77,7 +81,10 @@ class FeedSession(
     private val saveLock = Mutex()
     private val seenLock = Mutex()
 
-    /** Reads the saved taste and seen papers, then loads chunks until there is enough to read. */
+    /**
+     * Reads the saved taste and seen papers, then loads chunks until there is enough to
+     * read, or to chunk 1 when the feed holds fewer papers to show.
+     */
     suspend fun start() {
         if (taste == null) {
             taste = withContext(io) { tasteStore.load() }
@@ -115,10 +122,13 @@ class FeedSession(
             val current = pool.associateBy { it.id }
             arranged = arranged.map { current[it.id] ?: it }
             val taste = taste ?: Taste.Empty
-            val arrived = ranker.rank(latest.values.filter { it.id !in known }.map { current.getValue(it.id) }, taste, seen, lessIds(taste), clock())
+            val newShown = latest.values.filter { it.id !in known }.map { current.getValue(it.id) }.filter { it.hasPage }
+            val arrived = ranker.arrange(newShown, taste, seen, lessIds(taste), clock(), above = null)
             arranged = arrived + arranged
-            if (reached > 0) reached += arrived.size
-            publish()
+            // The new papers are above the card the reader is on, so they count as reached.
+            reached += arrived.size
+            // Papers loaded earlier that an upgrade has just explained join the cards below.
+            rearrange()
             _state.value = _state.value.copy(updateNeeded = newHead.minApp > appVersionCode)
             return RefreshResult.Arrived(arrived.size)
         } catch (e: FeedUnavailableException) {
@@ -182,11 +192,12 @@ class FeedSession(
     }
 
     /**
-     * Loads the next [CHUNKS_PER_LOAD] older chunks. When they bring no unseen paper, the
-     * reader's last card does not change and nothing would ask again, so the next pair
-     * loads too.
+     * Loads the next [CHUNKS_PER_LOAD] older chunks. When they bring no unseen paper to
+     * show, the reader's last card does not change and nothing would ask again, so the next
+     * pair loads too, until chunk 1. Once chunk 1 is loaded there is nothing older to ask for.
      */
     private suspend fun loadOlder() {
+        if (oldestLoaded == 1) return
         var goal = oldestLoaded - CHUNKS_PER_LOAD
         val unseenBefore = unseenInPool()
         load {
@@ -233,14 +244,15 @@ class FeedSession(
             null
         }
 
+    /** Papers in the pool that can be shown and have not been seen or rated less. */
     private fun unseenInPool(): Int {
         val less = lessIds(taste ?: Taste.Empty)
-        return pool.mapTo(HashSet()) { it.id }.count { it !in seen && it !in less }
+        return pool.filter { it.hasPage }.mapTo(HashSet()) { it.id }.count { it !in seen && it !in less }
     }
 
     private fun rearrange() {
         val taste = taste ?: Taste.Empty
-        arranged = ranker.rearrange(arranged, reached, pool, taste, seen, lessIds(taste), clock())
+        arranged = ranker.rearrange(arranged, reached, pool.filter { it.hasPage }, taste, seen, lessIds(taste), clock())
         publish()
     }
 

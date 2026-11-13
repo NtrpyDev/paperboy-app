@@ -1,0 +1,122 @@
+/* Explainer patterns, addendum to design/HANDOFF.md section 4.3.
+   Written against the tokens of HANDOFF.md section 2 and the keyframes of section 6.
+   Rendered in test.html in this folder, in both themes, at 390 wide. */
+
+/* icons: the system's own stroke icons, as masks so they take the text color */
+:root {
+  --pb-ico-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='square'%3E%3Cpath d='M7 1.5v11M1.5 7h11'/%3E%3C/svg%3E");
+  --pb-ico-minus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='square'%3E%3Cpath d='M1.5 7h11'/%3E%3C/svg%3E");
+  --pb-ico-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='square'%3E%3Cpath d='M2 7.6l3.4 3.4 6.6-8'/%3E%3C/svg%3E");
+}
+
+/* 01 the top bar on the web */
+.pb-topbar { position: relative; max-width: calc(var(--pb-measure) + 2 * var(--pb-gutter)); margin: 0 auto; padding: 2px var(--pb-gutter) 7.75px; }
+.pb-topbar::before, .pb-topbar::after { content: ""; position: absolute; left: var(--pb-gutter); right: var(--pb-gutter); background: var(--pb-rule); }
+.pb-topbar::before { bottom: 2.75px; height: 3px; }
+.pb-topbar::after { bottom: 0; height: 0.75px; }
+.pb-wordmark { display: inline-block; box-sizing: border-box; height: 44px; margin-left: -10px; padding: 9.5px 10px 12.5px; font-family: var(--pb-display); font-size: 22px; line-height: 22px; font-weight: var(--pb-w-voice1); font-stretch: 62.5%; letter-spacing: -0.005em; color: var(--pb-ink); text-decoration: none; white-space: nowrap; }
+.pb-wordmark em { font-style: italic; font-weight: 400; font-stretch: 100%; letter-spacing: -0.02em; }
+.pb-wordmark i { display: inline-block; width: 4px; height: 4px; margin-left: 2px; border-radius: 50%; background: var(--pb-accent); }
+.pb-wordmark:active { color: var(--pb-ink-2); }
+.pb-wordmark:focus-visible { outline: 2px solid var(--pb-ink); outline-offset: 2px; }
+@media (hover: hover) { .pb-wordmark:hover { color: var(--pb-ink-2); } }
+
+/* 02 the data table: the last row of a data figure */
+.pb-data { margin: 14px 0 0; font-size: 15px; border-top: 0.75px solid var(--pb-rule); border-bottom: 0.75px solid var(--pb-rule); }
+.pb-data[open] { border-bottom: 0; }
+.pb-data > summary { list-style: none; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; color: var(--pb-ink);
+  font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 600; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase; }
+.pb-data > summary::-webkit-details-marker { display: none; }
+.pb-data > summary::before { content: none; }
+.pb-data > summary::after { content: ""; flex: none; width: 14px; height: 14px; background: currentColor; -webkit-mask: var(--pb-ico-plus) center / 14px 14px no-repeat; mask: var(--pb-ico-plus) center / 14px 14px no-repeat; }
+.pb-data[open] > summary::after { -webkit-mask-image: var(--pb-ico-minus); mask-image: var(--pb-ico-minus); }
+.pb-data > summary:active { color: var(--pb-ink-2); }
+.pb-data > summary:focus-visible { outline: 2px solid var(--pb-ink); outline-offset: 2px; }
+.pb-table-wrap { overflow-x: auto; margin: 0; padding-bottom: 2px; }
+.pb-data[open] > .pb-table-wrap { animation: pb-press 190ms cubic-bezier(0.2, 0, 0, 1) both; }
+.pb-table { border-collapse: collapse; width: 100%; font-family: var(--pb-font); font-size: 15px; line-height: 1.4; font-variant-numeric: tabular-nums lining-nums; color: var(--pb-ink); }
+.pb-table caption { caption-side: top; text-align: left; padding: 0 0 12px; font-style: italic; color: var(--pb-ink); }
+.pb-table th { padding: 0 12px 7px 0; text-align: left; white-space: nowrap; border-bottom: 0.75px solid var(--pb-rule); color: var(--pb-ink-2);
+  font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 500; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase; }
+.pb-table td { padding: 8px 12px 9px 0; text-align: left; vertical-align: baseline; white-space: normal; border-bottom: 0.6px solid var(--pb-grid); }
+.pb-table tbody tr:last-child td { border-bottom: 0.75px solid var(--pb-rule); }
+.pb-table th.num, .pb-table td.num { text-align: right; padding-right: 0; padding-left: 12px; white-space: nowrap; }
+
+/* 03 scroll steps: the figure is pinned, the steps pass under it */
+.pb-steps { position: relative; margin: 24px 0 0; }
+.pb-steps-visual { position: sticky; top: 0; z-index: 2; margin: 0 calc(-1 * var(--pb-gutter)); padding: 0 var(--pb-gutter); background: var(--pb-page); }
+.pb-steps-visual > .pb-fig { margin-top: 0; }
+.pb-steps-gauge { display: flex; gap: 4px; box-sizing: border-box; height: 5.75px; margin-top: 16px; border-bottom: 0.75px solid var(--pb-rule); }
+.pb-steps-gauge i { flex: 1 1 0; height: 3px; }
+.pb-steps-gauge i.is-on { background: var(--pb-rule); }
+.pb-step { position: relative; z-index: 1; margin: 0 0 40px; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; opacity: 1; color: var(--pb-ink-2); transition: none; }
+.pb-steps-visual + .pb-step { margin-top: var(--pb-steps-lead, 18vh); }   /* the kit sets --pb-steps-lead, see the addendum */
+.pb-steps > .pb-step:last-child { margin-bottom: 40vh; }
+.pb-step-n { display: block; color: inherit; font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 500; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase; }
+.pb-step p { margin: 6px 0 0; color: inherit; }
+.pb-step.is-active { color: var(--pb-ink); }
+.pb-step.is-active .pb-step-n { font-weight: 600; }
+
+/* 04 the glossary term and its definition */
+.pb-term { padding: 10px 4px; margin: -10px -4px; cursor: pointer; border: 0; -webkit-tap-highlight-color: transparent;
+  text-decoration: underline dotted var(--pb-ink); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.pb-term[aria-expanded="true"] { padding: 0 3px; margin: 0 -3px; background: var(--pb-ink); color: var(--pb-page); text-decoration: none; }
+.pb-term:focus-visible { outline: 2px solid var(--pb-ink); outline-offset: 3px; }
+.pb-term-pop { position: absolute; z-index: 20; box-sizing: border-box; max-width: none; margin: 0; padding: 6px 0 0; display: flex; flex-direction: column;
+  background: var(--pb-page); color: var(--pb-ink); border: 0; border-radius: 0; box-shadow: none;
+  font-family: var(--pb-font); font-size: 15px; line-height: 1.4; font-style: italic; text-wrap: pretty;
+  animation: pb-press 190ms cubic-bezier(0.2, 0, 0, 1) both; }
+.pb-term-pop::before { content: ""; flex: none; height: 2px; border-top: 3px solid var(--pb-rule); border-bottom: 0.75px solid var(--pb-rule); }
+.pb-term-pop::after { content: ""; flex: none; margin-top: auto; height: 0.75px; background: var(--pb-rule); }
+.pb-term-pop b { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 10px 0 6px; font-style: normal; color: var(--pb-ink);
+  font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 600; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase; }
+.pb-term-pop b::after { content: "Glossary"; font-weight: 500; color: var(--pb-ink-2); }
+.pb-term-pop > span { padding-bottom: 12px; }
+
+/* 05 the segmented toggle */
+.pb-toggle { display: flex; flex-wrap: nowrap; gap: 0; padding: 0; background: none; border: 0; border-radius: 0; }
+.pb-toggle button { flex: 1 1 0; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: transparent; border: 1px solid var(--pb-rule); border-radius: 0; box-shadow: none; color: var(--pb-ink); cursor: pointer;
+  font-family: var(--pb-font); font-size: 16px; font-weight: 500; line-height: 1; }
+.pb-toggle button + button { margin-left: -1px; }
+.pb-toggle button[aria-pressed="true"] { background: var(--pb-stamp); border-color: var(--pb-stamp); color: var(--pb-on-stamp); box-shadow: none; }
+.pb-toggle button[aria-pressed="true"]::before { content: ""; flex: none; width: 14px; height: 14px; background: currentColor; -webkit-mask: var(--pb-ico-check) center / 14px 14px no-repeat; mask: var(--pb-ico-check) center / 14px 14px no-repeat; }
+.pb-toggle button[aria-pressed="false"]:active { color: var(--pb-ink-2); border-color: var(--pb-ink-2); }
+.pb-toggle button:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--pb-ink); outline-offset: 2px; }
+.pb-toggle-label { display: block; margin: 14px 0 7px; }
+
+/* 08 the touch readout */
+.pb-tip { position: fixed; z-index: 30; pointer-events: none; max-width: 240px; padding: 8px 10px; background: var(--pb-slab); color: var(--pb-on-slab); border: 0; border-radius: 0; box-shadow: none;
+  font-family: var(--pb-font); font-size: 15px; line-height: 1.2; font-variant-numeric: tabular-nums lining-nums; animation: pb-press 190ms cubic-bezier(0.2, 0, 0, 1) both; }
+.pb-tip b { display: block; margin: 0 0 5px; white-space: nowrap; font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 600; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase; }
+.pb-tip dl { display: grid; grid-template-columns: auto auto; column-gap: 14px; row-gap: 1px; align-items: baseline; margin: 0; }
+.pb-tip dt { white-space: nowrap; font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 500; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase; }
+.pb-tip dd { margin: 0; text-align: right; white-space: nowrap; }
+.pb-tip dd i { font-style: italic; }
+/* the marks a chart adds under the readout */
+.pb-touch-trap { fill: var(--pb-page); }
+.pb-touch-ring { fill: none; stroke: var(--pb-ink); stroke-width: 0.9px; }
+.pb-touch-core { fill: var(--pb-ink); }
+.pb-touch-leader { fill: none; stroke: var(--pb-ink); stroke-width: 0.75px; }
+.pb-touch-tick { fill: none; stroke: var(--pb-ink); stroke-width: 2px; }
+
+/* 06 to 10 chart marks beyond HANDOFF.md 4.3 */
+.pb-line { fill: none; stroke: var(--pb-ink); stroke-width: 1.4px; stroke-linejoin: round; stroke-linecap: round; }
+.pb-line[data-series="3"] { stroke: var(--pb-plate); }
+.pb-line[data-kind="estimate"] { stroke: var(--pb-ink-2); stroke-width: 0.9px; }
+.pb-dot { fill: var(--pb-ink-2); r: 2.1px; }
+.pb-dot[data-named] { fill: var(--pb-ink); r: 3.2px; }
+.pb-ring { fill: var(--pb-page); stroke: var(--pb-ink); stroke-width: 0.9px; r: 4px; }
+.pb-whisker { fill: none; stroke: var(--pb-ink); stroke-width: 0.9px; }
+.pb-whisker-trap, .pb-line-trap { fill: none; stroke: var(--pb-page); stroke-width: 4.5px; }
+.pb-band { stroke: var(--pb-ink); stroke-width: 0.6px; stroke-linejoin: round; }
+.pb-mark-label { font-family: var(--pb-mono); font-stretch: 75%; font-size: var(--pb-fs-label); font-weight: 500; letter-spacing: 0.06em; fill: var(--pb-ink); }
+.pb-mark-label[data-finding] { font-weight: 600; }
+.pb-mark-figure { font-family: var(--pb-display); font-stretch: 62.5%; font-weight: var(--pb-w-voice1); font-size: 25px; font-variant-numeric: lining-nums; fill: var(--pb-ink); }
+
+/* 11 math */
+.katex { font-size: 1.1em; color: var(--pb-ink); }
+.katex-display { margin: 20px 0; padding: 0; overflow-x: auto; overflow-y: hidden; }
+.katex-display > .katex { text-align: left; padding-left: var(--pb-gutter); }
+/* the equation number: write \tag*{Eq. 1}. Only the text is restyled, so KaTeX's own strut still sets it on the equation's baseline */
+.katex .katex-tag .mord { font-family: var(--pb-mono) !important; font-stretch: 75%; font-size: var(--pb-fs-label) !important; font-weight: 500; font-style: normal; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pb-ink-2); }

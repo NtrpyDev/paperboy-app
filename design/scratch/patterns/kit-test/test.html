@@ -1,0 +1,99 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="dark light">
+<title>Patterns CSS test</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@75..112.5,100..800&family=Noto+Serif+Display:ital,wdth,wght@0,62.5..100,100..900;1,62.5..100,100..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap">
+<link rel="stylesheet" href="../../../../kit/v1/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../final/handoff-test/kit.css">
+<link rel="stylesheet" href="patterns.css">
+<script src="../../../../kit/v1/vendor/katex/katex.min.js"></script>
+<script src="../../../../kit/v1/vendor/katex/auto-render.min.js"></script>
+</head><body>
+<header class="pb-topbar"><a class="pb-wordmark" href="#site" aria-label="Paperboy, to the website">Paper<em>boy</em><i></i></a></header>
+<article class="pb">
+
+<section class="pb-section" data-section="question">
+<p class="pb-eyebrow">Glossary term</p>
+<h2>A term you can tap, <em>defined in place.</em></h2>
+<p id="para">Both detectors recorded the same <span class="pb-term" id="term" data-def="A signal that sweeps up in frequency. This one rose from 35 Hz to 250 Hz in about 0.2 seconds.">chirp</span> on September 14, 2015. It reached Livingston about 7 milliseconds before Hanford. Its shape matches two black holes of about 36 and 29 solar masses spiraling into one of about 62 solar masses.</p>
+<p>By the time the wave reached Earth, its peak strain was \(1.0 \times 10^{-21}\). Before and after, the masses add up, each within its error range:</p>
+\[ 36\,M_\odot + 29\,M_\odot \approx 62\,M_\odot + 3\,M_\odot \tag*{Eq. 1} \]
+<p id="after-math">Here \(M_\odot\) is one solar mass. About \(3\,M_\odot\) left as gravitational waves. xxxx <span id="xk">\(x\)</span></p>
+</section>
+
+<section class="pb-section" data-section="method">
+<p class="pb-eyebrow">Scroll steps</p>
+<h2>One picture stays. <em>The steps scroll past it.</em></h2>
+<div class="pb-steps" id="steps">
+<div class="pb-steps-visual">
+<figure class="pb-fig" data-kind="illustration" data-slug="Fig. 1">
+<svg viewBox="0 0 350 200" width="350" height="200" role="img" aria-label="Test visual" style="margin-top: 12px"><rect x="0.5" y="0.5" width="349" height="199" fill="none" stroke="currentColor" stroke-width="0.9"/><text id="state" x="175" y="110" text-anchor="middle" class="pb-tick-label" style="font-size: 30px">STATE 1</text></svg>
+</figure>
+<div class="pb-steps-gauge" role="img" aria-label="Step 1 of 4"><i class="is-on"></i><i></i><i></i><i></i></div>
+</div>
+<div class="pb-step"><span class="pb-step-n">Step 1 of 4</span><p>Each detector is an L with two 4 km arms.</p></div>
+<div class="pb-step"><span class="pb-step-n">Step 2 of 4</span><p>LIGO has two, one in Livingston, Louisiana and one in Hanford, Washington.</p></div>
+<div class="pb-step"><span class="pb-step-n">Step 3 of 4</span><p>On September 14, 2015, a wave crossed both. It reached Livingston first, and Hanford about 7 milliseconds later.</p></div>
+<div class="pb-step"><span class="pb-step-n">Step 4 of 4</span><p>Both recorded the same signal. The event is named GW150914.</p></div>
+</div>
+<p id="after-steps">The section goes on after the steps.</p>
+</section>
+
+<section class="pb-section" data-section="findings">
+<p class="pb-eyebrow">Data table and toggle</p>
+<h2>Every data figure <em>carries its numbers.</em></h2>
+<figure class="pb-fig" data-kind="data" data-slug="Fig. 3">
+<p class="pb-fig-title">Where the mass went</p>
+<span class="pb-label pb-toggle-label">Show the mass</span>
+<div class="pb-toggle" role="group" aria-label="Show the mass" id="toggle"><button type="button" aria-pressed="false">Before</button><button type="button" aria-pressed="true">After</button></div>
+<div style="position: relative; margin-top: 14px">
+<svg id="plot" viewBox="0 0 350 120" width="350" height="120" role="img" aria-label="Test plot">
+<line class="pb-grid-line" x1="0" y1="40" x2="286" y2="40"/><line class="pb-grid-line" x1="0" y1="80" x2="286" y2="80"/>
+<circle class="pb-dot" cx="60" cy="70"/><circle class="pb-dot" cx="90" cy="62"/><circle class="pb-dot" data-named cx="230" cy="92"/>
+<line class="pb-grid-line" x1="150" y1="60" x2="150" y2="108"/><circle class="pb-touch-trap" cx="150" cy="60" r="8"/><circle class="pb-touch-ring" cx="150" cy="60" r="6.5"/><circle class="pb-touch-core" cx="150" cy="60" r="2.6"/>
+<line class="pb-touch-leader" x1="150" y1="53.5" x2="150" y2="46"/><line class="pb-axis-line" x1="0" y1="108" x2="286" y2="108"/><line class="pb-touch-tick" x1="150" y1="108" x2="150" y2="115"/>
+</svg>
+<div class="pb-tip" role="status" id="tip" style="position: absolute; left: 82px; top: -26px"><b>[Point name]</b><dl><dt>[X]</dt><dd>[value] <i>[unit]</i></dd><dt>[Y]</dt><dd>[value] <i>[unit]</i></dd></dl></div>
+</div>
+<details class="pb-data" id="closed"><summary>The numbers</summary><div class="pb-table-wrap"><table class="pb-table"><caption>x</caption></table></div></details>
+<details class="pb-data" id="open" open><summary>The numbers</summary><div class="pb-table-wrap"><table class="pb-table"><caption>All four values are estimates.</caption>
+<thead><tr><th scope="col">When</th><th scope="col">What</th><th scope="col" class="num">Solar masses</th></tr></thead>
+<tbody><tr><td>Before</td><td>The heavier black hole</td><td class="num">36</td></tr><tr><td>Before</td><td>The lighter black hole</td><td class="num">29</td></tr>
+<tr><td>After</td><td>The black hole they formed</td><td class="num">62</td></tr><tr><td>After</td><td>Left as gravitational waves</td><td class="num">3</td></tr></tbody></table></div></details>
+</figure>
+<div class="pb-toggle" role="group" aria-label="Three" style="margin-top: 24px"><button type="button" aria-pressed="true">Physics</button><button type="button" aria-pressed="false">Biology</button><button type="button" aria-pressed="false" id="focusme">Space</button></div>
+</section>
+</article>
+<script>
+// Stand-ins for the kit's own code, with the changes the addendum asks for.
+renderMathInElement(document.body, {delimiters: [{left: "\\[", right: "\\]", display: true}, {left: "\\(", right: "\\)", display: false}], throwOnError: false});
+(function steps() {
+  var root = document.getElementById("steps"), steps = [].slice.call(root.querySelectorAll(".pb-step")), gauge = root.querySelector(".pb-steps-gauge"), active = -1;
+  function activate(i) { if (i === active || i < 0) return; active = i;
+    steps.forEach(function (s, j) { s.classList.toggle("is-active", j === i); });
+    [].forEach.call(gauge.children, function (seg, j) { seg.classList.toggle("is-on", j <= i); });
+    gauge.setAttribute("aria-label", "Step " + (i + 1) + " of " + steps.length);
+    document.getElementById("state").textContent = "STATE " + (i + 1); }
+  var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) activate(steps.indexOf(e.target)); }); }, {rootMargin: "-55% 0px -35% 0px", threshold: 0});
+  steps.forEach(function (s) { io.observe(s); }); activate(0);
+  function lead() { steps[0].style.setProperty("--pb-steps-lead", Math.max(16, Math.round(0.58 * window.innerHeight - root.querySelector(".pb-steps-visual").offsetHeight)) + "px"); }
+  lead(); window.addEventListener("resize", lead);
+})();
+(function terms() {
+  var pop = null, open = null;
+  function close() { if (pop) { pop.remove(); pop = null; } if (open) { open.setAttribute("aria-expanded", "false"); open = null; } }
+  document.addEventListener("click", function (ev) {
+    var term = ev.target.closest && ev.target.closest(".pb-term"); var was = open; close(); if (!term || term === was) return;
+    var para = term.closest("p"), col = para.getBoundingClientRect(), lh = parseFloat(getComputedStyle(para).lineHeight);
+    var r = term.getBoundingClientRect();                       // measured at rest, before the open state changes its padding
+    var lineBottom = r.top + r.height / 2 + lh / 2;             // the foot of the line box the term sits in
+    term.setAttribute("aria-expanded", "true"); open = term;
+    pop = document.createElement("div"); pop.className = "pb-term-pop"; pop.setAttribute("role", "tooltip");
+    var b = document.createElement("b"); b.textContent = term.dataset.term || term.textContent; var s = document.createElement("span"); s.textContent = term.dataset.def || "";
+    pop.appendChild(b); pop.appendChild(s); document.body.appendChild(pop);
+    pop.style.left = col.left + window.scrollX + "px"; pop.style.width = col.width + "px"; pop.style.top = lineBottom + window.scrollY + "px";
+    pop.style.height = Math.ceil(pop.getBoundingClientRect().height / lh) * lh + "px";   // a whole number of lines, so no line under it is cut
+  });
+  document.querySelectorAll(".pb-term").forEach(function (t) { t.setAttribute("tabindex", "0"); t.setAttribute("role", "button"); t.setAttribute("aria-expanded", "false"); });
+})();
+document.getElementById("toggle").addEventListener("click", function (ev) { var b = ev.target.closest("button"); if (!b) return; [].forEach.call(this.children, function (x) { x.setAttribute("aria-pressed", String(x === b)); }); });
+</script>
+</body></html>

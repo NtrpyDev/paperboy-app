@@ -1,9 +1,10 @@
-"""select: merge the scout's judged batches, drop weak papers, and mark those worth an explainer.
+"""select: merge the scout's judged batches, drop weak papers, and mark which may get a full explainer.
 
 Reads WORK/judged/*.jsonl, validates each line as a Judged record, keeps the first of each id,
-drops papers below --floor, and writes WORK/judged.jsonl. `explain` is set true on a paper
-worth an explainer (paperboy_pipeline.explaining: full text of an allowed kind and at least
---explain-floor); `queue add` puts those papers in the content repo's explain queue.
+drops papers below --floor, and writes WORK/judged.jsonl. Every kept paper goes into the backlog
+(queue add) and waits there for a page. `explain` is set true on a paper that may get a full
+explainer (paperboy_pipeline.explaining: full text of an allowed kind and at least
+--explain-floor); the others can get only a quick explainer.
 """
 import json
 from pathlib import Path
@@ -16,7 +17,7 @@ def register(subparsers) -> None:
     p = subparsers.add_parser("select", help="merge work/judged/*.jsonl into work/judged.jsonl", description=__doc__)
     p.add_argument("--work", required=True, type=Path)
     p.add_argument("--floor", type=float, default=5.0, help="papers scoring below this never reach the feed")
-    p.add_argument("--explain-floor", type=float, default=EXPLAIN_FLOOR, help=f"lowest significance worth an explainer (default {EXPLAIN_FLOOR})")
+    p.add_argument("--explain-floor", type=float, default=EXPLAIN_FLOOR, help=f"lowest significance that may get a full explainer (default {EXPLAIN_FLOOR})")
     p.set_defaults(run=run)
 
 
@@ -49,6 +50,6 @@ def run(args) -> int:
     (args.work / "judged.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in kept))
     print(json.dumps({
         "judged": len(records), "kept": len(kept), "dropped_below_floor": len(records) - len(kept),
-        "worth_an_explainer": sum(r["explain"] for r in kept), "rejected_lines": problems,
+        "may_get_full_explainer": sum(r["explain"] for r in kept), "rejected_lines": problems,
     }, indent=2))
     return 0

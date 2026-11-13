@@ -1,6 +1,7 @@
-"""Which judged papers are worth an explainer. select and queue add both decide with this.
+"""Which judged papers may get a full explainer. select and queue add both decide with this; every
+other paper in the backlog can get only a quick explainer.
 
-A paper is worth an explainer when it has full text, its full text kind is in the allowlist
+A paper may get a full explainer when it has full text, its full text kind is in the allowlist
 `explain_fulltext_kinds` in pipeline/config.json, and its significance is at least the explain
 floor.
 """

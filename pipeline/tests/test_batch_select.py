@@ -119,7 +119,7 @@ def test_batch_without_triage_picks_refuses(tmp_path, capsys):
     assert not (tmp_path / "batches").exists()
 
 
-def test_select_applies_the_floor_and_marks_papers_worth_an_explainer(tmp_path, capsys):
+def test_select_applies_the_floor_and_marks_papers_that_may_get_a_full_explainer(tmp_path, capsys):
     write_lines(tmp_path / "judged" / "001.jsonl", [
         judged(1, 4.0),
         judged(2, 9.0, fulltext={"available": False, "kind": None, "url": None}),
@@ -133,7 +133,9 @@ def test_select_applies_the_floor_and_marks_papers_worth_an_explainer(tmp_path, 
     assert [r["id"][-1] for r in kept] == ["2", "3", "4", "5", "6"]
     # Full text of a kind in pipeline/config.json, and at least the explain floor (6.5 by default).
     assert [r["id"][-1] for r in kept if r["explain"]] == ["3", "4"]
-    assert not (tmp_path / "explain-queue.txt").exists()
+    assert json.loads(capsys.readouterr().out)["may_get_full_explainer"] == 2
+    # Select chooses nothing for this run; queue take does.
+    assert not (tmp_path / "take.json").exists()
     assert not (tmp_path / "papers").exists()
 
 

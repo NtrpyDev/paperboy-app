@@ -1,0 +1,68 @@
+# Runs the app, pipeline, and worker tests on pushes and pull requests to main and integration.
+name: CI
+
+on:
+  push:
+    branches: [main, integration]
+  pull_request:
+    branches: [main, integration]
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run the unit tests and build the debug APK
+        run: ./gradlew testDebugUnitTest assembleDebug
+
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v7
+
+      # setup-uv publishes no major-version tags since v8, so it is pinned to the v10.3.3 commit.
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          working-directory: pipeline
+
+      - name: Run the pipeline tests
+        working-directory: pipeline
+        run: uv run pytest
+
+  worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v7
+
+      # The worker steps run only on commits that contain worker/package.json.
+      - name: Set up Node.js
+        if: hashFiles('worker/package.json') != ''
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+
+      - name: Install the worker dependencies
+        if: hashFiles('worker/package.json') != ''
+        working-directory: worker
+        run: npm ci
+
+      - name: Run the worker tests
+        if: hashFiles('worker/package.json') != ''
+        working-directory: worker
+        run: npm test

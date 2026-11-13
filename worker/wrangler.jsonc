@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "paperboy",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-20",
+  "account_id": "7b620d6426b17ee24b33532ea970d737",
+  "workers_dev": true,
+  "preview_urls": false,
+  // The site and the kit. Built by scripts/build-assets.mjs from ../site and ../kit/v1.
+  "assets": {
+    "directory": "./public",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none",
+    "run_worker_first": ["/feed/*", "/papers/*"]
+  },
+  // Published feed and explainers, filled on first request from the content repo.
+  "r2_buckets": [
+    { "binding": "CONTENT", "bucket_name": "paperboy-content" }
+  ]
+}

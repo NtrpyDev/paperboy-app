@@ -76,3 +76,112 @@ Rules:
 
   Other changes in the checkout are left uncommitted. A run that changes nothing makes no commit.
 - **`--push`** runs `git push origin main`. It never forces.
+
+## discover
+
+```
+paperboy-pipeline discover --work WORK --content CONTENT_REPO [--since YYYY-MM-DD] [--sources arxiv,biorxiv,medrxiv,europepmc,crossref] [--limit N]
+```
+
+Lists newly released papers and writes them to `WORK/candidates.jsonl`, one Candidate per line (`schema/candidate.schema.json`), newest first. Prints one line per source: how many new papers it returned and how many candidates were written with that source.
+
+- **Start date.** `--since` for every source when given. Otherwise each source's cursor in `CONTENT_REPO/state/cursors.json`. A source without a cursor, or a checkout without `state/`, starts two days before today (UTC). The window always ends today.
+- **Sources.** One adapter per source in `src/paperboy_pipeline/sources/`, each a function `fetch(since, limit, http)`:
+  - arXiv: OAI-PMH at `https://oaipmh.arxiv.org/oai`, format `arXivRaw` (the only arXiv interface that states the license). All categories. A paper counts as new when its first version is at most 7 days older than the start date; older records that changed in the window (revisions, added DOIs) are context only.
+  - bioRxiv and medRxiv: `https://api.biorxiv.org/details/<server>/<from>/<to>/<cursor>/json`. Only first versions are new; later versions are context only.
+  - Europe PMC: REST search for `OPEN_ACCESS:y AND HAS_DOI:y` first published in the window, newest first. Records marked as preprints keep status `preprint`.
+  - Crossref: journal articles with an abstract created in the window, newest first, public pool (no mailto).
+- **Duplicates.** Records of one paper (same DOI, arXiv id, or title key; or a journal DOI the preprint server names) become one candidate. A journal record supplies the metadata and status; a preprint lends its full text pointer and that text's license when the journal record has none. See `src/paperboy_pipeline/dedupe.py`.
+- **Already published.** A paper whose id, DOI, arXiv id, or title key matches a line in `CONTENT_REPO/state/seen/` is skipped. Discover never writes to the content repo.
+- **Requests.** One shared client with User-Agent `paperboy-pipeline/0.1 (+https://github.com/NtrpyDev/paperboy-app)` and no email or other personal detail. arXiv requests start at least 3 seconds apart, Crossref requests at least 1 second apart. 429, 5xx, and connection errors are retried up to 4 times with doubling backoff, waiting at least as long as `Retry-After` asks.
+- **Abstracts** are pipeline input only. JATS and HTML tags are removed; LaTeX is kept as written.
+- **Exit status** is 1 when a source failed after retries or a record did not match the schema. The candidates from the other sources are still written.
+
+Live smoke run (not part of the test suite; makes one request per source and took about 20 seconds on 2026-11-13):
+
+```
+cd pipeline
+mkdir -p work/smoke-content
+uv run paperboy-pipeline discover --work work/smoke --content work/smoke-content --limit 5
+```
+
+Every source should print `5 found, 5 written`. The empty content folder means nothing is seen yet and the window is the last two days. `work/` is ignored by git.
+
+## check
+
+The render check. It loads one explainer in a headless Chromium-family browser at phone size and fails it if it breaks the explainer contract (`EXPLAINER-CONTRACT.md`).
+
+```
+cd pipeline && uv run paperboy-pipeline check --explainer work/papers/<paper id>/explainer --kit ../kit [--out DIR]
+```
+
+- `--explainer` is the folder holding `index.html`. `--kit` is the repo's `kit` folder. `--out` defaults to the explainer's parent.
+- It serves the explainer at `/papers/x/` and the kit at `/kit/` from a local server on a free port, then loads the page at 390 by 844 px, device scale factor 2, three times: light, dark, and light with reduced motion. Each time it waits for `data-pb-ready`, scrolls through the page once, and lets animations run for 1.5 seconds before measuring and capturing.
+- It writes `check.json` and `shots/` in the out folder, and the hero still as `explainer/hero.webp` (from the dark capture, at most 1200 px wide).
+- Exit code: 0 pass, 1 fail, 2 tool error (no `index.html`, no kit, no browser, or the browser would not start). On a tool error it writes no `check.json`.
+
+Browser: `PAPERBOY_CHROME` (a path or a name on PATH), else the first of `google-chrome`, `chromium`, `chromium-browser`, `brave` on PATH. Nothing is downloaded. It always runs headless with `--no-sandbox` (needed when running as root, as in the cloud routine) and a throwaway profile. The tests skip when no browser is found.
+
+`check.json`:
+
+```
+{
+  "pass": false,
+  "checked_at": "2026-11-13T03:37:00Z",
+  "problems": [{"rule": "overflow-x", "detail": "...", "theme": "light"}],
+  "shots": ["shots/light-01.png", "shots/dark-01.png", "shots/still-01.png"],
+  "hero": {"path": "explainer/hero.webp", "width": 700, "height": 526},
+  "page": {"height_px": 5128, "figures": 2, "data_figures": 2}
+}
+```
+
+`rule` is one of the ids in `EXPLAINER-CONTRACT.md`. `theme` is `light`, `dark`, or `still`; rules about the document itself are reported once, under `light`, and the hero is checked under `dark`. Shots are the full page cut into pieces at most 2400 px tall (`light-01.png`, `light-02.png`, ...). `hero` is `null` when the hero could not be captured.
+
+## fetch
+
+`paperboy-pipeline fetch --work WORK --id PAPER_ID` reads `WORK/papers/<id>/candidate.json` and saves the paper's free full text as `fulltext.md` (title, authors, abstract, sections in order, LaTeX math, Markdown tables, a Figures list of captions, footnotes, and a reference count) plus `source.json` (`available`, `url`, `kind`, `license`, `retrieved_at`, `chars`, `sections`).
+
+Routes by `fulltext.kind`:
+
+- `arxiv_html`: `https://arxiv.org/html/<id>`. A paper with no HTML rendering is unavailable; the PDF is never parsed.
+- `biorxiv` (bioRxiv and medRxiv): the JATS XML the bioRxiv API lists as `jatsxml` (looked up by DOI when the candidate gives no `.xml` link). Equations and tables that the XML holds only as images are marked in place, not transcribed.
+- `europepmc`: `https://www.ebi.ac.uk/europepmc/webservices/rest/<PMCID>/fullTextXML` (the PMCID is found by DOI when the candidate gives none).
+
+Exit codes: 0 fetched; 3 no lawful full text is reachable (a missing rendering, a 404, JATS XML with front matter only, a 403, or a bot challenge page, which is never bypassed): `source.json` then holds `"available": false` and the reason, and no `fulltext.md` is left; 1 a real error (bad candidate, a server that kept failing).
+
+Requests send only the User-Agent `paperboy-pipeline/0.1 (+https://github.com/NtrpyDev/paperboy-app)`, retry 429 and 5xx with backoff and Retry-After, and wait between requests to one host for the Crawl-delay its robots.txt sets (arxiv.org 15 s, biorxiv.org and medrxiv.org 7 s, ebi.ac.uk 10 s). The last request time per host is kept in `WORK/.fetch-hosts/` so the wait holds across fetch commands.
+
+Live smoke run (network; one paper per source, about a minute):
+
+```
+cd pipeline
+WORK=$(mktemp -d)
+uv run python - "$WORK" <<'PY'
+import json, sys
+from pathlib import Path
+base = dict(doi=None, arxiv_id=None, title="smoke", authors=[], abstract="", published="2026-11-10",
+            status="preprint", license=None, categories=[])
+for r in [
+    dict(base, id="arxiv-2611.14797", arxiv_id="2611.14797", venue="arXiv", source="arxiv",
+         url="https://arxiv.org/abs/2611.14797",
+         fulltext={"available": True, "kind": "arxiv_html", "url": "https://arxiv.org/html/2611.14797"}),
+    dict(base, id="doi-10.64898-2026.10.30.763149", doi="10.64898/2026.10.30.763149", venue="bioRxiv",
+         source="biorxiv", url="https://www.biorxiv.org/content/10.64898/2026.10.30.763149v1",
+         fulltext={"available": True, "kind": "biorxiv", "url": None}),
+    dict(base, id="doi-10.64898-2026.10.30.26366919", doi="10.64898/2026.10.30.26366919", venue="medRxiv",
+         source="medrxiv", url="https://www.medrxiv.org/content/10.64898/2026.10.30.26366919v1",
+         fulltext={"available": True, "kind": "biorxiv", "url": None}),
+    dict(base, id="doi-10.7554-elife.102635", doi="10.7554/eLife.102635", venue="eLife", status="peer_reviewed",
+         source="europepmc", url="https://doi.org/10.7554/eLife.102635",
+         fulltext={"available": True, "kind": "europepmc", "url": "https://europepmc.org/articles/PMC13727076"}),
+]:
+    folder = Path(sys.argv[1]) / "papers" / r["id"]
+    folder.mkdir(parents=True)
+    (folder / "candidate.json").write_text(json.dumps(r))
+PY
+for id in arxiv-2611.14797 doi-10.64898-2026.10.30.763149 doi-10.64898-2026.10.30.26366919 doi-10.7554-elife.102635; do
+  uv run paperboy-pipeline fetch --work "$WORK" --id "$id"
+done
+```
+
+Each line reports the characters, section count, and license; read `$WORK/papers/*/fulltext.md` to judge the result.

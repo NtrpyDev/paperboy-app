@@ -1,0 +1,305 @@
+{
+ "status": "ok",
+ "message-type": "work-list",
+ "message-version": "1.0.0",
+ "message": {
+  "facets": {},
+  "next-cursor": "MTc5NDUzOTYyOTAwMCwxMC42Mjk1MSUyRnNvbHVzaWJlcnNhbWEudjNpNC4zNzE4",
+  "total-results": 1,
+  "items": [
+   {
+    "indexed": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       10
+      ]
+     ],
+     "date-time": "2026-11-10T07:21:08Z",
+     "timestamp": 1794295268757,
+     "version": "4.9.0"
+    },
+    "reference-count": 80,
+    "publisher": "Springer Science and Business Media LLC",
+    "issue": "1",
+    "license": [
+     {
+      "start": {
+       "date-parts": [
+        [
+         2026,
+         11,
+         10
+        ]
+       ],
+       "date-time": "2026-11-10T00:00:00Z",
+       "timestamp": 1794268800000
+      },
+      "content-version": "tdm",
+      "delay-in-days": 0,
+      "URL": "https://creativecommons.org/licenses/by/4.0"
+     },
+     {
+      "start": {
+       "date-parts": [
+        [
+         2026,
+         11,
+         10
+        ]
+       ],
+       "date-time": "2026-11-10T00:00:00Z",
+       "timestamp": 1794268800000
+      },
+      "content-version": "vor",
+      "delay-in-days": 0,
+      "URL": "https://creativecommons.org/licenses/by/4.0"
+     }
+    ],
+    "funder": [
+     {
+      "name": "Chalmers University of Technology",
+      "id": [
+       {
+        "id": "https://ror.org/040wg7k59",
+        "id-type": "ROR",
+        "asserted-by": "crossref"
+       }
+      ]
+     }
+    ],
+    "content-domain": {
+     "domain": [
+      "link.springer.com"
+     ],
+     "crossmark-restriction": false
+    },
+    "short-container-title": [
+     "Sci Rep"
+    ],
+    "abstract": "<jats:title>Abstract</jats:title>\n                  <jats:p>\n                    The Quantum Approximate Optimization Algorithm (QAOA)–a prominent candidate for near-term quantum computing applications–is tailored to find approximate solutions to combinatorial optimization problems using shallow quantum circuits. In this work, we investigate implementations of QAOA based on cat qubits, where the logical states\n                    <jats:inline-formula>\n                      <jats:tex-math>$$|0\\rangle$$</jats:tex-math>\n                    </jats:inline-formula>\n                    and\n                    <jats:inline-formula>\n                      <jats:tex-math>$$|1\\rangle$$</jats:tex-math>\n                    </jats:inline-formula>\n                    are represented by coherent states of opposite amplitudes,\n                    <jats:inline-formula>\n                      <jats:tex-math>$$|\\alpha \\rangle$$</jats:tex-math>\n                    </jats:inline-formula>\n                    and\n                    <jats:inline-formula>\n                      <jats:tex-math>$$|-\\alpha \\rangle$$</jats:tex-math>\n                    </jats:inline-formula>\n                    . Within this encoding, the primary source of noise–photon loss–induces a bias toward\n                    <jats:italic>Z</jats:italic>\n                    -type errors. We focus specifically on an imlementation employing Kerr resonators. By numerically simulating the gate sequences required for QAOA on these nonlinear resonators, we analyze performance on Max-Cut problems and benchmark it against conventional qubits realized as ideal two-level systems subject to single-photon loss. Our findings indicate that the use of cat qubits leads to improved approximation ratios for random Max-Cut instances compared to standard qubit encodings.\n                  </jats:p>",
+    "DOI": "10.1038/s41598-026-77938-z",
+    "type": "journal-article",
+    "created": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       10
+      ]
+     ],
+     "date-time": "2026-11-10T06:04:36Z",
+     "timestamp": 1794290676000
+    },
+    "update-policy": "https://doi.org/10.1007/springer_crossmark_policy",
+    "source": "Crossref",
+    "is-referenced-by-count": 0,
+    "title": [
+     "Quantum approximate optimization algorithm with cat qubits"
+    ],
+    "prefix": "10.1038",
+    "volume": "16",
+    "author": [
+     {
+      "ORCID": "https://orcid.org/0000-0002-1986-7435",
+      "authenticated-orcid": false,
+      "given": "Pontus",
+      "family": "Vikstål",
+      "sequence": "first",
+      "affiliation": [],
+      "role": [
+       {
+        "vocabulary": "crossref",
+        "role": "author"
+       }
+      ]
+     },
+     {
+      "given": "Laura",
+      "family": "García-Álvarez",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+       {
+        "vocabulary": "crossref",
+        "role": "author"
+       }
+      ]
+     },
+     {
+      "given": "Shruti",
+      "family": "Puri",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+       {
+        "vocabulary": "crossref",
+        "role": "author"
+       }
+      ]
+     },
+     {
+      "given": "Giulia",
+      "family": "Ferrini",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+       {
+        "vocabulary": "crossref",
+        "role": "author"
+       }
+      ]
+     }
+    ],
+    "member": "297",
+    "published-online": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       10
+      ]
+     ]
+    },
+    "container-title": [
+     "Scientific Reports"
+    ],
+    "original-title": [],
+    "language": "en",
+    "link": [
+     {
+      "URL": "https://www.nature.com/articles/s41598-026-77938-z",
+      "content-type": "text/html",
+      "content-version": "vor",
+      "intended-application": "text-mining"
+     },
+     {
+      "URL": "https://www.nature.com/articles/s41598-026-77938-z.pdf",
+      "content-type": "application/pdf",
+      "content-version": "vor",
+      "intended-application": "text-mining"
+     },
+     {
+      "URL": "https://www.nature.com/articles/s41598-026-77938-z.pdf",
+      "content-type": "application/pdf",
+      "content-version": "vor",
+      "intended-application": "similarity-checking"
+     }
+    ],
+    "deposited": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       10
+      ]
+     ],
+     "date-time": "2026-11-10T06:21:54Z",
+     "timestamp": 1794291714000
+    },
+    "score": 1,
+    "resource": {
+     "primary": {
+      "URL": "https://www.nature.com/articles/s41598-026-77938-z"
+     }
+    },
+    "subtitle": [],
+    "short-title": [],
+    "issued": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       10
+      ]
+     ]
+    },
+    "references-count": 80,
+    "journal-issue": {
+     "issue": "1",
+     "published-online": {
+      "date-parts": [
+       [
+        2026,
+        12
+       ]
+      ]
+     }
+    },
+    "alternative-id": [
+     "77938"
+    ],
+    "URL": "https://doi.org/10.1038/s41598-026-77938-z",
+    "relation": {},
+    "ISSN": [
+     "2045-2322"
+    ],
+    "issn-type": [
+     {
+      "value": "2045-2322",
+      "type": "electronic"
+     }
+    ],
+    "subject": [],
+    "published": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       10
+      ]
+     ]
+    },
+    "assertion": [
+     {
+      "value": "14 April 2026",
+      "order": 1,
+      "name": "received",
+      "label": "Received",
+      "group": {
+       "name": "ArticleHistory",
+       "label": "Article History"
+      }
+     },
+     {
+      "value": "22 October 2026",
+      "order": 2,
+      "name": "accepted",
+      "label": "Accepted",
+      "group": {
+       "name": "ArticleHistory",
+       "label": "Article History"
+      }
+     },
+     {
+      "value": "10 November 2026",
+      "order": 3,
+      "name": "first_online",
+      "label": "First Online",
+      "group": {
+       "name": "ArticleHistory",
+       "label": "Article History"
+      }
+     },
+     {
+      "value": "The authors declare no competing interests.",
+      "order": 1,
+      "name": "Ethics",
+      "label": "Competing interests",
+      "group": {
+       "name": "EthicsHeading",
+       "label": "Declarations"
+      }
+     }
+    ],
+    "article-number": "37504"
+   }
+  ],
+  "items-per-page": 20,
+  "query": {
+   "start-index": 0,
+   "search-terms": null
+  }
+ }
+}

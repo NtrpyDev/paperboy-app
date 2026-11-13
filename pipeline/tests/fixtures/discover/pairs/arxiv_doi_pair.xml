@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-13T03:20:04Z</responseDate>
+                <request verb="ListRecords" metadataPrefix="arXivRaw" from="2026-11-11">http://oaipmh.arxiv.org/oai</request>
+
+
+    <ListRecords>
+
+                    <record>
+                <header>
+        <identifier>oai:arXiv.org:2305.05556</identifier>
+        <datestamp>2026-11-11</datestamp>
+            <setSpec>physics:quant-ph</setSpec>
+    </header>
+
+            <metadata>
+                        <arXivRaw xmlns="http://arxiv.org/OAI/arXivRaw/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://arxiv.org/OAI/arXivRaw/ https://oaipmh.arxiv.org/OAI/arXivRaw.xsd">
+        <id>2305.05556</id>
+        <submitter>Pontus Vikst{\aa}l</submitter>
+            <version version="v1">
+                <date>Tue, 09 May 2023 15:44:52 GMT</date>
+                <size>4665kb</size>
+                    <source_type>D</source_type>
+            </version>
+            <version version="v2">
+                <date>Tue, 17 Sep 2024 15:15:55 GMT</date>
+                <size>3726kb</size>
+                    <source_type>D</source_type>
+            </version>
+        <title>Quantum Approximate Optimization Algorithm with Cat Qubits</title>
+        <authors>Pontus Vikst{\aa}l, Laura Garc\&#39;ia-\&#39;Alvarez, Shruti Puri, Giulia Ferrini</authors>
+        <categories>quant-ph</categories>
+            <comments>15 pages, 13 figures</comments>
+            <doi>10.1038/s41598-026-77938-z</doi>
+            <license>http://creativecommons.org/licenses/by/4.0/</license>
+            <abstract>The Quantum Approximate Optimization Algorithm (QAOA) -- one of the leading algorithms for applications on intermediate-scale quantum processors -- is designed to provide approximate solutions to combinatorial optimization problems with shallow quantum circuits. Here, we study QAOA implementations with cat qubits, using coherent states with opposite amplitudes. The dominant noise mechanism, i.e., photon losses, results in $Z$-biased noise with this encoding. We consider in particular an implementation with Kerr resonators. We numerically simulate solving MaxCut problems using QAOA with cat qubits by simulating the required gates sequence acting on the Kerr non-linear resonators, and compare to the case of standard qubits, encoded in ideal two-level systems, in the presence of single-photon loss. Our results show that running QAOA with cat qubits increases the approximation ratio for random instances of MaxCut with respect to qubits encoded into two-level systems.</abstract>
+    </arXivRaw>
+
+            </metadata>
+        </record>
+    </ListRecords>
+</OAI-PMH>

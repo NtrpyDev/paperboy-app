@@ -1,0 +1,309 @@
+{
+ "status": "ok",
+ "message-type": "work-list",
+ "message-version": "1.0.0",
+ "message": {
+  "facets": {},
+  "next-cursor": "MTc5NDUzOTYyOTAwMCwxMC42Mjk1MSUyRnNvbHVzaWJlcnNhbWEudjNpNC4zNzE4",
+  "total-results": 1,
+  "items": [
+   {
+    "indexed": {
+     "date-parts": [
+      [
+       2026,
+       9,
+       2
+      ]
+     ],
+     "date-time": "2026-09-02T03:17:09Z",
+     "timestamp": 1788319029633,
+     "version": "build-2803163510"
+    },
+    "reference-count": 33,
+    "publisher": "Wiley",
+    "issue": "779",
+    "license": [
+     {
+      "start": {
+       "date-parts": [
+        [
+         2026,
+         4,
+         20
+        ]
+       ],
+       "date-time": "2026-04-20T00:00:00Z",
+       "timestamp": 1776643200000
+      },
+      "content-version": "vor",
+      "delay-in-days": 0,
+      "URL": "http://creativecommons.org/licenses/by-nc/4.0/"
+     },
+     {
+      "start": {
+       "date-parts": [
+        [
+         2026,
+         4,
+         20
+        ]
+       ],
+       "date-time": "2026-04-20T00:00:00Z",
+       "timestamp": 1776643200000
+      },
+      "content-version": "tdm",
+      "delay-in-days": 0,
+      "URL": "http://doi.wiley.com/10.1002/tdm_license_1.1"
+     }
+    ],
+    "funder": [
+     {
+      "DOI": "10.13039/501100011019",
+      "name": "Nemzeti Kutatási Fejlesztési és Innovációs Hivatal",
+      "doi-asserted-by": "publisher",
+      "award": [
+       "K142849"
+      ],
+      "award-info": [
+       {
+        "award-number": [
+         "K142849"
+        ]
+       }
+      ],
+      "id": [
+       {
+        "id": "10.13039/501100011019",
+        "id-type": "DOI",
+        "asserted-by": "publisher"
+       }
+      ]
+     }
+    ],
+    "content-domain": {
+     "domain": [
+      "rmets.onlinelibrary.wiley.com"
+     ],
+     "crossmark-restriction": true
+    },
+    "short-container-title": [
+     "Quart J Royal Meteoro Soc"
+    ],
+    "published-print": {
+     "date-parts": [
+      [
+       2026,
+       7
+      ]
+     ]
+    },
+    "abstract": "<jats:title>Abstract</jats:title>\n                  <jats:p>Weather forecasting presents several challenges, including the chaotic nature of the atmosphere and the high computational demands of numerical weather prediction models. To achieve the most accurate predictions, the ideal scenario involves the lowest possible horizontal resolution and the largest ensemble size. This study provides a detailed comparative analysis of the forecast skill of the raw and post‐processed medium‐ and extended‐range wind‐speed ensemble forecasts of the European Centre for Medium‐Range Weather Forecasts issued at 9 km and 36 km horizontal resolutions respectively, and their various mixtures. We utilize the ensemble model output statistic approach for forecast calibration with three different spatial training data selection techniques. First, we investigate the performance of the 50‐member medium‐range and 100‐member extended‐range predictions (referred to as high and low resolution respectively) and their 150‐member dual‐resolution combination. Further, we examine whether the performance of raw and post‐processed low‐resolution forecasts can be improved by incorporating high‐resolution ensemble members. Specifically, we extend a 50‐member low‐resolution extended‐range forecast with 1, 2, 4, 8, 16, and 32 members from the high‐resolution medium‐range ensemble and compare the performance of these mixtures both before and after calibration. Our results confirm that, in general, all post‐processed forecasts outperform the raw ensemble predictions in terms of probabilistic calibration and point forecast accuracy and that post‐processing considerably reduces the differences between the various configurations. We also show that spatial resolution is superior to the ensemble size; augmenting a sufficiently large ensemble of high‐resolution forecasts with low‐resolution predictions does not necessarily result in a gain in forecast skill. However, our study also highlights the clear benefit of the other direction; namely, incorporating high‐resolution members into low‐resolution ensemble forecasts, where the most significant gains are observed in configurations with the highest number of high‐resolution members.</jats:p>",
+    "DOI": "10.1002/qj.70201",
+    "type": "journal-article",
+    "created": {
+     "date-parts": [
+      [
+       2026,
+       4,
+       21
+      ]
+     ],
+     "date-time": "2026-04-21T04:47:42Z",
+     "timestamp": 1776746862000
+    },
+    "update-policy": "https://doi.org/10.1002/crossmark_policy",
+    "source": "Crossref",
+    "is-referenced-by-count": 0,
+    "title": [
+     "Statistical post‐processing of operational dual‐resolution wind‐speed ensemble forecasts"
+    ],
+    "prefix": "10.1002",
+    "volume": "152",
+    "author": [
+     {
+      "ORCID": "https://orcid.org/0000-0003-1035-004X",
+      "authenticated-orcid": false,
+      "given": "Sándor",
+      "family": "Baran",
+      "sequence": "first",
+      "affiliation": [
+       {
+        "name": "Faculty of Informatics University of Debrecen  Debrecen Hungary"
+       }
+      ],
+      "role": [
+       {
+        "vocabulary": "crossref",
+        "role": "author"
+       }
+      ]
+     },
+     {
+      "ORCID": "https://orcid.org/0009-0007-5574-0240",
+      "authenticated-orcid": false,
+      "given": "Mária",
+      "family": "Lakatos",
+      "sequence": "additional",
+      "affiliation": [
+       {
+        "name": "Faculty of Informatics University of Debrecen  Debrecen Hungary"
+       }
+      ],
+      "role": [
+       {
+        "vocabulary": "crossref",
+        "role": "author"
+       }
+      ]
+     }
+    ],
+    "member": "311",
+    "published-online": {
+     "date-parts": [
+      [
+       2026,
+       4,
+       20
+      ]
+     ]
+    },
+    "container-title": [
+     "Quarterly Journal of the Royal Meteorological Society"
+    ],
+    "original-title": [],
+    "language": "en",
+    "link": [
+     {
+      "URL": "https://rmets.onlinelibrary.wiley.com/doi/pdf/10.1002/qj.70201",
+      "content-type": "application/pdf",
+      "content-version": "vor",
+      "intended-application": "text-mining"
+     },
+     {
+      "URL": "https://rmets.onlinelibrary.wiley.com/doi/full-xml/10.1002/qj.70201",
+      "content-type": "application/xml",
+      "content-version": "vor",
+      "intended-application": "text-mining"
+     },
+     {
+      "URL": "https://rmets.onlinelibrary.wiley.com/doi/pdf/10.1002/qj.70201",
+      "content-type": "unspecified",
+      "content-version": "vor",
+      "intended-application": "similarity-checking"
+     }
+    ],
+    "deposited": {
+     "date-parts": [
+      [
+       2026,
+       9,
+       2
+      ]
+     ],
+     "date-time": "2026-09-02T02:59:06Z",
+     "timestamp": 1788317946000
+    },
+    "score": 1,
+    "resource": {
+     "primary": {
+      "URL": "https://rmets.onlinelibrary.wiley.com/doi/10.1002/qj.70201"
+     }
+    },
+    "subtitle": [],
+    "short-title": [],
+    "issued": {
+     "date-parts": [
+      [
+       2026,
+       4,
+       20
+      ]
+     ]
+    },
+    "references-count": 33,
+    "journal-issue": {
+     "issue": "779",
+     "published-print": {
+      "date-parts": [
+       [
+        2026,
+        7
+       ]
+      ]
+     }
+    },
+    "alternative-id": [
+     "10.1002/qj.70201"
+    ],
+    "URL": "https://doi.org/10.1002/qj.70201",
+    "archive": [
+     "Portico"
+    ],
+    "relation": {},
+    "ISSN": [
+     "0035-9009",
+     "1477-870X"
+    ],
+    "issn-type": [
+     {
+      "value": "0035-9009",
+      "type": "print"
+     },
+     {
+      "value": "1477-870X",
+      "type": "electronic"
+     }
+    ],
+    "subject": [],
+    "published": {
+     "date-parts": [
+      [
+       2026,
+       4,
+       20
+      ]
+     ]
+    },
+    "assertion": [
+     {
+      "value": "2025-06-19",
+      "order": 0,
+      "name": "received",
+      "label": "Received",
+      "group": {
+       "name": "publication_history",
+       "label": "Publication History"
+      }
+     },
+     {
+      "value": "2026-04-01",
+      "order": 2,
+      "name": "accepted",
+      "label": "Accepted",
+      "group": {
+       "name": "publication_history",
+       "label": "Publication History"
+      }
+     },
+     {
+      "value": "2026-04-20",
+      "order": 3,
+      "name": "published",
+      "label": "Published",
+      "group": {
+       "name": "publication_history",
+       "label": "Publication History"
+      }
+     }
+    ],
+    "article-number": "e70201"
+   }
+  ],
+  "items-per-page": 20,
+  "query": {
+   "start-index": 0,
+   "search-terms": null
+  }
+ }
+}

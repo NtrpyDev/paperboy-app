@@ -1,0 +1,784 @@
+{
+ "status": "ok",
+ "message-type": "work-list",
+ "message-version": "1.0.0",
+ "message": {
+  "facets": {},
+  "next-cursor": "MTc5NDUzOTYyOTAwMCwxMC42Mjk1MSUyRnNvbHVzaWJlcnNhbWEudjNpNC4zNzE4",
+  "total-results": 32424,
+  "items": [
+   {
+    "indexed": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ],
+     "date-time": "2026-11-13T03:23:14Z",
+     "timestamp": 1794540194371,
+     "version": "4.9.1"
+    },
+    "reference-count": 51,
+    "publisher": "Policia Nacional de Colombia",
+    "issue": "3",
+    "content-domain": {
+     "domain": [],
+     "crossmark-restriction": false
+    },
+    "abstract": "<jats:p>La literatura sobre criminalidad en Colombia documenta que el homicidio se agrupa en el territorio y con frecuencia interpreta ese agrupamiento como evidencia de contagio entre municipios vecinos. El objetivo de este estudio es determinar si dicho agrupamiento obedece a un efecto de interacción endógena entre municipios o a efectos contextuales y a heterogeneidad estructural no observada. Se emplea un panel balanceado de 997 municipios observados entre 1990 y 2024, con 34 895 observaciones, y se estima una escalera de cinco especificaciones que va del modelo de efectos fijos estático al modelo Durbin espacial dinámico, por variables instrumentales y con efectos fijos de municipio y de año. El índice I de Moran resulta positivo y significativo en los treinta y cinco años, con valores entre 0.243 y 0.476, y alcanza su máximo histórico cuando la violencia está cerca de sus mínimos. Al incorporar de manera simultánea la dependencia temporal y la heterogeneidad municipal, el parámetro autorregresivo espacial desciende desde 1.124 en el modelo estático, valor fuera del espacio admisible, hasta 0.162, y pierde robustez frente a definiciones alternativas de vecindad. Persiste en cambio un efecto contextual del tamaño poblacional de los vecinos, con un efecto indirecto de largo plazo de 1.140</jats:p>",
+    "DOI": "10.22335/rlct.v18i3.2411",
+    "type": "journal-article",
+    "created": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ],
+     "date-time": "2026-11-13T03:19:17Z",
+     "timestamp": 1794539957000
+    },
+    "page": "33",
+    "source": "Crossref",
+    "is-referenced-by-count": 0,
+    "title": [
+     "Dependencia espacial y persistencia temporal del homicidio municipal en Colombia"
+    ],
+    "prefix": "10.22335",
+    "volume": "18",
+    "author": [
+     {
+      "ORCID": "https://orcid.org/0000-0003-4770-0584",
+      "authenticated-orcid": false,
+      "given": "Cortes Chala",
+      "family": "Oscar",
+      "sequence": "first",
+      "affiliation": [
+       {
+        "id": [
+         {
+          "id": "https://ror.org/04s60rj63",
+          "id-type": "ROR",
+          "asserted-by": "publisher"
+         }
+        ],
+        "name": "Universidad Surcolombiana"
+       }
+      ],
+      "role": [
+       {
+        "vocabulary": "crossref",
+        "role": "author"
+       }
+      ]
+     },
+     {
+      "ORCID": "https://orcid.org/0000-0003-2976-1033",
+      "authenticated-orcid": false,
+      "given": "Francisco Rivelino",
+      "family": "Bernal Cerquera",
+      "sequence": "additional",
+      "affiliation": [
+       {
+        "id": [
+         {
+          "id": "https://ror.org/04s60rj63",
+          "id-type": "ROR",
+          "asserted-by": "publisher"
+         }
+        ],
+        "name": "Universidad Surcolombiana"
+       }
+      ],
+      "role": [
+       {
+        "vocabulary": "crossref",
+        "role": "author"
+       }
+      ]
+     },
+     {
+      "ORCID": "https://orcid.org/0000-0002-0043-105X",
+      "authenticated-orcid": false,
+      "given": "Camilo Fabiam",
+      "family": "Gómez Segura",
+      "sequence": "additional",
+      "affiliation": [
+       {
+        "id": [
+         {
+          "id": "https://ror.org/04s60rj63",
+          "id-type": "ROR",
+          "asserted-by": "publisher"
+         }
+        ],
+        "name": "Universidad Surcolombiana"
+       }
+      ],
+      "role": [
+       {
+        "vocabulary": "crossref",
+        "role": "author"
+       }
+      ]
+     }
+    ],
+    "member": "9592",
+    "published-online": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       12
+      ]
+     ]
+    },
+    "container-title": [
+     "Revista Logos Ciencia &amp; Tecnología"
+    ],
+    "deposited": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ],
+     "date-time": "2026-11-13T03:20:25Z",
+     "timestamp": 1794540025000
+    },
+    "score": 0.0,
+    "resource": {
+     "primary": {
+      "URL": "https://revistalogos.policia.edu.co:8443/index.php/rlct/article/view/2411"
+     }
+    },
+    "issued": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       12
+      ]
+     ]
+    },
+    "references-count": 51,
+    "journal-issue": {
+     "issue": "3",
+     "published-online": {
+      "date-parts": [
+       [
+        2026,
+        11,
+        12
+       ]
+      ]
+     }
+    },
+    "URL": "https://doi.org/10.22335/rlct.v18i3.2411",
+    "ISSN": [
+     "2145-549X",
+     "2422-4200"
+    ],
+    "issn-type": [
+     {
+      "value": "2145-549X",
+      "type": "print"
+     },
+     {
+      "value": "2422-4200",
+      "type": "electronic"
+     }
+    ],
+    "published": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       12
+      ]
+     ]
+    }
+   },
+   {
+    "indexed": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ],
+     "date-time": "2026-11-13T03:23:14Z",
+     "timestamp": 1794540194293,
+     "version": "4.9.1"
+    },
+    "reference-count": 117,
+    "publisher": "Springer Science and Business Media LLC",
+    "issue": "1",
+    "license": [
+     {
+      "start": {
+       "date-parts": [
+        [
+         2026,
+         11,
+         13
+        ]
+       ],
+       "date-time": "2026-11-13T00:00:00Z",
+       "timestamp": 1794528000000
+      },
+      "content-version": "tdm",
+      "delay-in-days": 0,
+      "URL": "https://creativecommons.org/licenses/by/4.0"
+     },
+     {
+      "start": {
+       "date-parts": [
+        [
+         2026,
+         11,
+         13
+        ]
+       ],
+       "date-time": "2026-11-13T00:00:00Z",
+       "timestamp": 1794528000000
+      },
+      "content-version": "vor",
+      "delay-in-days": 0,
+      "URL": "https://creativecommons.org/licenses/by/4.0"
+     }
+    ],
+    "funder": [
+     {
+      "DOI": "10.13039/501100018821",
+      "name": "Hawkesbury Institute for the Environment, Western Sydney University",
+      "doi-asserted-by": "publisher",
+      "award": [
+       "P2-028"
+      ],
+      "award-info": [
+       {
+        "award-number": [
+         "P2-028"
+        ]
+       }
+      ],
+      "id": [
+       {
+        "id": "10.13039/501100018821",
+        "id-type": "DOI",
+        "asserted-by": "publisher"
+       }
+      ]
+     },
+     {
+      "name": "Perfection Fresh Pty Ltd",
+      "award": [
+       "P2-028"
+      ],
+      "award-info": [
+       {
+        "award-number": [
+         "P2-028"
+        ]
+       }
+      ]
+     },
+     {
+      "name": "CRC",
+      "award": [
+       "P2-028"
+      ],
+      "award-info": [
+       {
+        "award-number": [
+         "P2-028"
+        ]
+       }
+      ]
+     }
+    ],
+    "content-domain": {
+     "domain": [
+      "link.springer.com"
+     ],
+     "crossmark-restriction": false
+    },
+    "short-container-title": [
+     "Crop Health"
+    ],
+    "abstract": "<jats:title>Abstract</jats:title>\n                  <jats:p>\n                    Gummy stem blight (GSB) is a major disease of cucurbits caused by\n                    <jats:italic>Stagonosporopsis</jats:italic>\n                    spp. and is increasingly problematic in intensive cucumber production systems, particularly where warm, humid environments favour infection, sporulation and rapid disease spread. GSB can infect vegetative and reproductive tissues and remain latent in fruit for several days before visible symptoms develop, creating a distinctive commercial challenge: disease may be difficult to detect before harvest yet cause significant post-harvest losses, reducing grower and retailer confidence. Compounding these problems, current diagnostic tools for detecting pre-symptomatic infection are often insufficiently validated for species specificity, sensitivity, turnaround time, cost, crude-sample compatibility and practical use by production staff. Many of these limitations reflect the relative lack of genomic resources for\n                    <jats:italic>Stagonosporopsis</jats:italic>\n                    . Therefore, this review integrates evidence from other pathosystems with current knowledge of\n                    <jats:italic>Stagonosporopsis</jats:italic>\n                    taxonomy, infection biology, epidemiology, diagnostics, fungicide resistance, effector biology and host resistance to identify pathways towards grower-ready tools. Specifically, we focus on how recent advances in genomics, paired with previously designed detection systems such as loop-mediated isothermal amplification (LAMP) and clustered regularly interspaced short palindromic repeats/CRISPR-associated proteins (CRISPR/Cas), could be adapted for species-specific detection of the causal pathogen and, simultaneously, provide a regional profile of fungicide resistance. In parallel, we explore how a deeper functional genomic understanding of the disease, particularly of effector proteins expressed during the early stages of infection, could provide valuable insights into the dynamics of this host–pathogen interaction and support strategies to disrupt these interactions through novel fungistatic compounds and the development of disease-resistant cultivars. Together, these approaches could support a staged technology-development and adoption roadmap for more precise, rapid and sustainable GSB management in cucumber production.\n                  </jats:p>",
+    "DOI": "10.1007/s44297-026-00091-6",
+    "type": "journal-article",
+    "created": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ],
+     "date-time": "2026-11-13T03:18:18Z",
+     "timestamp": 1794539898000
+    },
+    "update-policy": "https://doi.org/10.1007/springer_crossmark_policy",
+    "source": "Crossref",
+    "is-referenced-by-count": 0,
+    "title": [
+     "Translating pathogen biology into diagnostic and management strategies for gummy stem blight in cucumber production"
+    ],
+    "prefix": "10.1007",
+    "volume": "4",
+    "author": [
+     {
+      "ORCID": "https://orcid.org/0000-0003-4419-5172",
+      "authenticated-orcid": false,
+      "given": "Aastha",
+      "family": "Ranjan",
+      "sequence": "first",
+      "affiliation": [],
+      "role": [
+       {
+        "role": "author",
+        "vocabulary": "crossref"
+       },
+       {
+        "role": "corresponding-author",
+        "vocabulary": "crossref"
+       }
+      ]
+     },
+     {
+      "given": "Alison",
+      "family": "Lu",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+       {
+        "role": "author",
+        "vocabulary": "crossref"
+       }
+      ]
+     },
+     {
+      "given": "Charles",
+      "family": "Hutton",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+       {
+        "role": "author",
+        "vocabulary": "crossref"
+       }
+      ]
+     },
+     {
+      "given": "Oscar",
+      "family": "Bricknell",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+       {
+        "role": "author",
+        "vocabulary": "crossref"
+       }
+      ]
+     },
+     {
+      "given": "Andrew",
+      "family": "Redman",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+       {
+        "role": "author",
+        "vocabulary": "crossref"
+       }
+      ]
+     },
+     {
+      "given": "David T.",
+      "family": "Tissue",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+       {
+        "role": "author",
+        "vocabulary": "crossref"
+       }
+      ]
+     },
+     {
+      "given": "Jonathan M.",
+      "family": "Plett",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+       {
+        "role": "author",
+        "vocabulary": "crossref"
+       }
+      ]
+     }
+    ],
+    "member": "297",
+    "published-online": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ]
+    },
+    "container-title": [
+     "Crop Health"
+    ],
+    "language": "en",
+    "link": [
+     {
+      "URL": "https://link.springer.com/content/pdf/10.1007/s44297-026-00091-6.pdf",
+      "content-type": "application/pdf",
+      "content-version": "vor",
+      "intended-application": "text-mining"
+     },
+     {
+      "URL": "https://link.springer.com/article/10.1007/s44297-026-00091-6",
+      "content-type": "text/html",
+      "content-version": "vor",
+      "intended-application": "text-mining"
+     },
+     {
+      "URL": "https://link.springer.com/content/pdf/10.1007/s44297-026-00091-6.pdf",
+      "content-type": "application/pdf",
+      "content-version": "vor",
+      "intended-application": "similarity-checking"
+     }
+    ],
+    "deposited": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ],
+     "date-time": "2026-11-13T03:18:23Z",
+     "timestamp": 1794539903000
+    },
+    "score": 0.0,
+    "resource": {
+     "primary": {
+      "URL": "https://link.springer.com/article/10.1007/s44297-026-00091-6"
+     }
+    },
+    "issued": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ]
+    },
+    "references-count": 117,
+    "journal-issue": {
+     "issue": "1",
+     "published-online": {
+      "date-parts": [
+       [
+        2026,
+        12
+       ]
+      ]
+     }
+    },
+    "alternative-id": [
+     "91"
+    ],
+    "URL": "https://doi.org/10.1007/s44297-026-00091-6",
+    "ISSN": [
+     "2948-1945"
+    ],
+    "issn-type": [
+     {
+      "value": "2948-1945",
+      "type": "electronic"
+     }
+    ],
+    "published": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ]
+    },
+    "assertion": [
+     {
+      "value": "27 April 2026",
+      "order": 1,
+      "name": "received",
+      "label": "Received",
+      "group": {
+       "name": "ArticleHistory",
+       "label": "Article History"
+      }
+     },
+     {
+      "value": "29 October 2026",
+      "order": 2,
+      "name": "revised",
+      "label": "Revised",
+      "group": {
+       "name": "ArticleHistory",
+       "label": "Article History"
+      }
+     },
+     {
+      "value": "2 November 2026",
+      "order": 3,
+      "name": "accepted",
+      "label": "Accepted",
+      "group": {
+       "name": "ArticleHistory",
+       "label": "Article History"
+      }
+     },
+     {
+      "value": "13 November 2026",
+      "order": 4,
+      "name": "first_online",
+      "label": "First Online",
+      "group": {
+       "name": "ArticleHistory",
+       "label": "Article History"
+      }
+     },
+     {
+      "value": "This review article is based on previously published studies. No human participants or animals were involved.",
+      "order": 1,
+      "name": "Ethics",
+      "label": "Ethics approval and consent to participate",
+      "group": {
+       "name": "EthicsHeading",
+       "label": "Declarations"
+      }
+     },
+     {
+      "value": "All authors have approved the final version and consented to its publication.",
+      "order": 2,
+      "name": "Ethics",
+      "label": "Consent for publication",
+      "group": {
+       "name": "EthicsHeading",
+       "label": "Declarations"
+      }
+     },
+     {
+      "value": "The authors declare that they have no competing interests.",
+      "order": 3,
+      "name": "Ethics",
+      "label": "Competing interests",
+      "group": {
+       "name": "EthicsHeading",
+       "label": "Declarations"
+      }
+     }
+    ],
+    "article-number": "27"
+   },
+   {
+    "indexed": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ],
+     "date-time": "2026-11-13T03:22:47Z",
+     "timestamp": 1794540167082,
+     "version": "4.9.1"
+    },
+    "reference-count": 0,
+    "publisher": "University of Technology, Sydney (UTS)",
+    "issue": "3/4",
+    "license": [
+     {
+      "start": {
+       "date-parts": [
+        [
+         2026,
+         11,
+         12
+        ]
+       ],
+       "date-time": "2026-11-12T00:00:00Z",
+       "timestamp": 1794441600000
+      },
+      "content-version": "unspecified",
+      "delay-in-days": 0,
+      "URL": "http://creativecommons.org/licenses/by/4.0"
+     }
+    ],
+    "content-domain": {
+     "domain": [],
+     "crossmark-restriction": false
+    },
+    "short-container-title": [
+     "CEB"
+    ],
+    "abstract": "<jats:p>This study employed a mixed-review approach that integrates bibliometric analysis with a systematic literature review (SLR) to synthesize evidence on the competencies required of built environment professionals in emerging economies. The method specifies the Scopus search strategy, inclusion and exclusion criteria, screening procedures, and quality checks, resulting in 59 eligible publications from an initial 185 records retrieved in May 2024. Bibliometric analysis (VOSviewer 1.6.20) identified publication trends, co-authorship networks, key keywords, and co-citation clusters, which informed the thematic focus of the SLR. The SLR synthesized findings into seven themes: (1) emerging critical skills, (2) competency-based curriculum, (3) technology infrastructure and assessment, (4) municipal competency training, (5) innovative skills for construction management graduates, (6) university–industry collaboration for the Fourth Industrial Revolution (4IR), and (7) pedagogical innovations and learning management systems. The study offers practical recommendations for curriculum developers, universities, and industry stakeholders and highlights the need for future empirical studies to validate the identified competency frameworks.\n </jats:p>",
+    "DOI": "10.5130/pjx4c836",
+    "type": "journal-article",
+    "created": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ],
+     "date-time": "2026-11-13T03:15:28Z",
+     "timestamp": 1794539728000
+    },
+    "source": "Crossref",
+    "is-referenced-by-count": 0,
+    "title": [
+     "A mixed review of research on the competencies of built environment professionals in infrastructure delivery within emerging economies"
+    ],
+    "prefix": "10.5130",
+    "volume": "26",
+    "author": [
+     {
+      "given": "Molusiwa Stephan,",
+      "family": "Ramabodu",
+      "sequence": "first",
+      "affiliation": [],
+      "role": [
+       {
+        "vocabulary": "crossref",
+        "role": "author"
+       }
+      ]
+     },
+     {
+      "given": "Bamidele",
+      "family": "Arijeloye",
+      "sequence": "additional",
+      "affiliation": [],
+      "role": [
+       {
+        "vocabulary": "crossref",
+        "role": "author"
+       }
+      ]
+     }
+    ],
+    "member": "3097",
+    "published-online": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       12
+      ]
+     ]
+    },
+    "container-title": [
+     "Construction Economics and Building"
+    ],
+    "link": [
+     {
+      "URL": "https://epress.lib.uts.edu.au/journals/index.php/AJCEB/article/download/9845/8947",
+      "content-type": "application/pdf",
+      "content-version": "vor",
+      "intended-application": "text-mining"
+     },
+     {
+      "URL": "https://epress.lib.uts.edu.au/journals/index.php/AJCEB/article/download/9845/8949",
+      "content-type": "text/html",
+      "content-version": "vor",
+      "intended-application": "text-mining"
+     },
+     {
+      "URL": "https://epress.lib.uts.edu.au/journals/index.php/AJCEB/article/download/9845/8947",
+      "content-type": "unspecified",
+      "content-version": "vor",
+      "intended-application": "similarity-checking"
+     }
+    ],
+    "deposited": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       13
+      ]
+     ],
+     "date-time": "2026-11-13T03:15:29Z",
+     "timestamp": 1794539729000
+    },
+    "score": 0.0,
+    "resource": {
+     "primary": {
+      "URL": "https://epress.lib.uts.edu.au/journals/index.php/AJCEB/article/view/9845"
+     }
+    },
+    "issued": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       12
+      ]
+     ]
+    },
+    "references-count": 0,
+    "journal-issue": {
+     "issue": "3/4",
+     "published-online": {
+      "date-parts": [
+       [
+        2026,
+        10,
+        7
+       ]
+      ]
+     }
+    },
+    "URL": "https://doi.org/10.5130/pjx4c836",
+    "ISSN": [
+     "2204-9029"
+    ],
+    "issn-type": [
+     {
+      "value": "2204-9029",
+      "type": "electronic"
+     }
+    ],
+    "published": {
+     "date-parts": [
+      [
+       2026,
+       11,
+       12
+      ]
+     ]
+    }
+   }
+  ],
+  "items-per-page": 20,
+  "query": {
+   "start-index": 0,
+   "search-terms": null
+  }
+ }
+}

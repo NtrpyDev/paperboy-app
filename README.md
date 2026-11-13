@@ -32,3 +32,15 @@ adb reverse tcp:18765 tcp:18765
 ```
 
 Debug builds allow plain HTTP only to `localhost`, `127.0.0.1`, and `10.0.2.2`; release builds allow HTTPS only.
+
+## Worker
+
+The edge worker in `worker/` serves the site, the kit, the feed, and the explainers at `https://paperboy.ntrpydev.workers.dev`. It needs Node.js. Run its tests from that folder:
+
+```sh
+cd worker
+npm install
+npm test
+```
+
+`worker/README.md` describes what it serves and how to deploy it.

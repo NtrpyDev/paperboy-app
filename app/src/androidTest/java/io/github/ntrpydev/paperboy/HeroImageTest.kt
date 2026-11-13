@@ -112,8 +112,8 @@ class HeroImageTest {
             // No plate at all.
             itemJson("arxiv-none", "A paper with no plate", "physics", "optics", 8.0, now, plate = null),
         )
-        fixtures.override("feed/v1/head.json") { jsonResponse(headJson(chunkCount = 1)) }
-        fixtures.override("feed/v1/chunks/000001.json") { jsonResponse(chunkJson(1, items)) }
+        fixtures.override("feed/v2/head.json") { jsonResponse(headJson(chunkCount = 1)) }
+        fixtures.override("feed/v2/chunks/000001.json") { jsonResponse(chunkJson(1, items)) }
         val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
         compose.setContent { PaperboyTheme { PaperboyRoot(graph) } }
 

@@ -1,4 +1,4 @@
-"""Writes the app's fixture feed in app/src/fixtures/feed/v1.
+"""Writes the app's fixture feed in app/src/fixtures/feed/v2.
 
 Chunks 1 to 8 are closed chunks of 40 generated papers each, oldest first. Some carry a
 second voice (hook_turn) and a readout, with and without an exponent and a unit.
@@ -32,7 +32,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "app/src/fixtures"
-FEED = FIXTURES / "feed/v1"
+FEED = FIXTURES / "feed/v2"
 CLOSED_CHUNKS = 8
 CHUNK_SIZE = 40
 UPGRADED = "arxiv-2609.10300"

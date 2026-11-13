@@ -47,7 +47,7 @@ class FeedSessionTest {
         io = StandardTestDispatcher(testScheduler),
     )
 
-    private fun chunksRequested() = fixtures.requested.filter { it.startsWith("feed/v1/chunks/") }.map { it.substring(15, 21).toInt() }
+    private fun chunksRequested() = fixtures.requested.filter { it.startsWith("feed/v2/chunks/") }.map { it.substring(15, 21).toInt() }
 
     private fun FeedSession.ids() = state.value.items.map { it.id }
 
@@ -119,7 +119,7 @@ class FeedSessionTest {
             assertEquals("GET", request.method)
             assertEquals(0L, request.bodySize.coerceAtLeast(0))
             assertNull(request.url.query)
-            assertTrue(request.url.encodedPath, request.url.encodedPath.startsWith("/feed/v1/"))
+            assertTrue(request.url.encodedPath, request.url.encodedPath.startsWith("/feed/v2/"))
         }
         assertTrue(File(filesDir, "taste.json").readText().contains(graphene))
     }
@@ -237,17 +237,17 @@ class FeedSessionTest {
         session.reached(before[3])
         // One new paper in the open chunk 9, which has since closed, and two in a new chunk 10,
         // plus one in chunk 10 without a page, which is not shown and not counted.
-        val chunk9 = resource("feed/v1/chunks/000009.json").trimEnd().removeSuffix("]\n}").removeSuffix("]}")
+        val chunk9 = resource("feed/v2/chunks/000009.json").trimEnd().removeSuffix("]\n}").removeSuffix("]}")
             .let { it.substring(0, it.lastIndexOf('}') + 1) } + "," + newItem("arxiv-2611.20001") + "]}"
-        fixtures.override("feed/v1/chunks/000009.json") { json(chunk9) }
-        fixtures.override("feed/v1/chunks/000010.json") {
+        fixtures.override("feed/v2/chunks/000009.json") { json(chunk9) }
+        fixtures.override("feed/v2/chunks/000010.json") {
             json(
                 """{"v":1,"number":10,"items":[${newItem("arxiv-2611.20002")},""" +
                     """${newItem("arxiv-2611.20004", explained = false)},${newItem("arxiv-2611.20003")}]}""",
             )
         }
-        fixtures.override("feed/v1/head.json") {
-            json(resource("feed/v1/head.json").replace("\"chunk_count\": 9", "\"chunk_count\": 10"))
+        fixtures.override("feed/v2/head.json") {
+            json(resource("feed/v2/head.json").replace("\"chunk_count\": 9", "\"chunk_count\": 10"))
         }
 
         val result = session.refresh()
@@ -266,7 +266,7 @@ class FeedSessionTest {
         // Paper 297, in chunk 8, has no explainer, so it is not shown until an upgrade gives it one.
         val target = "arxiv-2609.10297"
         assertFalse(target in before)
-        fixtures.override("feed/v1/upgrades.json") {
+        fixtures.override("feed/v2/upgrades.json") {
             json(
                 """{"v":1,"upgrades":{"$target":{"explainer":"papers/$target/","hero":{"path":"papers/$target/hero.webp","width":800,"height":450},"explained_at":"2026-11-12T20:00:00Z"}}}""",
             )
@@ -285,7 +285,7 @@ class FeedSessionTest {
         val session = session()
         session.start()
         val before = session.ids()
-        fixtures.override("feed/v1/head.json") { mockwebserver3.MockResponse.Builder().code(503).build() }
+        fixtures.override("feed/v2/head.json") { mockwebserver3.MockResponse.Builder().code(503).build() }
 
         val result = session.refresh()
 
@@ -294,7 +294,7 @@ class FeedSessionTest {
     }
 
     @Test fun `a head that needs a newer app asks for an update and still shows the feed`() = runTest {
-        fixtures.override("feed/v1/head.json") { json(resource("feed/v1/head.json").replace("\"min_app\": 1", "\"min_app\": 2")) }
+        fixtures.override("feed/v2/head.json") { json(resource("feed/v2/head.json").replace("\"min_app\": 1", "\"min_app\": 2")) }
 
         val old = session(appVersionCode = 1)
         old.start()
@@ -307,7 +307,7 @@ class FeedSessionTest {
     }
 
     @Test fun `a failed first load with nothing cached shows the cause, and retry loads the feed`() = runTest {
-        fixtures.override("feed/v1/head.json") { mockwebserver3.MockResponse.Builder().code(503).build() }
+        fixtures.override("feed/v2/head.json") { mockwebserver3.MockResponse.Builder().code(503).build() }
         val session = session()
 
         session.start()
@@ -316,7 +316,7 @@ class FeedSessionTest {
         assertEquals(emptyList<FeedItem>(), session.state.value.items)
         assertFalse(session.state.value.loading)
 
-        fixtures.clearOverride("feed/v1/head.json")
+        fixtures.clearOverride("feed/v2/head.json")
         session.retry()
 
         assertNull(session.state.value.error)
@@ -336,7 +336,7 @@ class FeedSessionTest {
         val session = session()
         session.start()
         val before = session.ids()
-        fixtures.override("feed/v1/chunks/000006.json") { mockwebserver3.MockResponse.Builder().code(503).build() }
+        fixtures.override("feed/v2/chunks/000006.json") { mockwebserver3.MockResponse.Builder().code(503).build() }
 
         session.reached(before.last())
         assertEquals(FeedUnavailableException.Reason.Server, session.state.value.error)
@@ -344,9 +344,9 @@ class FeedSessionTest {
 
         // Scrolling on does not hammer the server; only retry tries again.
         session.reached(before.last())
-        assertEquals(1, fixtures.requested.count { it == "feed/v1/chunks/000006.json" })
+        assertEquals(1, fixtures.requested.count { it == "feed/v2/chunks/000006.json" })
 
-        fixtures.clearOverride("feed/v1/chunks/000006.json")
+        fixtures.clearOverride("feed/v2/chunks/000006.json")
         session.retry()
         assertNull(session.state.value.error)
         assertEquals(160, session.state.value.items.size)
@@ -456,7 +456,7 @@ class FeedSessionTest {
     @Test fun `older chunks with no paper to show are passed over until one has some`() = runTest {
         // Chunks 6, 5 and 4 hold only papers without a page.
         for (n in 4..6) {
-            val name = "feed/v1/chunks/%06d.json".format(n)
+            val name = "feed/v2/chunks/%06d.json".format(n)
             fixtures.override(name) { json(resource(name).replace("\"has_explainer\": true", "\"has_explainer\": false")) }
         }
         val session = session()
@@ -477,14 +477,14 @@ class FeedSessionTest {
      */
     private fun liveShapedFeed() {
         val sizes = List(11) { 40 } + 21
-        fixtures.override("feed/v1/head.json") {
+        fixtures.override("feed/v2/head.json") {
             json("""{"v":1,"updated_at":"2026-11-13T17:54:17Z","chunk_count":12,"total_items":461,"chunk_size":40,"kit":1,"min_app":1}""")
         }
         var k = 0
         for ((index, size) in sizes.withIndex()) {
             val number = index + 1
             val items = (0 until size).map { newItem("arxiv-2611.%05d".format(10000 + k++), explained = false) }
-            fixtures.override("feed/v1/chunks/%06d.json".format(number)) {
+            fixtures.override("feed/v2/chunks/%06d.json".format(number)) {
                 json("""{"v":1,"number":$number,"items":[${items.joinToString(",")}]}""")
             }
         }
@@ -492,7 +492,7 @@ class FeedSessionTest {
             """"$id":{"explainer":"papers/$id/","hero":{"path":"papers/$id/hero.webp","width":1200,"height":708},"explained_at":"2026-11-13T12:00:00Z"}"""
         }
         // Paper 290 is in chunk 8 (280 to 319), paper 410 in chunk 11 (400 to 439).
-        fixtures.override("feed/v1/upgrades.json") {
+        fixtures.override("feed/v2/upgrades.json") {
             json("""{"v":1,"upgrades":{${upgrade("arxiv-2611.10290")},${upgrade("arxiv-2611.10410")}}}""")
         }
     }
@@ -519,7 +519,7 @@ class FeedSessionTest {
 
     @Test fun `a feed with no paper to show loads to chunk 1 and ends empty`() = runTest {
         liveShapedFeed()
-        fixtures.override("feed/v1/upgrades.json") { json("""{"v":1,"upgrades":{}}""") }
+        fixtures.override("feed/v2/upgrades.json") { json("""{"v":1,"upgrades":{}}""") }
         val session = session()
 
         session.start()

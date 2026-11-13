@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
 <title>Paperboy kit gallery</title>
-<link rel="stylesheet" href="vendor/katex/katex.min.css">
-<link rel="stylesheet" href="paperboy.css">
-<script src="vendor/d3.min.js"></script>
-<script src="vendor/plot.umd.min.js"></script>
-<script src="vendor/katex/katex.min.js"></script>
-<script src="vendor/katex/auto-render.min.js"></script>
-<script src="paperboy.js"></script>
+<link rel="stylesheet" href="/kit/v1/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="/kit/v1/paperboy.css">
+<script src="/kit/v1/vendor/d3.min.js"></script>
+<script src="/kit/v1/vendor/plot.umd.min.js"></script>
+<script src="/kit/v1/vendor/katex/katex.min.js"></script>
+<script src="/kit/v1/vendor/katex/auto-render.min.js"></script>
+<script src="/kit/v1/paperboy.js"></script>
 </head>
 <body>
 <article class="pb">
@@ -23,7 +23,7 @@
   <div class="pb-stage" id="hero"><div class="pb-stage-label">A canvas animation on the always-dark stage</div></div>
 </header>
 
-<section class="pb-section">
+<section class="pb-section" data-section="question">
   <p class="pb-eyebrow">The question</p>
   <h2>Text, a glossary term, and math</h2>
   <p class="pb-lede">A lede paragraph sets up the section in one or two sentences.</p>
@@ -34,7 +34,18 @@
   <div class="pb-callout" data-kind="caveat"><span class="pb-callout-label">Caveat</span><p>A limit on how far the claim goes.</p></div>
 </section>
 
-<section class="pb-section">
+<section class="pb-section" data-section="method">
+  <p class="pb-eyebrow">What they did</p>
+  <h2>Scroll steps drive one visual</h2>
+  <div class="pb-steps" id="steps">
+    <div class="pb-steps-visual"><div class="pb-stage" id="steps-stage"></div></div>
+    <div class="pb-step"><span class="pb-step-n">Step 1</span><p>Start with a few particles.</p></div>
+    <div class="pb-step"><span class="pb-step-n">Step 2</span><p>Add more of them.</p></div>
+    <div class="pb-step"><span class="pb-step-n">Step 3</span><p>Then sort them into two groups.</p></div>
+  </div>
+</section>
+
+<section class="pb-section" data-section="findings">
   <p class="pb-eyebrow">What they found</p>
   <h2>Numbers and a chart</h2>
   <div class="pb-stats">
@@ -57,18 +68,7 @@
   </figure>
 </section>
 
-<section class="pb-section">
-  <p class="pb-eyebrow">What they did</p>
-  <h2>Scroll steps drive one visual</h2>
-  <div class="pb-steps" id="steps">
-    <div class="pb-steps-visual"><div class="pb-stage" id="steps-stage"></div></div>
-    <div class="pb-step"><span class="pb-step-n">Step 1</span><p>Start with a few particles.</p></div>
-    <div class="pb-step"><span class="pb-step-n">Step 2</span><p>Add more of them.</p></div>
-    <div class="pb-step"><span class="pb-step-n">Step 3</span><p>Then sort them into two groups.</p></div>
-  </div>
-</section>
-
-<section class="pb-section">
+<section class="pb-section" data-section="confidence">
   <p class="pb-eyebrow">How sure is this</p>
   <h2>Confidence list and a toggle</h2>
   <div id="toggle"></div>
@@ -79,9 +79,15 @@
   </ul>
 </section>
 
+<section class="pb-section" data-section="matters">
+  <p class="pb-eyebrow">Why it matters</p>
+  <h2>The closing section</h2>
+  <p>The last section says why the finding matters. This fixture has no finding, so it only shows the slot.</p>
+</section>
+
 <footer class="pb-source">
-  <p><cite>Fixture, A. and Fixture, B. "A paper that does not exist." Journal of Fixtures (2026).</cite></p>
-  <p>This page is a test fixture for the Paperboy explainer kit.</p>
+  <p><cite>Fixture, A. and Fixture, B. "A paper that does not exist." Journal of Fixtures (2026).</cite> <a href="https://doi.org/10.0000/fixture">Link to the paper</a></p>
+  <p>This page is a test fixture for the Paperboy explainer kit. Explainers are machine written and can be wrong.</p>
 </footer>
 
 </article>

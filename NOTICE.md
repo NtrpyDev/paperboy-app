@@ -12,6 +12,16 @@ Vendored in `kit/v1/vendor/`. Each license text is in `kit/v1/vendor/licenses/`.
 | Observable Plot | 0.6.19 | ISC | `kit/v1/vendor/licenses/plot-LICENSE` |
 | KaTeX, including its fonts in `kit/v1/vendor/katex/fonts/` | 0.19.1 | MIT | `kit/v1/vendor/licenses/katex-LICENSE` |
 
+## Fonts
+
+In `kit/v2/fonts/`, as served by Google Fonts and unchanged. Each license text is beside the font files.
+
+| Family | License | License text |
+|---|---|---|
+| Noto Serif Display | SIL Open Font License 1.1 | `kit/v2/fonts/OFL-notoserifdisplay.txt` |
+| Source Serif 4 | SIL Open Font License 1.1 | `kit/v2/fonts/OFL-sourceserif4.txt` |
+| Martian Mono | SIL Open Font License 1.1 | `kit/v2/fonts/OFL-martianmono.txt` |
+
 ## Android app
 
 Libraries declared in `gradle/libs.versions.toml` and bundled into the APK:

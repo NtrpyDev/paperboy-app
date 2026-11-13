@@ -9,7 +9,7 @@ DEFAULT_PROBE = Path(__file__).resolve().parents[4] / "tools" / "usage-probe.sh"
 
 def register(subparsers) -> None:
     p = subparsers.add_parser("gate", help="exit 0 to continue, 10 when weekly usage is at or over the mark, 11 when usage cannot be read")
-    p.add_argument("--max", type=float, default=50.0, help="weekly usage percentage at which the pipeline stops")
+    p.add_argument("--max", type=float, default=70.0, help="weekly usage percentage at which the pipeline stops")
     p.add_argument("--probe", default=str(DEFAULT_PROBE), help="command that prints the usage JSON")
     p.set_defaults(run=run)
 

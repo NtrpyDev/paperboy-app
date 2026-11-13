@@ -16,8 +16,13 @@ def test_gate_goes_below_the_mark(tmp_path, capsys):
 
 
 def test_gate_stops_at_the_mark(tmp_path, capsys):
-    p = probe(tmp_path, 'echo \'{"seven_day": {"used_percentage": 50.0, "resets_at": 1}}\'\n')
+    p = probe(tmp_path, 'echo \'{"seven_day": {"used_percentage": 70.0, "resets_at": 1}}\'\n')
     assert main(["gate", "--probe", p]) == 10
+
+
+def test_gate_goes_just_under_the_mark(tmp_path, capsys):
+    p = probe(tmp_path, 'echo \'{"seven_day": {"used_percentage": 69.0, "resets_at": 1}}\'\n')
+    assert main(["gate", "--probe", p]) == 0
 
 
 def test_gate_respects_a_custom_mark(tmp_path, capsys):

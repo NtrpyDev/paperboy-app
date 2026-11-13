@@ -37,10 +37,13 @@ You are given a work folder holding `candidate.json` (the paper's record, includ
 
 **Figures worth reproducing.** Only when `source.json` says the license is `cc-by` or `cc0`: the paper figures that are clearer than anything redrawn, with their captions and the required credit. Otherwise write "none".
 
+**Card.** The card's readout and its evidence table row, or why there is none. Then the card's hook from `candidate.json` (already live; you do not rewrite it): either "supported", or what in it the paper does not support.
+
 4. Check the brief against the paper once more: open the paper at each locator in the evidence table and confirm the value, unit, and meaning. Done when every row has been confirmed.
+5. Write `card.json` in the work folder: the card's readout, the one number the card shows large. `candidate.json` may hold the scout's `readout`, taken from the abstract. Replace it with the paper's single headline number from your evidence table: `{"readout": {"value", "exponent", "unit", "label"}}` with the shape in `schema/card.schema.json`, the value exactly as printed, and the row's locator kept in the brief's **Card** section. Write `{"readout": null}` when the paper has no single headline number, or when the scout's number is not what the paper reports and none replaces it.
 
 ## When the paper cannot be explained
 
-If the full text is truncated, garbled, or missing the methods or results, write `brief.md` containing the single line `NOT EXPLAINABLE:` followed by the reason, and stop. A short card is better than a guessed explainer.
+If the full text is truncated, garbled, or missing the methods or results, write `brief.md` containing the single line `NOT EXPLAINABLE:` followed by the reason, and stop. Write no `card.json`. A short card is better than a guessed explainer.
 
 Reply with two lines: the finding, and the count of rows in the evidence table.

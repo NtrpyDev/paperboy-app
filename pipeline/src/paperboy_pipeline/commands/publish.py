@@ -23,7 +23,7 @@ from ..content_repo import KIT, ContentRepo, PublishError
 COMMIT_SUBJECTS = {
     "papers": "Published papers: explainer page, card image, and record for each",
     "feed": "Feed head and chunks the app reads",
-    "state": "Pipeline bookkeeping: which papers are already in the feed",
+    "state": "Pipeline bookkeeping: papers in the feed, source cursors, and the explain queue",
 }
 
 FEED_FIELDS = ("id", "title", "hook", "summary", "field", "tags", "status", "venue", "published", "url", "significance")

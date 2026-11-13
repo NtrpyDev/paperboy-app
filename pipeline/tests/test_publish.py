@@ -412,7 +412,7 @@ def git_repo(path: Path) -> Path:
 SUBJECTS = {
     "feed": "Feed head and chunks the app reads",
     "papers": "Published papers: explainer page, card image, and record for each",
-    "state": "Pipeline bookkeeping: which papers are already in the feed",
+    "state": "Pipeline bookkeeping: papers in the feed, source cursors, and the explain queue",
 }
 
 
@@ -446,6 +446,25 @@ def test_commit_skips_folders_that_did_not_change(tmp_path):
     subjects = git(content, "log", "--format=%s").splitlines()
     assert sorted(subjects[:2]) == sorted([SUBJECTS["feed"], SUBJECTS["papers"]])
     assert len(subjects) == count + 2
+
+
+def test_state_commit_carries_the_explain_queue_and_its_removals(tmp_path):
+    content = git_repo(tmp_path / "content")
+    work = write_work(tmp_path / "work", [judged(1)])
+    (content / "state/queue").mkdir(parents=True)
+    (content / "state/queue/arxiv-2611.00002.json").write_text("{}\n")
+    (content / "state/queue/arxiv-2611.00003.json").write_text("{}\n")
+    (content / "state/queue-failed.jsonl").write_text('{"id": "arxiv-2611.00004", "reason": "x", "at": "%s"}\n' % NOW)
+
+    assert publish(work, content, "--commit") == 0
+    committed = git(content, "show", "--name-only", "--format=", git(content, "log", "-1", "--format=%H", "--", "state").strip()).split()
+    assert {"state/queue/arxiv-2611.00002.json", "state/queue/arxiv-2611.00003.json", "state/queue-failed.jsonl"} <= set(committed)
+
+    (content / "state/queue/arxiv-2611.00002.json").unlink()
+    assert publish(work, content, "--commit") == 0
+    assert git(content, "status", "--porcelain").strip() == ""
+    assert git(content, "log", "-1", "--format=%s").strip() == SUBJECTS["state"]
+    assert "state/queue/arxiv-2611.00002.json" not in git(content, "ls-files", "state")
 
 
 def test_without_commit_nothing_is_committed(tmp_path):

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QueueFailed",
+  "description": "One paper the explain queue gave up on (one JSON object per line in state/queue-failed.jsonl). queue fail appends these; queue add and queue take skip their ids.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "reason",
+    "at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(arxiv|doi)-[a-z0-9._-]+$",
+      "description": "Stable paper id: arxiv-<id> or doi-<doi with every character outside a-z 0-9 . _ - replaced by ->, lowercase."
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Why the paper cannot be explained, in a short plain sentence."
+    },
+    "at": {
+      "type": "string",
+      "description": "UTC time the paper was given up on, RFC 3339."
+    }
+  }
+}

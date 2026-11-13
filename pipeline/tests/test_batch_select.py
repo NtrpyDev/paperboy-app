@@ -119,20 +119,29 @@ def test_batch_without_triage_picks_refuses(tmp_path, capsys):
     assert not (tmp_path / "batches").exists()
 
 
-def test_select_applies_floor_and_queues_best_with_full_text(tmp_path, capsys):
+def test_select_applies_the_floor_and_marks_papers_worth_an_explainer(tmp_path, capsys):
     write_lines(tmp_path / "judged" / "001.jsonl", [
         judged(1, 4.0),
         judged(2, 9.0, fulltext={"available": False, "kind": None, "url": None}),
         judged(3, 8.0),
-        judged(4, 7.0),
+        judged(4, 6.5),
         judged(5, 6.0),
+        judged(6, 9.0, fulltext={"available": True, "kind": "biorxiv", "url": "https://www.biorxiv.org/x.xml"}),
     ])
-    assert main(["select", "--work", str(tmp_path), "--floor", "5", "--explain", "2"]) == 0
+    assert main(["select", "--work", str(tmp_path), "--floor", "5"]) == 0
     kept = [json.loads(line) for line in (tmp_path / "judged.jsonl").read_text().splitlines()]
-    assert [r["id"][-1] for r in kept] == ["2", "3", "4", "5"]
+    assert [r["id"][-1] for r in kept] == ["2", "3", "4", "5", "6"]
+    # Full text of a kind in pipeline/config.json, and at least the explain floor (6.5 by default).
     assert [r["id"][-1] for r in kept if r["explain"]] == ["3", "4"]
-    assert (tmp_path / "explain-queue.txt").read_text().split() == ["arxiv-2611.00003", "arxiv-2611.00004"]
-    assert json.loads((tmp_path / "papers" / "arxiv-2611.00003" / "candidate.json").read_text())["explain"] is True
+    assert not (tmp_path / "explain-queue.txt").exists()
+    assert not (tmp_path / "papers").exists()
+
+
+def test_select_takes_the_explain_floor_from_the_command_line(tmp_path):
+    write_lines(tmp_path / "judged" / "001.jsonl", [judged(1, 8.0), judged(2, 7.0)])
+    assert main(["select", "--work", str(tmp_path), "--explain-floor", "7.5"]) == 0
+    kept = [json.loads(line) for line in (tmp_path / "judged.jsonl").read_text().splitlines()]
+    assert [r["explain"] for r in kept] == [True, False]
 
 
 def test_select_rejects_invalid_lines_and_duplicates(tmp_path, capsys):

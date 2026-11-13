@@ -253,3 +253,27 @@ describe("content types", () => {
     expect(hit.headers.get("content-type")).toBe(expected);
   });
 });
+
+describe("explainer security policy", () => {
+  const POLICY =
+    "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data:; font-src 'self'; connect-src 'none'";
+
+  it("is sent with explainer pages, on a miss and on a hit", async () => {
+    const { get } = setup({ "papers/arxiv-1/index.html": "<!doctype html><title>x</title>" });
+
+    const miss = await get("/papers/arxiv-1/index.html");
+    const hit = await get("/papers/arxiv-1/index.html");
+
+    expect(miss.headers.get("content-security-policy")).toBe(POLICY);
+    expect(hit.headers.get("content-security-policy")).toBe(POLICY);
+  });
+
+  it("is not sent with feed files", async () => {
+    const { get } = setup({ "feed/v1/head.json": head(1) });
+
+    const res = await get("/feed/v1/head.json");
+
+    expect(res.headers.get("content-security-policy")).toBeNull();
+  });
+});

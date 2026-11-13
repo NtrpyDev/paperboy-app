@@ -19,6 +19,17 @@ const TYPES: Record<string, string> = {
   svg: "image/svg+xml",
 };
 
+// Explainers may load only same-origin scripts, styles, images, and fonts, plus
+// inline page code and data: images, and may make no network calls.
+const EXPLAINER_POLICY = [
+  "default-src 'none'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data:",
+  "font-src 'self'",
+  "connect-src 'none'",
+].join("; ");
+
 // Every closed chunk holds exactly this many items (chunk_size in schema/head.schema.json).
 const CHUNK_SIZE = 40;
 
@@ -110,6 +121,7 @@ function serve(key: string, body: BodyInit, changing: boolean): Response {
     "content-type": TYPES[extension] ?? "application/octet-stream",
     "cache-control": changing ? SHORT_CACHE : LONG_CACHE,
   });
+  if (extension === "html") headers.set("content-security-policy", EXPLAINER_POLICY);
   return new Response(body, { headers });
 }
 

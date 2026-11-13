@@ -42,6 +42,14 @@ Libraries declared in `gradle/libs.versions.toml` and bundled into the APK:
 
 Their transitive dependencies in the release APK also declare the Apache License 2.0 in their published POM files.
 
+Fonts bundled in the APK, in `app/src/main/res/font/`: the variable font files from github.com/google/fonts (`ofl/notoserifdisplay`, `ofl/sourceserif4`, `ofl/martianmono`), unchanged except for their file names, which Android resource names require. Each family's license text is in `app/src/main/res/raw/`, and the About screen shows it.
+
+| Family | Files | License | License text |
+|---|---|---|---|
+| Noto Serif Display | `notoserifdisplay_variable.ttf`, `notoserifdisplay_italic_variable.ttf` | SIL Open Font License 1.1 | `app/src/main/res/raw/ofl_notoserifdisplay.txt` |
+| Source Serif 4 | `sourceserif4_variable.ttf`, `sourceserif4_italic_variable.ttf` | SIL Open Font License 1.1 | `app/src/main/res/raw/ofl_sourceserif4.txt` |
+| Martian Mono | `martianmono_variable.ttf` | SIL Open Font License 1.1 | `app/src/main/res/raw/ofl_martianmono.txt` |
+
 ## Explainer content
 
 The explainers the pipeline produces are published separately under the Creative Commons Attribution 4.0 International license (CC BY 4.0), not under this repository's license.

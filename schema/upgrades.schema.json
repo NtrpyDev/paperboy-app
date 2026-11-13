@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Upgrades",
+  "description": "feed/v1/upgrades.json. Explainers added to items that sit in closed chunks, keyed by paper id. Closed chunks never change, so the app merges each entry over the matching item: has_explainer becomes true and explainer and hero are set. An item in the open chunk is upgraded in the chunk itself and does not appear here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "v",
+    "upgrades"
+  ],
+  "properties": {
+    "v": {
+      "const": 1
+    },
+    "upgrades": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^(arxiv|doi)-[a-z0-9._-]+$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "explainer",
+          "hero",
+          "explained_at"
+        ],
+        "properties": {
+          "explainer": {
+            "type": "string",
+            "description": "Path from the content base, for example papers/<id>/."
+          },
+          "hero": {
+            "$ref": "feed-item.schema.json#/properties/hero"
+          },
+          "explained_at": {
+            "type": "string",
+            "description": "UTC time the explainer was published, RFC 3339."
+          }
+        }
+      }
+    }
+  }
+}

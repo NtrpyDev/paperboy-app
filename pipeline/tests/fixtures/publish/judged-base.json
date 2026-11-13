@@ -1,0 +1,22 @@
+{
+  "id": "arxiv-2611.00001",
+  "doi": null,
+  "arxiv_id": "2611.00001",
+  "title": "Observation of a Thing in a Place",
+  "authors": ["Ada Lovelace", "Charles Babbage", "Mary Somerville"],
+  "abstract": "Pipeline input only. This text must never appear in the content repo.",
+  "venue": "arXiv",
+  "published": "2026-11-10",
+  "status": "preprint",
+  "license": "cc-by",
+  "url": "https://arxiv.org/abs/2611.00001",
+  "source": "arxiv",
+  "categories": ["astro-ph.CO"],
+  "fulltext": {"available": true, "kind": "arxiv_html", "url": "https://arxiv.org/html/2611.00001"},
+  "hook": "A thing turned up exactly where nobody looked",
+  "summary": "Researchers found a thing in a place. They measured it twice and got the same answer both times. It changes how we think about places.",
+  "field": "space",
+  "tags": ["galaxies", "surveys"],
+  "significance": 7.5,
+  "explain": true
+}

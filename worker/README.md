@@ -8,10 +8,12 @@ The edge worker at https://paperboy.ntrpydev.workers.dev. It is the content base
 - `/kit/v1/*`, `/kit/v2/*`, and every later kit version: static assets, a copy of `../kit`. Old kit versions stay served.
 - `/feed/*` and `/papers/*`: files from the R2 bucket `paperboy-content`. On a miss the worker fetches the file from `https://raw.githubusercontent.com/NtrpyDev/paperboy-content/main/<path>`, stores it in the bucket, and serves it. `/papers/<id>/` serves that folder's `index.html`.
 
+The feed is in `feed/v2/`: `head.json`, `chunks/<6 digits>.json`, and `upgrades.json`. Each feed version has its own folder, `feed/v<N>/`, and a chunk is judged open or closed by the head in its own folder (`feed/v<N>/head.json`). `feed/v1/` is the feed published before every paper needed a page; when the feed restarted in `feed/v2/` it was left as a stub, a head with no chunks and `min_app` 2 so a 0.1.0 install shows its update cover, and its chunks are 404.
+
 Files under `feed/` and `papers/` are either fixed or changing:
 
-- Fixed: everything under `papers/`, and every closed chunk (a chunk lower than the head's `chunk_count` that holds all 40 items). Stored once and served with `cache-control: public, max-age=31536000, immutable`.
-- Changing: `feed/v1/head.json`, the open chunk, and any other file under `feed/`. Fetched again when the stored copy is older than 60 seconds; if the content repo fails, the stored copy is served. Served with `cache-control: public, max-age=60`.
+- Fixed: everything under `papers/`, and every closed chunk (a chunk lower than its folder's head's `chunk_count` that holds all 40 items). Stored once and served with `cache-control: public, max-age=31536000, immutable`.
+- Changing: every `feed/v<N>/head.json`, the open chunk, and any other file under `feed/`. Fetched again when the stored copy is older than 60 seconds; if the content repo fails, the stored copy is served, and if the content repo no longer has the file, the stored copy is deleted and the answer is 404. Served with `cache-control: public, max-age=60`.
 
 A chunk stored while it was open is fetched again after it closes, and keeps being refreshed until it holds 40 items, because the raw host caches files for up to five minutes and can hand out the copy from before the last items.
 

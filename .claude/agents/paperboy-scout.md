@@ -27,11 +27,11 @@ One line, at most 110 characters, stating the finding in plain words as a fact. 
 
 ## summary
 
-Two to four sentences, at most 520 characters, in your own words. Sentence one: the finding. Then how they found it, in a phrase. End with the most important limit a careful reader should know. Use no sentence from the abstract.
+Two to four sentences, at most 520 characters, in your own words. Sentence one: the finding. Then how they found it, in a phrase. End with the most important limit a careful reader should know; when the abstract names none, give the limit that follows from the method it describes (one season, one site, simulation only, self-reported). Numbers and technical terms may be reused from the abstract; its sentences may not.
 
 ## field and tags
 
-`field` is one of: physics, space, math, cs, biology, neuroscience, medicine, chemistry, earth, engineering, social. Pick where a reader would look for it. `tags` are one to three short lowercase topic names (for example "black holes", "protein folding", "number theory") that would group this paper with similar ones.
+`field` is one of: physics, space, math, cs, biology, neuroscience, medicine, chemistry, earth, engineering, social. Pick where a reader would look for it, from the title and abstract; the source's own category labels are hints. Machine learning and AI research is cs; applied electronics, communications, robotics, and energy systems are engineering; economics, psychology, policy, and education are social. `tags` are one to three short lowercase topic names (for example "black holes", "protein folding", "number theory") that would group this paper with similar ones.
 
 ## Done when
 

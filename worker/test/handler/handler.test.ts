@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { afterEach, describe, expect, it } from "vitest";
-import { createHandler } from "../src/handler";
+import { createHandler } from "../../src/handler";
 
 const ORIGIN = "https://raw.githubusercontent.com/NtrpyDev/paperboy-content/main/";
 

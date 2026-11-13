@@ -291,3 +291,21 @@ describe("explainer address", () => {
     expect(origin.calls).toEqual([`${ORIGIN}papers/arxiv-1/index.html`]);
   });
 });
+
+describe("cross-origin reads", () => {
+  it("are allowed from any origin on feed files", async () => {
+    const { get } = setup({ "feed/v1/head.json": head(1) });
+
+    const res = await get("/feed/v1/head.json", { headers: { origin: "https://elsewhere.example" } });
+
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+  });
+
+  it("are not opened up on paper files", async () => {
+    const { get } = setup({ "papers/arxiv-1/meta.json": "{}" });
+
+    const res = await get("/papers/arxiv-1/meta.json", { headers: { origin: "https://elsewhere.example" } });
+
+    expect(res.headers.get("access-control-allow-origin")).toBeNull();
+  });
+});

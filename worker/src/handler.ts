@@ -123,6 +123,7 @@ function serve(key: string, body: BodyInit, changing: boolean): Response {
     "cache-control": changing ? SHORT_CACHE : LONG_CACHE,
   });
   if (extension === "html") headers.set("content-security-policy", EXPLAINER_POLICY);
+  if (key.startsWith("feed/")) headers.set("access-control-allow-origin", "*");
   return new Response(body, { headers });
 }
 

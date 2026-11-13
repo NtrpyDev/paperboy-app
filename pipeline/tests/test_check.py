@@ -45,6 +45,15 @@ def test_missing_index_is_a_tool_error(tmp_path):
     assert not (tmp_path / "check.json").exists()
 
 
+def test_unusable_browser_from_environment_is_a_tool_error(tmp_path, monkeypatch):
+    monkeypatch.setenv("PAPERBOY_CHROME", str(tmp_path / "no-such-browser"))
+    explainer = tmp_path / "explainer"
+    explainer.mkdir()
+    shutil.copy(FIXTURES / "pass" / "index.html", explainer / "index.html")
+    assert main(["check", "--explainer", str(explainer), "--kit", str(KIT)]) == 2
+    assert not (tmp_path / "check.json").exists()
+
+
 RULE_FIXTURES = sorted(d.name for d in FIXTURES.iterdir() if d.is_dir() and d.name != "pass")
 
 

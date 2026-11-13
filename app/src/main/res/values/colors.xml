@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- First Light grounds (design/SYSTEM.md section 3). -->
+    <color name="stock">#E9E6DE</color>
+    <color name="ground">#0E1116</color>
+</resources>

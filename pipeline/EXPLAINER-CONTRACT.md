@@ -16,6 +16,8 @@ Every explainer must follow these rules. `paperboy-pipeline check` enforces them
 - First, the hero: `.pb-hero` holding a `.pb-title`, a `.pb-dek`, and exactly one `.pb-stage` with the hero visual. [`hero-incomplete`]
 - The hero's `.pb-stage` has `data-kind` set to `data` (it plots the paper's numbers) or `illustration`. An illustration drawn to scale also has `data-scale="true"`. [`hero-without-kind`]
 - Then five sections marked with `data-section`, each exactly once, in this order: `question`, `method`, `findings`, `confidence`, `matters`. Other sections may sit between them. [`missing-section`, `duplicate-section`, `section-order`]
+- What the page was built from: no `data-depth` on the `article.pb` (or `data-depth="full"`) for a full explainer built from the paper's full text; `data-depth="abstract"` for a quick explainer built from the title and abstract alone (`QUICK.md`). No other value. [`unknown-depth`]
+- A page with `data-depth="abstract"` tells the reader so in its `data-section="confidence"` section, in visible text, with these words: "Built from the paper's abstract, not its full text." (case and the apostrophe's shape do not matter). [`missing-depth-note`]
 - Last, a `.pb-source` footer [`missing-source`] with a link to the paper [`missing-source-link`] and the words "machine written" or "written by a machine" [`missing-source-note`].
 
 ## Figures

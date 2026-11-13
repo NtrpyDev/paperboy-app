@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Seen",
+  "description": "One paper already in the feed (one JSON object per line in state/seen/<YYYY-MM>.jsonl, the month taken from added_at). Publish appends these; discover reads them to skip papers already published.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "doi",
+    "arxiv_id",
+    "title_key",
+    "chunk",
+    "added_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(arxiv|doi)-[a-z0-9._-]+$",
+      "description": "Stable paper id: arxiv-<id> or doi-<doi with every character outside a-z 0-9 . _ - replaced by ->, lowercase."
+    },
+    "doi": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "arxiv_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "title_key": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{20}$",
+      "description": "paperboy_pipeline.ids.title_key of the paper's title."
+    },
+    "chunk": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of the chunk the item was added to."
+    },
+    "added_at": {
+      "type": "string",
+      "description": "UTC time the item entered the feed, RFC 3339. Same value as the feed item's added_at."
+    }
+  }
+}

@@ -74,3 +74,15 @@ End the run with a short plain report: the days discovered and each source's lin
 - A paper figure is reproduced only when its license is `cc-by` or `cc0`, with its credit line.
 - When a script fails, read its error and fix the cause if it is in this run's inputs; otherwise set that paper aside and report it. Do not edit pipeline code during a run.
 - Never push to the code repo from a run.
+- Send no push notifications and no messages of any kind. The report in step 6 is the run's only output.
+
+## For the owner: the cloud routine
+
+This section is not part of a run.
+
+The pipeline runs as the Claude Code cloud routine `paperboy-pipeline`, hourly. Each run clones this repo and `paperboy-content` at the tip of `main`, and its whole prompt is to follow this runbook. Nothing runs on the owner's computer.
+
+- **See it, pause it, resume it:** https://claude.ai/code/routines lists the routine. Its switch pauses and resumes the schedule; "Run now" starts one run by hand. A paused routine starts no runs.
+- **Inspect a run:** open the routine and pick a run to read its transcript. The last message is the step 6 report.
+- **The usage gate:** every run starts with `paperboy-pipeline gate`, which stops the run when weekly Claude usage is at or over 50 percent, and stops it when usage cannot be read. Change the mark with `--max` in step 1 of this runbook. Verified in a cloud run on 2026-11-13: with the mark set to 1 and usage at 35 percent, the run stopped at step 1 and published nothing.
+- **Change what a run does:** edit this runbook and the agent definitions in `.claude/agents/` on `main`. The next run picks them up.

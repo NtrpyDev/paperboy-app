@@ -578,7 +578,7 @@ input[type="range"].pb-carriage:focus-visible, .pb-slider input[type="range"]:fo
   .pb-fig { float: right; clear: right; width: var(--pb-rail); margin: 22px 0 24px 24px; }
   .pb-fig[data-size="column"] { float: none; clear: both; width: var(--pb-text); margin: 28px 0 0; }
   .pb-fig.pb-wide, .pb-fig:has(.pb-bleed) { float: none; clear: both; width: auto; margin: 28px 0 0; }
-  .pb-section > .pb-fig:has(.pb-bleed) .pb-fig-title, .pb-fig.pb-wide > .pb-fig-title { max-width: var(--pb-text); }
+  .pb-fig.pb-wide > :not(.pb-bleed), .pb-fig:has(.pb-bleed) > :not(.pb-bleed) { max-width: var(--pb-text); }
   .pb-stage, .pb-bleed { margin-left: 0; margin-right: var(--pb-edge); }
   .pb-steps-visual .pb-fig { float: none; width: auto; margin: 0; }
   .pb-term-pop { max-width: var(--pb-text); }

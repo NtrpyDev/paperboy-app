@@ -292,8 +292,9 @@ PB.ready(function () {
     var ticks = d3.range(0, x.invert(right) + 1e-9, 0.02).map(function (v) { return +v.toFixed(2); });
     PB.ruler(g, {
       x: x, y: y, x1: Math.max(x0, from || 0), x2: right,
-      major: ticks.filter(function (v, i) { return i % 5 === 0; }), minor: ticks,
-      labels: labels || [0, 0.1, 0.2], unit: labels && labels.indexOf(0.2) < 0 ? null : "s"
+      major: ticks.filter(function (v, i) { return i % 5 === 0 || (labels || []).indexOf(v) >= 0; }), minor: ticks,
+      labels: labels || [0, 0.1, 0.2], unit: labels && labels.indexOf(0.2) < 0 ? null : "s",
+      format: function (v) { return String(+v.toFixed(2)); }
     });
   }
 
@@ -316,7 +317,7 @@ PB.ready(function () {
         near: [50, 66, 0.62], ramp: [46, 118], avoid: [wells.inside(60), wells.inside(76)]
       });
       var c = chirp(p.left, p.band - 39 * k, p.right - p.left, 29 * k);
-      timeRuler(p.live, p.left, c.merger, p.rulerY, p.width);
+      timeRuler(p.live, p.left, c.merger, p.rulerY, p.width, p.width >= 1160 ? [0, 0.05, 0.1, 0.15, 0.2, 0.25] : null);
       PB.live(p.live, c.d, { carriage: p.rulerY, pulse: true });
     }
   });

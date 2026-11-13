@@ -27,17 +27,21 @@ private data object FeedKey : NavKey
 @Serializable
 private data class ExplainerKey(val url: String) : NavKey
 
+/** Where a reader gets a newer version of the app. */
+private const val RELEASES_URL = "https://github.com/NtrpyDev/paperboy-app/releases"
+
 /** The app's screens: the feed, and an explainer on top of it. */
 @Composable
 fun PaperboyRoot(graph: AppGraph) {
     val context = LocalContext.current
     // Held above the navigation so the feed keeps its items and scroll position while an explainer is open.
-    val feedModel = viewModel { FeedModel(graph.feedSource, graph.ranker) }
+    val feedModel = viewModel { FeedModel(graph.newFeedSession()) }
     val feedState by feedModel.state.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val backStack = rememberNavBackStack(FeedKey)
 
     fun open(item: FeedItem) {
+        feedModel.markSeen(item.id)
         val explainer = if (item.hasExplainer) graph.explainerUrl(item) else null
         if (explainer != null) backStack.add(ExplainerKey(explainer)) else openInBrowser(context, item.url)
     }
@@ -52,8 +56,15 @@ fun PaperboyRoot(graph: AppGraph) {
                     listState = listState,
                     heroUrl = graph::heroUrl,
                     onOpen = ::open,
-                    onLoadMore = feedModel::loadMore,
+                    onRate = { item, rating -> feedModel.rate(item.id, rating) },
+                    onReached = feedModel::reached,
                     onRetry = feedModel::retry,
+                    onRefresh = feedModel::refresh,
+                    onSeen = feedModel::markSeen,
+                    onOpenReleases = { openInBrowser(context, RELEASES_URL) },
+                    collapsed = feedModel.collapsed,
+                    onUndoLess = feedModel::undoLess,
+                    refreshed = feedModel.refreshed,
                 )
             }
             entry<ExplainerKey> { key ->

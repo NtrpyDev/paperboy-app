@@ -2,66 +2,73 @@ package io.github.ntrpydev.paperboy.ui.feed
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.ntrpydev.paperboy.feed.FeedItem
-import io.github.ntrpydev.paperboy.feed.FeedPage
-import io.github.ntrpydev.paperboy.feed.FeedSource
-import io.github.ntrpydev.paperboy.feed.FeedUnavailableException
-import io.github.ntrpydev.paperboy.rank.Ranker
-import kotlinx.coroutines.flow.MutableStateFlow
+import io.github.ntrpydev.paperboy.feed.FeedSession
+import io.github.ntrpydev.paperboy.feed.FeedState
+import io.github.ntrpydev.paperboy.feed.RefreshResult
+import io.github.ntrpydev.paperboy.rank.Rating
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
-/** What the feed screen shows. */
-data class FeedState(
-    val items: List<FeedItem> = emptyList(),
-    val loading: Boolean = true,
-    /** Set when the last load failed. Items already loaded stay in [items]. */
-    val error: FeedUnavailableException.Reason? = null,
-    /** True once the oldest chunk is loaded. */
-    val reachedEnd: Boolean = false,
-)
+/** How long a card rated less stays on screen, showing its rating, before it leaves the feed. */
+private const val COLLAPSE_DELAY_MS = 700L
 
-/** Loads the newest chunk, then older chunks on request, and keeps the ranked pool. */
-class FeedModel(
-    private val source: FeedSource,
-    private val ranker: Ranker,
-) : ViewModel() {
-    private val _state = MutableStateFlow(FeedState())
-    val state: StateFlow<FeedState> = _state.asStateFlow()
+/** Holds one [FeedSession] for the feed screen and runs its work in the view model's scope. */
+class FeedModel(private val session: FeedSession) : ViewModel() {
+    val state: StateFlow<FeedState> = session.state
 
-    private var pool: List<FeedItem> = emptyList()
-    private var oldestLoaded: FeedPage? = null
+    private val _collapsed = MutableSharedFlow<String>(extraBufferCapacity = 16)
+
+    /** Ids of cards that just left the feed after a less rating, for the undo message. */
+    val collapsed: SharedFlow<String> = _collapsed.asSharedFlow()
+
+    private val _refreshed = MutableSharedFlow<RefreshResult>(extraBufferCapacity = 4)
+
+    /** What each pull to refresh found, for the message that says how many papers arrived. */
+    val refreshed: SharedFlow<RefreshResult> = _refreshed.asSharedFlow()
 
     init {
-        load()
+        viewModelScope.launch { session.start() }
     }
 
-    /** Loads the next older chunk, or the newest one if nothing has loaded yet. */
-    fun loadMore() {
-        val current = _state.value
-        if (current.loading || current.reachedEnd) return
-        load()
+    fun retry() {
+        viewModelScope.launch { session.retry() }
     }
 
-    fun retry() = loadMore()
+    fun refresh() {
+        viewModelScope.launch { _refreshed.emit(session.refresh()) }
+    }
 
-    private fun load() {
-        _state.update { it.copy(loading = true, error = null) }
+    /** The last card the reader can see. Near the end of the list, older papers load. */
+    fun reached(id: String) {
+        viewModelScope.launch { session.reached(id) }
+    }
+
+    /** The card [id] was half on screen for a second, or was opened. */
+    fun markSeen(id: String) {
+        viewModelScope.launch { session.markSeen(id) }
+    }
+
+    /** A tap on one of a card's rating buttons. A less rating removes the card after a short moment. */
+    fun rate(id: String, rating: Rating) {
         viewModelScope.launch {
-            try {
-                val previous = oldestLoaded
-                val page = if (previous == null) source.loadNewest() else source.loadOlder(previous)
-                if (page != null) {
-                    oldestLoaded = page
-                    pool = pool + page.items
-                }
-                val atEnd = page == null || page.chunkNumber <= 1
-                _state.update { FeedState(items = ranker.rank(pool), loading = false, reachedEnd = atEnd) }
-            } catch (e: FeedUnavailableException) {
-                _state.update { it.copy(loading = false, error = e.reason) }
+            session.toggleRating(id, rating)
+            if (state.value.ratings[id] != Rating.Less) return@launch
+            delay(COLLAPSE_DELAY_MS)
+            if (state.value.ratings[id] == Rating.Less) {
+                session.collapse(id)
+                _collapsed.emit(id)
             }
+        }
+    }
+
+    /** Takes back the less rating of a card that left the feed, which puts it back in its place. */
+    fun undoLess(id: String) {
+        viewModelScope.launch {
+            if (state.value.ratings[id] == Rating.Less) session.toggleRating(id, Rating.Less)
         }
     }
 }

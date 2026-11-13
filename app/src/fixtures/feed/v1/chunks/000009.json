@@ -1,0 +1,107 @@
+{
+  "v": 1,
+  "number": 9,
+  "items": [
+    {
+      "id": "doi-10.1038-s41586-026-01234-5",
+      "title": "Seasonal reorganization of hippocampal place fields in wild bats",
+      "hook": "Wild bats redraw their mental maps when the seasons change",
+      "summary": "Researchers recorded neurons in the hippocampus of bats flying outdoors over a full year. The cells that mark locations shifted their preferred spots between summer and winter, tracking where food was found.",
+      "field": "neuroscience",
+      "tags": [
+        "navigation",
+        "hippocampus"
+      ],
+      "status": "peer_reviewed",
+      "venue": "Nature",
+      "published": "2026-11-03",
+      "authors_short": "Levi et al.",
+      "url": "https://doi.org/10.1038/s41586-026-01234-5",
+      "has_explainer": false,
+      "significance": 7.5,
+      "added_at": "2026-11-10T09:00:00Z"
+    },
+    {
+      "id": "arxiv-2611.01177",
+      "title": "A sharper bound for the sunflower problem over finite fields",
+      "hook": "Mathematicians tighten a decades-old limit on overlapping sets",
+      "summary": "The sunflower problem asks how many sets you can collect before some of them must overlap in a perfectly regular way. This paper proves a smaller upper bound for the version over finite fields.",
+      "field": "math",
+      "tags": [
+        "combinatorics"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-11-04",
+      "authors_short": "Chen and Park",
+      "url": "https://arxiv.org/abs/2611.01177",
+      "has_explainer": false,
+      "significance": 6,
+      "added_at": "2026-11-10T10:00:00Z"
+    },
+    {
+      "id": "arxiv-2611.03310",
+      "title": "Soil microbes accelerate carbon loss under repeated drought",
+      "hook": "Repeated droughts turn soil microbes into carbon emitters",
+      "summary": "Field plots that went through three droughts in a row released more carbon dioxide than plots that had one. The authors trace the change to microbes that switch to breaking down older soil carbon.",
+      "field": "earth",
+      "tags": [
+        "climate",
+        "soil"
+      ],
+      "status": "preprint",
+      "venue": "bioRxiv",
+      "published": "2026-11-08",
+      "authors_short": "Okafor et al.",
+      "url": "https://www.biorxiv.org/content/10.1101/2026.11.08.000001",
+      "has_explainer": false,
+      "significance": 6.8,
+      "added_at": "2026-11-11T08:00:00Z"
+    },
+    {
+      "id": "arxiv-2611.04821",
+      "title": "Observation of a light-induced phase transition in twisted bilayer graphene",
+      "hook": "A flash of light flips twisted graphene into a new state of matter",
+      "summary": "Two sheets of graphene stacked at a small twist angle switch into an insulating state when hit by a short laser pulse. The state lasts for nanoseconds and can be switched back with a second pulse.",
+      "field": "physics",
+      "tags": [
+        "graphene",
+        "condensed matter",
+        "optics"
+      ],
+      "status": "preprint",
+      "venue": "arXiv",
+      "published": "2026-11-09",
+      "authors_short": "Abbott et al.",
+      "url": "https://arxiv.org/abs/2611.04821",
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2611.04821/",
+      "hero": {
+        "path": "papers/arxiv-2611.04821/hero.webp",
+        "width": 1200,
+        "height": 675
+      },
+      "significance": 8.4,
+      "added_at": "2026-11-12T07:30:00Z"
+    },
+    {
+      "id": "doi-10.1056-nejmoa2609876",
+      "title": "Once-weekly oral GLP-1 agonist versus placebo in adults with obesity",
+      "hook": "A weekly pill matched injections for weight loss in a large trial",
+      "summary": "In a trial of 3,100 adults, a once-weekly pill led to an average weight loss of 14 percent over 68 weeks, compared with 2 percent on placebo. Side effects were mostly stomach upset early on.",
+      "field": "medicine",
+      "tags": [
+        "obesity",
+        "clinical trial"
+      ],
+      "status": "peer_reviewed",
+      "venue": "New England Journal of Medicine",
+      "published": "2026-11-10",
+      "authors_short": "Ruiz et al.",
+      "url": "https://doi.org/10.1056/NEJMoa2609876",
+      "has_explainer": false,
+      "significance": 8.9,
+      "added_at": "2026-11-12T12:00:00Z"
+    }
+  ]
+}

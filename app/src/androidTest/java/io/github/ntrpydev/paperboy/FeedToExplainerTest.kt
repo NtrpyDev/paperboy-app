@@ -12,12 +12,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.github.ntrpydev.paperboy.ui.PaperboyRoot
 import io.github.ntrpydev.paperboy.ui.theme.PaperboyTheme
 import java.io.File
-import java.util.Collections
-import mockwebserver3.Dispatcher
-import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
-import mockwebserver3.RecordedRequest
-import okio.Buffer
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -32,21 +27,24 @@ class FeedToExplainerTest {
     private val server = MockWebServer()
     private val fixtures = AssetFixtureDispatcher()
     private lateinit var cacheDir: File
+    private lateinit var filesDir: File
 
     @Before fun start() {
         server.dispatcher = fixtures
         server.start()
         val app = InstrumentationRegistry.getInstrumentation().targetContext
         cacheDir = File(app.cacheDir, "feed-test-${System.nanoTime()}")
+        filesDir = File(app.filesDir, "feed-test-${System.nanoTime()}")
     }
 
     @After fun stop() {
         server.close()
         cacheDir.deleteRecursively()
+        filesDir.deleteRecursively()
     }
 
     @Test fun feedShowsCardsAndTappingAnExplainedCardOpensItsExplainer() {
-        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir)
+        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
         compose.setContent { PaperboyTheme { PaperboyRoot(graph) } }
 
         // The feed shows the newest chunk, newest item first.
@@ -70,30 +68,5 @@ class FeedToExplainerTest {
         const val TIMEOUT_MS = 15_000L
         const val NEWEST_HOOK = "A weekly pill matched injections for weight loss in a large trial"
         const val EXPLAINED_HOOK = "A flash of light flips twisted graphene into a new state of matter"
-    }
-}
-
-/** Serves app/src/fixtures (packaged as test assets) by path, and 404 for anything else. */
-private class AssetFixtureDispatcher : Dispatcher() {
-    private val assets = InstrumentationRegistry.getInstrumentation().context.assets
-    val requested: MutableList<String> = Collections.synchronizedList(mutableListOf())
-
-    override fun dispatch(request: RecordedRequest): MockResponse {
-        val path = request.url.encodedPath.removePrefix("/")
-        requested += path
-        val file = if (path.endsWith("/")) "${path}index.html" else path
-        val bytes = runCatching { assets.open(file).use { it.readBytes() } }.getOrNull()
-            ?: return MockResponse.Builder().code(404).build()
-        val type = when (file.substringAfterLast('.')) {
-            "json" -> "application/json"
-            "html" -> "text/html; charset=utf-8"
-            "webp" -> "image/webp"
-            else -> "application/octet-stream"
-        }
-        return MockResponse.Builder()
-            .code(200)
-            .addHeader("Content-Type", type)
-            .body(Buffer().write(bytes))
-            .build()
     }
 }

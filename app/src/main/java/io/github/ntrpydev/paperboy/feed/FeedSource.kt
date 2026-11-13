@@ -1,22 +1,20 @@
 package io.github.ntrpydev.paperboy.feed
 
 /**
- * Reads the feed from the content base: the head first, then chunks from the
- * newest backward.
+ * Reads the feed files from the content base: the head, numbered chunks, and the
+ * upgrades for papers in closed chunks. When the content base cannot be reached or
+ * fails, a copy saved by an earlier read is used if there is one.
  */
 interface FeedSource {
-    /** The newest chunk, as named by the head. */
-    suspend fun loadNewest(): FeedPage
+    /** The head. With [fresh], the content base is asked again even if a cached copy is still fresh. */
+    suspend fun head(fresh: Boolean = false): Head
 
-    /** The chunk before [page], or null when [page] is the oldest chunk. */
-    suspend fun loadOlder(page: FeedPage): FeedPage?
+    /** The items of chunk [number], oldest first. */
+    suspend fun chunk(number: Int, fresh: Boolean = false): List<FeedItem>
+
+    /** Explainers added to papers in closed chunks, by paper id. Empty when there is no upgrades file. */
+    suspend fun upgrades(fresh: Boolean = false): Map<String, Upgrade>
 }
-
-/** The items of one chunk. */
-data class FeedPage(
-    val chunkNumber: Int,
-    val items: List<FeedItem>,
-)
 
 /** Thrown by [FeedSource] when the feed cannot be read. */
 class FeedUnavailableException(

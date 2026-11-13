@@ -1,4 +1,3 @@
-import { reset } from "cloudflare:test";
 import { env } from "cloudflare:workers";
 import { afterEach, describe, expect, it } from "vitest";
 import { createHandler } from "../src/handler";
@@ -48,8 +47,22 @@ function setup(files: Record<string, string>) {
   return { origin, time, get };
 }
 
+function head(chunkCount: number) {
+  return JSON.stringify({
+    v: 1,
+    updated_at: "2026-11-12T12:00:00Z",
+    chunk_count: chunkCount,
+    total_items: chunkCount * 40 - 39,
+    chunk_size: 40,
+    kit: 1,
+    min_app: 1,
+  });
+}
+
 afterEach(async () => {
-  await reset();
+  // Storage is shared by every test in this file, so empty the bucket after each.
+  const listed = await env.CONTENT.list();
+  if (listed.objects.length) await env.CONTENT.delete(listed.objects.map((o) => o.key));
 });
 
 describe("paper files", () => {
@@ -63,5 +76,36 @@ describe("paper files", () => {
     expect(origin.calls).toEqual([`${ORIGIN}papers/arxiv-1/meta.json`]);
     const stored = await env.CONTENT.get("papers/arxiv-1/meta.json");
     expect(await stored?.text()).toBe('{"id":"arxiv-1"}');
+  });
+
+  it("serves a stored file from the bucket without calling the content repo", async () => {
+    const { origin, time, get } = setup({ "papers/arxiv-1/meta.json": '{"id":"arxiv-1"}' });
+    await get("/papers/arxiv-1/meta.json");
+    origin.files["papers/arxiv-1/meta.json"] = '{"id":"changed"}';
+    time.advance(86400);
+
+    const res = await get("/papers/arxiv-1/meta.json");
+
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('{"id":"arxiv-1"}');
+    expect(origin.calls).toHaveLength(1);
+  });
+});
+
+describe("the head", () => {
+  it("is served from the bucket for 60 seconds, then refreshed from the content repo", async () => {
+    const { origin, time, get } = setup({ "feed/v1/head.json": head(1) });
+    await get("/feed/v1/head.json");
+    origin.files["feed/v1/head.json"] = head(2);
+
+    time.advance(60);
+    const early = await get("/feed/v1/head.json");
+    expect(JSON.parse(await early.text()).chunk_count).toBe(1);
+    expect(origin.calls).toHaveLength(1);
+
+    time.advance(1);
+    const late = await get("/feed/v1/head.json");
+    expect(JSON.parse(await late.text()).chunk_count).toBe(2);
+    expect(origin.calls).toHaveLength(2);
   });
 });

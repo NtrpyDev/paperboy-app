@@ -127,3 +127,38 @@ describe("the head", () => {
     },
   );
 });
+
+describe("chunks", () => {
+  const chunk = (n: number, items: number) => JSON.stringify({ v: 1, number: n, items: Array(items).fill({}) });
+
+  it("refreshes the open chunk, the highest numbered one in the stored head, after 60 seconds", async () => {
+    const { origin, time, get } = setup({
+      "feed/v1/head.json": head(2),
+      "feed/v1/chunks/000002.json": chunk(2, 1),
+    });
+    await get("/feed/v1/head.json");
+    await get("/feed/v1/chunks/000002.json");
+    origin.files["feed/v1/chunks/000002.json"] = chunk(2, 2);
+
+    time.advance(30);
+    expect(JSON.parse(await (await get("/feed/v1/chunks/000002.json")).text()).items).toHaveLength(1);
+    time.advance(31);
+    expect(JSON.parse(await (await get("/feed/v1/chunks/000002.json")).text()).items).toHaveLength(2);
+  });
+
+  it("never refreshes a closed chunk", async () => {
+    const { origin, time, get } = setup({
+      "feed/v1/head.json": head(2),
+      "feed/v1/chunks/000001.json": chunk(1, 40),
+    });
+    await get("/feed/v1/head.json");
+    await get("/feed/v1/chunks/000001.json");
+    const callsAfterFill = origin.calls.length;
+    time.advance(86400);
+
+    const res = await get("/feed/v1/chunks/000001.json");
+
+    expect(JSON.parse(await res.text()).items).toHaveLength(40);
+    expect(origin.calls).toHaveLength(callsAfterFill);
+  });
+});

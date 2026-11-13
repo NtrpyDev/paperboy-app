@@ -11,8 +11,6 @@ Sources:
 - Status line: https://code.claude.com/docs/en/statusline.md
 - Costs: https://code.claude.com/docs/en/costs.md
 - GitHub Actions: https://code.claude.com/docs/en/github-actions.md
-- Consumer Terms: https://www.anthropic.com/legal/consumer-terms
-- Usage Policy: https://www.anthropic.com/legal/aup
 
 ## 1. Network access
 
@@ -66,17 +64,7 @@ Sources:
 - An API trigger gives a routine an HTTP endpoint. A POST with the routine's bearer token starts a run. This is not bound by the hourly cron minimum, only by the hourly start caps. Beta header: `anthropic-beta: experimental-cc-routine-2026-04-01`. (routines.md, "Add an API trigger")
 - GitHub event triggers (PR, issue, release) need the Claude GitHub App on the repo.
 
-## 10. Terms that bear on this use
-
-Quoted exactly; interpretation is not settled by the text.
-
-- Outputs: "Subject to your compliance with our Terms, we assign to you all of our right, title, and interest, if any, in Outputs." (Consumer Terms, section 4; the original uses a dash before "if any")
-- Automated access, listed as prohibited: "Except when you are accessing our Services via an Anthropic API Key or where we otherwise explicitly permit it, to access the Services through automated or non-human means, whether through a bot, script, or otherwise." (Consumer Terms, section 3). Routines are an Anthropic feature built for unattended runs, but the Terms do not name them as the permitted exception.
-- Usage Policy, "Do Not Abuse Our Platform": "Resell, proxy, or otherwise provide access to Claude through unauthorized means, including services that route requests through consumer subscriptions or misrepresent the product or client being used". Paperboy gives no app user access to Claude; it publishes static pages made ahead of time. The text neither clearly includes nor clearly excludes that.
-- Routines are labeled a research preview: "Behavior, limits, and the API surface may change." (routines.md)
-- The Usage Policy gives usersafety@anthropic.com for questions about whether a use case is permitted.
-
-## 11. Fallback: Claude Code in GitHub Actions
+## 10. Fallback: Claude Code in GitHub Actions
 
 - `anthropics/claude-code-action` with `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token` is documented for Pro, Max, Ultra, Team, and Enterprise. "If you authenticate with an OAuth token, runs use your Claude subscription instead of API billing." (github-actions.md, "Manual setup" and "Manage costs")
 - Scheduled workflows run only from the default branch, and in public repos GitHub disables the schedule after 60 days without repository activity. (github-actions.md, "Run on a schedule")
@@ -89,4 +77,3 @@ Quoted exactly; interpretation is not settled by the text.
 - Whether status line data or `/usage` is reachable inside a cloud session.
 - An API for an individual subscriber's weekly usage percentage.
 - An API for setting an Anthropic-hosted environment's network access.
-- Whether the research preview label, the automated access clause, or the Usage Policy proxy clause restrict this pipeline.

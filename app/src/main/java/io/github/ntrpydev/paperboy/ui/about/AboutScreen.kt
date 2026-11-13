@@ -100,8 +100,13 @@ fun AboutScreen(versionName: String, onBack: () -> Unit, onOpenLink: (String) ->
                 top = 12,
             )
 
-            Section("How an explainer is made", "Machine written", voices("Three AI agents, one job each.", "one job each."))
-            Paragraph("Papers with a free legal full text get a visual explainer, made by three agents in turn.", top = 12)
+            Section("How an explainer is made", "Machine written", voices("Every paper gets its own page.", "its own page."))
+            Paragraph(
+                "Most pages are quick explainers: one AI agent draws the picture and builds the page from the paper’s " +
+                    "abstract, and the page says so. The best few papers each day get a full explainer from the full " +
+                    "text, made by three agents in turn.",
+                top = 12,
+            )
             Spacer(Modifier.height(40.dp))
             Rule(0.75.dp, modifier = Modifier.padding(horizontal = Margin))
             Spacer(Modifier.height(10.dp))

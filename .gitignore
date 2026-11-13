@@ -19,3 +19,6 @@ design/reference/
 work/
 *.egg-info/
 .pytest_cache/
+design/scratch/**/*.png
+design/scratch/**/fontdata/
+design/scratch/design-team-resume.js

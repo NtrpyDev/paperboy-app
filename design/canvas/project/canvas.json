@@ -1,0 +1,39 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-13T03:20:00Z"},
+  "title": "Paperboy",
+  "launch": {"view": "canvas", "page": "final"},
+  "pages": [
+    {"id": "final", "name": "Final design"},
+    {"id": "directions", "name": "First directions"}
+  ],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "A: Late Edition", "page": "directions"},
+    "B-Night-Lab.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "B: Night Lab", "page": "directions"},
+    "C-Color-Block.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "C: Color Block", "page": "directions"},
+    "App-Feed-Day.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "Feed, day", "page": "final"},
+    "App-Feed-Night.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "Feed, night", "page": "final"},
+    "Explainer-Day.dc.html": {"x": 940, "y": 0, "w": 390, "h": 5796, "title": "Explainer, day", "page": "final"},
+    "Explainer-Night.dc.html": {"x": 1410, "y": 0, "w": 390, "h": 5796, "title": "Explainer, night", "page": "final"},
+    "Site.dc.html": {"x": 1880, "y": 0, "w": 1440, "h": 4868, "title": "Website", "page": "final", "expand": "fill"},
+    "Brand.dc.html": {"x": 3400, "y": 0, "w": 1200, "h": 900, "title": "Wordmark and app icon", "page": "final"},
+    "Motion.dc.html": {"x": 4680, "y": 0, "w": 1200, "h": 1000, "title": "Motion", "page": "final", "is_interactive": true}
+  },
+  "order": [
+    "Main.dc.html",
+    "B-Night-Lab.dc.html",
+    "C-Color-Block.dc.html",
+    "App-Feed-Day.dc.html",
+    "App-Feed-Night.dc.html",
+    "Explainer-Day.dc.html",
+    "Explainer-Night.dc.html",
+    "Site.dc.html",
+    "Brand.dc.html",
+    "Motion.dc.html"
+  ],
+  "notes": {
+    "directions": {"x": 0, "y": -300, "text": "Three directions for the feed", "kind": "title1", "maxW": 1330, "page": "directions"},
+    "final": {"x": 0, "y": -300, "text": "Paperboy, final design", "kind": "title1", "maxW": 5880, "page": "final"}
+  },
+  "designSystems": []
+}

@@ -283,24 +283,14 @@ def test_seen_state_records_each_paper_by_month_added(tmp_path):
     assert json.loads(december)["id"] == "arxiv-2611.00002"
 
 
-def test_cursors_hold_the_newest_published_date_per_source(tmp_path):
+def test_publish_never_touches_the_cursors(tmp_path):
     content = tmp_path / "content"
-    publish(
-        write_work(
-            tmp_path / "w1",
-            [
-                judged(1, published="2026-11-09"),
-                judged(2, published="2026-11-11"),
-                judged(3, published="2026-11-10"),
-                judged(4, id="doi-10.1101-1", arxiv_id=None, doi="10.1101/1", source="biorxiv", published="2026-11-08"),
-            ],
-        ),
-        content,
-    )
-    assert read_json(content / "state/cursors.json") == {"v": 1, "cursors": {"arxiv": "2026-11-11", "biorxiv": "2026-11-08"}}
+    publish(write_work(tmp_path / "w1", [judged(1, published="2026-11-11")]), content)
+    assert not (content / "state/cursors.json").exists()
 
-    publish(write_work(tmp_path / "w2", [judged(5, published="2026-11-01")]), content)
-    assert read_json(content / "state/cursors.json")["cursors"]["arxiv"] == "2026-11-11"
+    (content / "state/cursors.json").write_text('{"v": 1, "cursors": {"arxiv": "2026-11-01"}}\n')
+    publish(write_work(tmp_path / "w2", [judged(2, published="2026-11-11")]), content)
+    assert (content / "state/cursors.json").read_text() == '{"v": 1, "cursors": {"arxiv": "2026-11-01"}}\n'
 
 
 SCHEMA_FOR = [
@@ -386,13 +376,14 @@ def test_unreadable_explainer_files_abort_with_nothing_changed(tmp_path):
 
 def test_output_that_fails_its_schema_aborts_with_nothing_changed(tmp_path, capsys):
     content = published_repo(tmp_path)
-    (content / "state/cursors.json").write_text('{"v": 1, "cursors": {"nature": "2026-01-01"}}\n')
+    with (content / "state/seen/2026-11.jsonl").open("a") as f:
+        f.write('{"id": "arxiv-2611.99999", "title_key": "not a key"}\n')
     before = tree(content)
 
     assert publish(write_work(tmp_path / "work", [judged(60)]), content) == 1
 
     assert tree(content) == before
-    assert "state/cursors.json" in capsys.readouterr().err
+    assert "state/seen/2026-11.jsonl" in capsys.readouterr().err
 
 
 def test_bad_now_aborts(tmp_path):

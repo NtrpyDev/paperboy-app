@@ -31,12 +31,12 @@ def register(subparsers) -> None:
     parser.add_argument("--work", type=Path, required=True, help="work folder; candidates.jsonl is written here")
     parser.add_argument("--content", type=Path, required=True, help="content repo checkout to read state/ from")
     parser.add_argument("--since", type=date.fromisoformat, help="start date YYYY-MM-DD for every source (default: each source's cursor)")
-    parser.add_argument("--sources", type=_source_list, default=list(ADAPTERS), help="comma separated: " + ",".join(ADAPTERS))
+    parser.add_argument("--sources", type=source_list, default=list(ADAPTERS), help="comma separated: " + ",".join(ADAPTERS))
     parser.add_argument("--limit", type=_positive, help="at most this many new papers from each source")
     parser.set_defaults(run=run)
 
 
-def _source_list(text: str) -> list[str]:
+def source_list(text: str) -> list[str]:
     names = [name.strip() for name in text.split(",") if name.strip()]
     unknown = [name for name in names if name not in ADAPTERS]
     if unknown or not names:

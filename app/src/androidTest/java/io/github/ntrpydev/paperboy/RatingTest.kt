@@ -50,8 +50,8 @@ class RatingTest {
         // Below the screen: equal papers, biology a day newer than math.
         val below = (1..5).map { itemJson("arxiv-b$it", "Biology paper number $it below the screen", "biology", "genetics", 3.0, now - day) } +
             (1..5).map { itemJson("arxiv-m$it", "Math paper number $it below the screen", "math", "combinatorics", 3.0, now - 2 * day) }
-        fixtures.override("feed/v1/head.json") { jsonResponse(headJson(chunkCount = 1)) }
-        fixtures.override("feed/v1/chunks/000001.json") { jsonResponse(chunkJson(1, top + below)) }
+        fixtures.override("feed/v2/head.json") { jsonResponse(headJson(chunkCount = 1)) }
+        fixtures.override("feed/v2/chunks/000001.json") { jsonResponse(chunkJson(1, top + below)) }
         server.dispatcher = fixtures
         server.start()
         val app = InstrumentationRegistry.getInstrumentation().targetContext
@@ -126,7 +126,7 @@ class RatingTest {
             assertNull(request.url.query)
             // Feed files, explainers, and plate stills (the shared fixture stills live in /fixture-plates/).
             val path = request.url.encodedPath
-            assertTrue(path, path.startsWith("/feed/v1/") || path.startsWith("/papers/") || path.startsWith("/fixture-plates/"))
+            assertTrue(path, path.startsWith("/feed/v2/") || path.startsWith("/papers/") || path.startsWith("/fixture-plates/"))
         }
     }
 

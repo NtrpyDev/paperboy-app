@@ -49,15 +49,15 @@ function setup(files: Record<string, string>) {
   return { origin, time, get };
 }
 
-function head(chunkCount: number) {
+function head(chunkCount: number, minApp = 2) {
   return JSON.stringify({
     v: 1,
     updated_at: "2026-11-12T12:00:00Z",
     chunk_count: chunkCount,
-    total_items: chunkCount * 40 - 39,
+    total_items: Math.max(0, chunkCount * 40 - 39),
     chunk_size: 40,
     kit: 1,
-    min_app: 1,
+    min_app: minApp,
   });
 }
 
@@ -96,17 +96,17 @@ describe("paper files", () => {
 
 describe("the head", () => {
   it("is served from the bucket for 60 seconds, then refreshed from the content repo", async () => {
-    const { origin, time, get } = setup({ "feed/v1/head.json": head(1) });
-    await get("/feed/v1/head.json");
-    origin.files["feed/v1/head.json"] = head(2);
+    const { origin, time, get } = setup({ "feed/v2/head.json": head(1) });
+    await get("/feed/v2/head.json");
+    origin.files["feed/v2/head.json"] = head(2);
 
     time.advance(60);
-    const early = await get("/feed/v1/head.json");
+    const early = await get("/feed/v2/head.json");
     expect(JSON.parse(await early.text()).chunk_count).toBe(1);
     expect(origin.calls).toHaveLength(1);
 
     time.advance(1);
-    const late = await get("/feed/v1/head.json");
+    const late = await get("/feed/v2/head.json");
     expect(JSON.parse(await late.text()).chunk_count).toBe(2);
     expect(origin.calls).toHaveLength(2);
   });
@@ -114,12 +114,12 @@ describe("the head", () => {
   it.each(["error", "throw"] as const)(
     "is served from the stored copy when the content repo fails during a refresh (%s)",
     async (how) => {
-      const { origin, time, get } = setup({ "feed/v1/head.json": head(1) });
-      await get("/feed/v1/head.json");
+      const { origin, time, get } = setup({ "feed/v2/head.json": head(1) });
+      await get("/feed/v2/head.json");
       origin.takeDown(how);
       time.advance(120);
 
-      const res = await get("/feed/v1/head.json");
+      const res = await get("/feed/v2/head.json");
 
       expect(res.status).toBe(200);
       expect(JSON.parse(await res.text()).chunk_count).toBe(1);
@@ -128,35 +128,36 @@ describe("the head", () => {
   );
 });
 
+const chunk = (n: number, items: number) => JSON.stringify({ v: 1, number: n, items: Array(items).fill({}) });
+
 describe("chunks", () => {
-  const chunk = (n: number, items: number) => JSON.stringify({ v: 1, number: n, items: Array(items).fill({}) });
 
   it("refreshes the open chunk, the highest numbered one in the stored head, after 60 seconds", async () => {
     const { origin, time, get } = setup({
-      "feed/v1/head.json": head(2),
-      "feed/v1/chunks/000002.json": chunk(2, 1),
+      "feed/v2/head.json": head(2),
+      "feed/v2/chunks/000002.json": chunk(2, 1),
     });
-    await get("/feed/v1/head.json");
-    await get("/feed/v1/chunks/000002.json");
-    origin.files["feed/v1/chunks/000002.json"] = chunk(2, 2);
+    await get("/feed/v2/head.json");
+    await get("/feed/v2/chunks/000002.json");
+    origin.files["feed/v2/chunks/000002.json"] = chunk(2, 2);
 
     time.advance(30);
-    expect(JSON.parse(await (await get("/feed/v1/chunks/000002.json")).text()).items).toHaveLength(1);
+    expect(JSON.parse(await (await get("/feed/v2/chunks/000002.json")).text()).items).toHaveLength(1);
     time.advance(31);
-    expect(JSON.parse(await (await get("/feed/v1/chunks/000002.json")).text()).items).toHaveLength(2);
+    expect(JSON.parse(await (await get("/feed/v2/chunks/000002.json")).text()).items).toHaveLength(2);
   });
 
   it("never refreshes a closed chunk", async () => {
     const { origin, time, get } = setup({
-      "feed/v1/head.json": head(2),
-      "feed/v1/chunks/000001.json": chunk(1, 40),
+      "feed/v2/head.json": head(2),
+      "feed/v2/chunks/000001.json": chunk(1, 40),
     });
-    await get("/feed/v1/head.json");
-    await get("/feed/v1/chunks/000001.json");
+    await get("/feed/v2/head.json");
+    await get("/feed/v2/chunks/000001.json");
     const callsAfterFill = origin.calls.length;
     time.advance(86400);
 
-    const res = await get("/feed/v1/chunks/000001.json");
+    const res = await get("/feed/v2/chunks/000001.json");
 
     expect(JSON.parse(await res.text()).items).toHaveLength(40);
     expect(origin.calls).toHaveLength(callsAfterFill);
@@ -164,22 +165,22 @@ describe("chunks", () => {
 
   it("fetches a chunk once more after it closes, so its last items are not lost, then keeps it", async () => {
     const { origin, time, get } = setup({
-      "feed/v1/head.json": head(1),
-      "feed/v1/chunks/000001.json": chunk(1, 39),
+      "feed/v2/head.json": head(1),
+      "feed/v2/chunks/000001.json": chunk(1, 39),
     });
-    await get("/feed/v1/head.json");
-    await get("/feed/v1/chunks/000001.json");
-    origin.files["feed/v1/chunks/000001.json"] = chunk(1, 40);
-    origin.files["feed/v1/head.json"] = head(2);
+    await get("/feed/v2/head.json");
+    await get("/feed/v2/chunks/000001.json");
+    origin.files["feed/v2/chunks/000001.json"] = chunk(1, 40);
+    origin.files["feed/v2/head.json"] = head(2);
     time.advance(61);
-    await get("/feed/v1/head.json");
+    await get("/feed/v2/head.json");
 
-    const closed = await get("/feed/v1/chunks/000001.json");
+    const closed = await get("/feed/v2/chunks/000001.json");
     expect(JSON.parse(await closed.text()).items).toHaveLength(40);
 
     const callsAfterClose = origin.calls.length;
     time.advance(86400);
-    await get("/feed/v1/chunks/000001.json");
+    await get("/feed/v2/chunks/000001.json");
     expect(origin.calls).toHaveLength(callsAfterClose);
   });
 
@@ -187,21 +188,113 @@ describe("chunks", () => {
   // a chunk closes it can still hand out the copy from before its last items.
   it("keeps refreshing a closed chunk until it holds the full 40 items", async () => {
     const { origin, time, get } = setup({
-      "feed/v1/head.json": head(2),
-      "feed/v1/chunks/000001.json": chunk(1, 39),
+      "feed/v2/head.json": head(2),
+      "feed/v2/chunks/000001.json": chunk(1, 39),
     });
-    await get("/feed/v1/head.json");
-    await get("/feed/v1/chunks/000001.json");
-    origin.files["feed/v1/chunks/000001.json"] = chunk(1, 40);
+    await get("/feed/v2/head.json");
+    await get("/feed/v2/chunks/000001.json");
+    origin.files["feed/v2/chunks/000001.json"] = chunk(1, 40);
 
     time.advance(61);
-    const res = await get("/feed/v1/chunks/000001.json");
+    const res = await get("/feed/v2/chunks/000001.json");
     expect(JSON.parse(await res.text()).items).toHaveLength(40);
 
     const callsWhenFull = origin.calls.length;
     time.advance(86400);
-    await get("/feed/v1/chunks/000001.json");
+    await get("/feed/v2/chunks/000001.json");
     expect(origin.calls).toHaveLength(callsWhenFull);
+  });
+});
+
+describe("feed versions", () => {
+  it("judges a chunk by the head in its own feed folder", async () => {
+    // feed/v1's head names five chunks; feed/v2's names one, so feed/v2's chunk 1 is still open.
+    const { origin, time, get } = setup({
+      "feed/v1/head.json": head(5, 1),
+      "feed/v2/head.json": head(1),
+      "feed/v2/chunks/000001.json": chunk(1, 1),
+    });
+    await get("/feed/v1/head.json");
+    await get("/feed/v2/head.json");
+
+    const first = await get("/feed/v2/chunks/000001.json");
+    expect(first.headers.get("cache-control")).toBe("public, max-age=60");
+    origin.files["feed/v2/chunks/000001.json"] = chunk(1, 2);
+    time.advance(61);
+    expect(JSON.parse(await (await get("/feed/v2/chunks/000001.json")).text()).items).toHaveLength(2);
+  });
+
+  it("serves a closed chunk in one feed folder as fixed while another folder's head names fewer chunks", async () => {
+    const { get } = setup({
+      "feed/v1/head.json": head(0),
+      "feed/v2/head.json": head(2),
+      "feed/v2/chunks/000001.json": chunk(1, 40),
+    });
+    await get("/feed/v1/head.json");
+    await get("/feed/v2/head.json");
+
+    const res = await get("/feed/v2/chunks/000001.json");
+
+    expect(res.headers.get("cache-control")).toBe("public, max-age=31536000, immutable");
+  });
+});
+
+// feed/v1 is the feed published before every paper needed a page. When the feed restarted in
+// feed/v2, feed/v1 was left as a stub: a head with no chunks and min_app 2, so 0.1.0 shows its
+// update cover, and no chunk files.
+describe("the old feed/v1 stub", () => {
+  const stub = head(0);
+
+  it("serves the stub head once the content repo has it, in place of the stored old head", async () => {
+    const { origin, time, get } = setup({ "feed/v1/head.json": head(12, 1) });
+    await get("/feed/v1/head.json");
+    origin.files["feed/v1/head.json"] = stub;
+    time.advance(61);
+
+    const res = await get("/feed/v1/head.json");
+
+    expect(res.status).toBe(200);
+    expect(JSON.parse(await res.text())).toMatchObject({ chunk_count: 0, total_items: 0, min_app: 2 });
+    expect(res.headers.get("cache-control")).toBe("public, max-age=60");
+  });
+
+  it("answers 404 for a chunk it stored as closed, once the head has no chunks and the content repo no longer has it", async () => {
+    const { origin, time, get } = setup({
+      "feed/v1/head.json": head(2, 1),
+      "feed/v1/chunks/000001.json": chunk(1, 40),
+      "feed/v1/chunks/000002.json": chunk(2, 3),
+    });
+    await get("/feed/v1/head.json");
+    expect((await get("/feed/v1/chunks/000001.json")).headers.get("cache-control")).toBe("public, max-age=31536000, immutable");
+    await get("/feed/v1/chunks/000002.json");
+
+    origin.files["feed/v1/head.json"] = stub;
+    delete origin.files["feed/v1/chunks/000001.json"];
+    delete origin.files["feed/v1/chunks/000002.json"];
+    time.advance(61);
+    await get("/feed/v1/head.json");
+
+    for (const path of ["feed/v1/chunks/000001.json", "feed/v1/chunks/000002.json", "feed/v1/chunks/000003.json"]) {
+      const res = await get(`/${path}`);
+      expect(res.status, path).toBe(404);
+      expect(await env.CONTENT.get(path), path).toBeNull();
+    }
+  });
+
+  it("keeps serving a stored chunk when the content repo fails rather than answering 404", async () => {
+    const { origin, time, get } = setup({
+      "feed/v1/head.json": head(1, 1),
+      "feed/v1/chunks/000001.json": chunk(1, 3),
+    });
+    await get("/feed/v1/head.json");
+    await get("/feed/v1/chunks/000001.json");
+    origin.takeDown();
+    time.advance(61);
+
+    const res = await get("/feed/v1/chunks/000001.json");
+
+    expect(res.status).toBe(200);
+    expect(JSON.parse(await res.text()).items).toHaveLength(3);
   });
 });
 
@@ -209,22 +302,22 @@ describe("cache lifetimes", () => {
   const LONG = "public, max-age=31536000, immutable";
   const SHORT = "public, max-age=60";
   const files = {
-    "feed/v1/head.json": head(2),
-    "feed/v1/chunks/000001.json": JSON.stringify({ v: 1, number: 1, items: Array(40).fill({}) }),
-    "feed/v1/chunks/000002.json": JSON.stringify({ v: 1, number: 2, items: [{}] }),
+    "feed/v2/head.json": head(2),
+    "feed/v2/chunks/000001.json": JSON.stringify({ v: 1, number: 1, items: Array(40).fill({}) }),
+    "feed/v2/chunks/000002.json": JSON.stringify({ v: 1, number: 2, items: [{}] }),
     "papers/arxiv-1/index.html": "<!doctype html><title>x</title>",
     "papers/arxiv-1/meta.json": "{}",
   };
 
   it.each([
-    ["/feed/v1/head.json", SHORT],
-    ["/feed/v1/chunks/000002.json", SHORT],
-    ["/feed/v1/chunks/000001.json", LONG],
+    ["/feed/v2/head.json", SHORT],
+    ["/feed/v2/chunks/000002.json", SHORT],
+    ["/feed/v2/chunks/000001.json", LONG],
     ["/papers/arxiv-1/index.html", LONG],
     ["/papers/arxiv-1/meta.json", LONG],
   ])("%s is served with cache-control %s, on a miss and on a hit", async (path, expected) => {
     const { get } = setup({ ...files });
-    await get("/feed/v1/head.json");
+    await get("/feed/v2/head.json");
 
     const miss = await get(path);
     const hit = await get(path);
@@ -236,7 +329,7 @@ describe("cache lifetimes", () => {
 
 describe("content types", () => {
   it.each([
-    ["/feed/v1/head.json", "application/json; charset=utf-8"],
+    ["/feed/v2/head.json", "application/json; charset=utf-8"],
     ["/papers/arxiv-1/index.html", "text/html; charset=utf-8"],
     ["/papers/arxiv-1/meta.json", "application/json; charset=utf-8"],
     ["/papers/arxiv-1/hero.webp", "image/webp"],
@@ -270,9 +363,9 @@ describe("explainer security policy", () => {
   });
 
   it("is not sent with feed files", async () => {
-    const { get } = setup({ "feed/v1/head.json": head(1) });
+    const { get } = setup({ "feed/v2/head.json": head(1) });
 
-    const res = await get("/feed/v1/head.json");
+    const res = await get("/feed/v2/head.json");
 
     expect(res.headers.get("content-security-policy")).toBeNull();
   });
@@ -294,9 +387,9 @@ describe("explainer address", () => {
 
 describe("cross-origin reads", () => {
   it("are allowed from any origin on feed files", async () => {
-    const { get } = setup({ "feed/v1/head.json": head(1) });
+    const { get } = setup({ "feed/v2/head.json": head(1) });
 
-    const res = await get("/feed/v1/head.json", { headers: { origin: "https://elsewhere.example" } });
+    const res = await get("/feed/v2/head.json", { headers: { origin: "https://elsewhere.example" } });
 
     expect(res.headers.get("access-control-allow-origin")).toBe("*");
   });
@@ -323,7 +416,7 @@ describe("unknown paths", () => {
     },
   );
 
-  it.each(["/feed/v1/%2e%2e%2fstate/seen.txt", "/papers/a%2Fb/index.html", "/papers//index.html"])(
+  it.each(["/feed/v2/%2e%2e%2fstate/seen.txt", "/papers/a%2Fb/index.html", "/papers//index.html"])(
     "%s, a path outside the plain file name characters, is 404 without asking the content repo",
     async (path) => {
       const { origin, get } = setup({});
@@ -362,9 +455,9 @@ describe("content repo outage", () => {
 
 describe("request methods", () => {
   it("answers HEAD with the headers of GET and no body", async () => {
-    const { get } = setup({ "feed/v1/head.json": head(1) });
+    const { get } = setup({ "feed/v2/head.json": head(1) });
 
-    const res = await get("/feed/v1/head.json", { method: "HEAD" });
+    const res = await get("/feed/v2/head.json", { method: "HEAD" });
 
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toBe("application/json; charset=utf-8");
@@ -372,9 +465,9 @@ describe("request methods", () => {
   });
 
   it("refuses anything other than GET and HEAD without asking the content repo", async () => {
-    const { origin, get } = setup({ "feed/v1/head.json": head(1) });
+    const { origin, get } = setup({ "feed/v2/head.json": head(1) });
 
-    const res = await get("/feed/v1/head.json", { method: "POST", body: "x" });
+    const res = await get("/feed/v2/head.json", { method: "POST", body: "x" });
 
     expect(res.status).toBe(405);
     expect(res.headers.get("allow")).toBe("GET, HEAD");
@@ -384,15 +477,15 @@ describe("request methods", () => {
 
 describe("where a response came from", () => {
   it("says origin when the file was just fetched from the content repo and bucket when it was stored", async () => {
-    const { origin, time, get } = setup({ "feed/v1/head.json": head(1) });
+    const { origin, time, get } = setup({ "feed/v2/head.json": head(1) });
 
-    const first = await get("/feed/v1/head.json");
-    const second = await get("/feed/v1/head.json");
+    const first = await get("/feed/v2/head.json");
+    const second = await get("/feed/v2/head.json");
     time.advance(61);
-    const refreshed = await get("/feed/v1/head.json");
+    const refreshed = await get("/feed/v2/head.json");
     origin.takeDown();
     time.advance(61);
-    const fallback = await get("/feed/v1/head.json");
+    const fallback = await get("/feed/v2/head.json");
 
     expect(first.headers.get("x-paperboy-source")).toBe("origin");
     expect(second.headers.get("x-paperboy-source")).toBe("bucket");

@@ -1,11 +1,16 @@
 """reset-feed: one-time rewrite of a content repo checkout to the rule that every paper in the feed has a page.
 
-Feeds published before that rule hold short cards: papers with no page. This command keeps only
-the items that have an explainer and starts the feed again from them:
+Feeds published before that rule hold short cards: papers with no page. That feed is in feed/v1/.
+This command keeps only the items that have an explainer and starts the feed again from them in
+feed/v2/, because apps and the worker keep closed chunks as permanent and would go on showing an
+old chunk 1 if the new one took its address:
 
-- the feed: those items, in their old order, merged with their upgrades.json entries (explainer,
-  plates, readout) and given their depth, in new chunks from chunk 1; the head rewritten; the
-  other chunks and upgrades.json deleted;
+- the new feed in feed/v2/: those items, in their old order, merged with their upgrades.json
+  entries (explainer, plates, readout) and given their depth, in chunks from chunk 1, and a head;
+  no upgrades.json;
+- the old feed in feed/v1/ left as a stub: its chunks and upgrades.json deleted, and its head
+  rewritten with no chunks and min_app 2, so an app that still reads feed/v1/ (0.1.0, version
+  code 1) shows its update cover;
 - papers/: only those papers' folders, each meta.json given its depth;
 - state/seen/: only those papers, with their new chunk numbers;
 - the backlog (state/queue/), the claims (state/claims/), and the backlog ledger (state/queued/)
@@ -23,11 +28,17 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from .. import backlog, schemas
-from ..content_repo import CHUNK_SIZE, CHUNKS, CURSORS, HEAD, HEAD_KIT, MIN_APP, SEEN, UPGRADES, QUEUED, chunk_path, dump_json, set_readout
+from ..content_repo import CHUNK_SIZE, CURSORS, FEED, HEAD, HEAD_KIT, MIN_APP, SEEN, QUEUED, chunk_path, dump_json, set_readout
+
+# The feed as published before every paper needed a page, which this command reads and leaves as a stub.
+OLD_FEED = Path("feed/v1")
+OLD_HEAD = OLD_FEED / "head.json"
+OLD_CHUNKS = OLD_FEED / "chunks"
+OLD_UPGRADES = OLD_FEED / "upgrades.json"
 
 
 def register(subparsers) -> None:
-    p = subparsers.add_parser("reset-feed", help="one-time: keep only feed items that have a page, empty the backlog, rewind the cursors",
+    p = subparsers.add_parser("reset-feed", help="one-time: start the feed again in feed/v2/ with only the items that have a page, leave feed/v1/ as a stub, empty the backlog, rewind the cursors",
                               description=__doc__)
     p.add_argument("--content", type=Path, required=True, help="content repo checkout to rewrite")
     p.add_argument("--keep-explained", action="store_true", required=True, help="keep the items that have an explainer (the only mode)")
@@ -47,10 +58,10 @@ def _lines(path: Path) -> list[dict]:
 
 def plan(content: Path, through: str, now: str) -> dict:
     """What the rewrite writes and deletes, and the counts before and after."""
-    head = _read(content / HEAD) or {"chunk_count": 0, "total_items": 0}
-    chunk_files = sorted((content / CHUNKS).glob("*.json"))
+    head = _read(content / OLD_HEAD) or {"chunk_count": 0, "total_items": 0}
+    chunk_files = sorted((content / OLD_CHUNKS).glob("*.json"))
     items = [item for path in chunk_files for item in _read(path)["items"]]
-    upgrades = (_read(content / UPGRADES) or {"upgrades": {}})["upgrades"]
+    upgrades = (_read(content / OLD_UPGRADES) or {"upgrades": {}})["upgrades"]
 
     kept, dropped_without_files = [], []
     for item in items:
@@ -80,6 +91,9 @@ def plan(content: Path, through: str, now: str) -> dict:
         chunk_of.update({item["id"]: number for item, _ in group})
     writes[HEAD] = ("head", dump_json({"v": 1, "updated_at": now, "chunk_count": len(chunks), "total_items": len(kept),
                                         "chunk_size": CHUNK_SIZE, "kit": HEAD_KIT, "min_app": MIN_APP}))
+    # The stub: a valid head with no chunks. min_app 2 is above 0.1.0's version code 1, so 0.1.0 shows its update cover.
+    writes[OLD_HEAD] = ("head", dump_json({"v": 1, "updated_at": now, "chunk_count": 0, "total_items": 0,
+                                            "chunk_size": CHUNK_SIZE, "kit": HEAD_KIT, "min_app": MIN_APP}))
     for item, meta in kept:
         writes[Path("papers") / item["id"] / "meta.json"] = ("paper-meta", dump_json(meta))
 
@@ -104,8 +118,8 @@ def plan(content: Path, through: str, now: str) -> dict:
         writes[CURSORS] = ("cursors", dump_json(new))
 
     keep_ids = {item["id"] for item, _ in kept}
-    deletes = [p.relative_to(content) for p in chunk_files if p.relative_to(content) not in writes]
-    deletes += [UPGRADES] if (content / UPGRADES).exists() else []
+    deletes = [OLD_CHUNKS] if (content / OLD_CHUNKS).exists() else []
+    deletes += [OLD_UPGRADES] if (content / OLD_UPGRADES).exists() else []
     deletes += [p.relative_to(content) for p in sorted((content / "papers").glob("*")) if p.is_dir() and p.name not in keep_ids]
     deletes += [p.relative_to(content) for p in seen_files if p.relative_to(content) not in writes]
     for folder in (backlog.QUEUE, backlog.CLAIMS, QUEUED):
@@ -132,8 +146,11 @@ def plan(content: Path, through: str, now: str) -> dict:
 def run(args) -> int:
     now = (datetime.fromisoformat(args.now.replace("Z", "+00:00")) if args.now else datetime.now(timezone.utc)).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     content = args.content
-    if not (content / HEAD).exists():
-        print(f"reset-feed: {content / HEAD} does not exist; not a content repo checkout", file=sys.stderr)
+    if not (content / OLD_HEAD).exists():
+        print(f"reset-feed: {content / OLD_HEAD} does not exist; not a content repo checkout", file=sys.stderr)
+        return 1
+    if (content / FEED).exists():
+        print(f"reset-feed: {content / FEED} already exists; the feed was already reset, nothing was changed", file=sys.stderr)
         return 1
     p = plan(content, args.rewind_cursors_to.isoformat(), now)
 

@@ -79,7 +79,7 @@ class AboutTest {
     }
 
     @Test fun theEmptyFeedLinksToAbout() {
-        fixtures.override("feed/v1/head.json") { jsonResponse(headJson(chunkCount = 0)) }
+        fixtures.override("feed/v2/head.json") { jsonResponse(headJson(chunkCount = 0)) }
         launch()
         waitFor(hasText("About Paperboy"))
 

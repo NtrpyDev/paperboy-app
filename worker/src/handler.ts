@@ -3,8 +3,10 @@ export const ORIGIN = "https://raw.githubusercontent.com/NtrpyDev/paperboy-conte
 // How long a stored copy of a changing file is served before it is fetched again.
 const REFRESH_MS = 60_000;
 
-const HEAD = "feed/v1/head.json";
-const CHUNK = /^feed\/v1\/chunks\/(\d{6})\.json$/;
+// Each feed version has its own folder, feed/v<N>/, with its own head and chunks. A chunk is
+// judged open or closed by the head in its own folder.
+const HEAD = /^feed\/v\d+\/head\.json$/;
+const CHUNK = /^(feed\/v\d+)\/chunks\/(\d{6})\.json$/;
 const LONG_CACHE = "public, max-age=31536000, immutable";
 const SHORT_CACHE = "public, max-age=60";
 
@@ -66,15 +68,15 @@ export function createHandler(deps: Deps) {
     return { body, changing };
   }
 
-  // The highest chunk number in the stored head, filling the head first if the
-  // bucket does not have it. Null when no head can be read.
-  async function openChunk(env: Env): Promise<number | null> {
-    const stored = await env.CONTENT.get(HEAD);
+  // The highest chunk number in the stored head at headKey, filling the head first if
+  // the bucket does not have it. Null when no head can be read.
+  async function openChunk(env: Env, headKey: string): Promise<number | null> {
+    const stored = await env.CONTENT.get(headKey);
     let text: string;
     if (stored) {
       text = await stored.text();
     } else {
-      const filled = await fill(env, HEAD, true);
+      const filled = await fill(env, headKey, true);
       if (typeof filled === "string") return null;
       text = new TextDecoder().decode(filled.body);
     }
@@ -86,15 +88,16 @@ export function createHandler(deps: Deps) {
     }
   }
 
-  // A changing file is refreshed after REFRESH_MS: the head, and any chunk that is
-  // not known to be closed. A chunk is closed only when the stored head names a
-  // higher chunk, so a missing or stale head can only make a chunk look open.
+  // A changing file is refreshed after REFRESH_MS: a head, and any chunk that is
+  // not known to be closed. A chunk is closed only when the stored head in its own
+  // feed folder names a higher chunk, so a missing or stale head can only make a
+  // chunk look open.
   async function isChanging(env: Env, key: string): Promise<boolean> {
-    if (key === HEAD) return true;
+    if (HEAD.test(key)) return true;
     const chunk = CHUNK.exec(key);
     if (!chunk) return false;
-    const open = await openChunk(env);
-    return open === null || Number(chunk[1]) >= open;
+    const open = await openChunk(env, `${chunk[1]}/head.json`);
+    return open === null || Number(chunk[2]) >= open;
   }
 
   return {
@@ -124,7 +127,14 @@ export function createHandler(deps: Deps) {
       const due = (changing || storedChanging) && age > REFRESH_MS;
       if (!due) return serve(key, stored.body, changing || storedChanging, "bucket");
       const fresh = await fill(env, key, changing);
-      if (typeof fresh === "string") return serve(key, stored.body, true, "bucket");
+      if (fresh === "missing") {
+        // The content repo no longer has the file, as with feed/v1's chunks after the
+        // feed restarted in feed/v2, so the stored copy goes too.
+        await stored.body.cancel();
+        await forget(env, key);
+        return notFound();
+      }
+      if (fresh === "unreachable") return serve(key, stored.body, true, "bucket");
       await stored.body.cancel();
       return serve(key, fresh.body, fresh.changing, "origin");
     }
@@ -133,6 +143,16 @@ export function createHandler(deps: Deps) {
     if (filled === "missing") return notFound();
     if (filled === "unreachable") return new Response("Content repo unreachable\n", { status: 502 });
     return serve(key, filled.body, filled.changing, "origin");
+  }
+}
+
+// Removes a stored file. A failed delete is left for the next request, which asks the
+// content repo again and tries once more.
+async function forget(env: Env, key: string): Promise<void> {
+  try {
+    await env.CONTENT.delete(key);
+  } catch {
+    // Nothing to do here; the response is a 404 either way.
   }
 }
 

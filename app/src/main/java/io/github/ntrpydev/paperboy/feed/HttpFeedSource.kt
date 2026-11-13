@@ -19,21 +19,21 @@ fun feedHttpClient(cacheDir: File): OkHttpClient =
         .cache(Cache(cacheDir, maxSize = 20L * 1024 * 1024))
         .build()
 
-/** Reads `feed/v1/head.json`, `feed/v1/chunks/%06d.json` and `feed/v1/upgrades.json` under [contentBase]. */
+/** Reads `feed/v2/head.json`, `feed/v2/chunks/%06d.json` and `feed/v2/upgrades.json` under [contentBase]. */
 class HttpFeedSource(
     private val contentBase: HttpUrl,
     private val client: OkHttpClient,
 ) : FeedSource {
 
-    override suspend fun head(fresh: Boolean): Head = decode(get("feed/v1/head.json", fresh))
+    override suspend fun head(fresh: Boolean): Head = decode(get("feed/v2/head.json", fresh))
 
     override suspend fun chunk(number: Int, fresh: Boolean): List<FeedItem> {
-        val path = String.format(Locale.ROOT, "feed/v1/chunks/%06d.json", number)
+        val path = String.format(Locale.ROOT, "feed/v2/chunks/%06d.json", number)
         return decode<Chunk>(get(path, fresh)).items
     }
 
     override suspend fun upgrades(fresh: Boolean): Map<String, Upgrade> {
-        val text = get("feed/v1/upgrades.json", fresh, missingIsEmpty = true) ?: return emptyMap()
+        val text = get("feed/v2/upgrades.json", fresh, missingIsEmpty = true) ?: return emptyMap()
         return decode<Upgrades>(text).upgrades
     }
 

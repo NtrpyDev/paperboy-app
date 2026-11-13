@@ -20,7 +20,7 @@ import kotlinx.serialization.json.JsonObject
 
 internal val FeedJson = Json { ignoreUnknownKeys = true }
 
-/** feed/v1/head.json: the small file that says how many chunks exist. */
+/** feed/v2/head.json: the small file that says how many chunks exist. */
 @Serializable
 data class Head(
     val v: Int,
@@ -34,7 +34,7 @@ data class Head(
     @SerialName("min_app") val minApp: Int,
 )
 
-/** feed/v1/chunks/<6 digits>.json: items in the order they were added, oldest first. */
+/** feed/v2/chunks/<6 digits>.json: items in the order they were added, oldest first. */
 @Serializable
 data class Chunk(
     val v: Int,
@@ -120,7 +120,7 @@ data class Readout(
     val label: String,
 )
 
-/** feed/v1/upgrades.json: explainers added to papers whose chunk closed before the explainer existed. */
+/** feed/v2/upgrades.json: explainers added to papers whose chunk closed before the explainer existed. */
 @Serializable
 data class Upgrades(
     val v: Int,

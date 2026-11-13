@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Head",
-  "description": "feed/v1/head.json. The app reads this first.",
+  "description": "feed/v2/head.json. The app reads this first.",
   "type": "object",
   "additionalProperties": false,
   "required": [

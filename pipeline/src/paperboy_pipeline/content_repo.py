@@ -6,9 +6,9 @@ changes until save() is called, and save() writes nothing when any file is inval
 
 Layout (paths relative to the content repo root):
 
-    feed/v1/head.json              Head
-    feed/v1/chunks/000001.json     Chunk, up to 40 items, oldest first
-    feed/v1/upgrades.json          Upgrades: explainers added to items in closed chunks
+    feed/v2/head.json              Head
+    feed/v2/chunks/000001.json     Chunk, up to 40 items, oldest first
+    feed/v2/upgrades.json          Upgrades: explainers added to items in closed chunks
     papers/<id>/index.html         the explainer (explained papers only)
     papers/<id>/hero.webp          the day plate, the card image in the light theme (explained papers only)
     papers/<id>/hero-night.webp    the night plate, the card image in the dark theme (explained papers only)
@@ -40,11 +40,15 @@ CHUNK_SIZE = 40
 # head.json's kit. Neither the app nor the worker reads it yet, so it has no settled meaning
 # and stays 1. A paper's own kit version is in its meta.json, from the page it loads.
 HEAD_KIT = 1
-MIN_APP = 1
+# The lowest app versionCode that reads this feed: 2 is release 0.1.1, the first build that reads feed/v2/.
+MIN_APP = 2
 
-HEAD = Path("feed/v1/head.json")
-CHUNKS = Path("feed/v1/chunks")
-UPGRADES = Path("feed/v1/upgrades.json")
+# The feed's folder. It moved from feed/v1/ to feed/v2/ when the feed restarted on 2026-11-13, so the new
+# chunks do not reuse addresses that apps and the worker cache as permanent.
+FEED = Path("feed/v2")
+HEAD = FEED / "head.json"
+CHUNKS = FEED / "chunks"
+UPGRADES = FEED / "upgrades.json"
 SEEN = Path("state/seen")
 QUEUED = Path("state/queued")
 CURSORS = Path("state/cursors.json")

@@ -56,7 +56,7 @@ class EndlessFeedTest {
     }
 
     private fun chunksRequested() =
-        fixtures.requested.filter { it.startsWith("feed/v1/chunks/") }.map { it.substring(15, 21).toInt() }
+        fixtures.requested.filter { it.startsWith("feed/v2/chunks/") }.map { it.substring(15, 21).toInt() }
 
     private fun exists(tag: String) = compose.onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty()
 
@@ -93,8 +93,8 @@ class EndlessFeedTest {
         compose.waitForIdle()
         val onScreen = compose.cardsOnScreen()
         val now = System.currentTimeMillis()
-        fixtures.override("feed/v1/head.json") { jsonResponse(headJson(chunkCount = 10)) }
-        fixtures.override("feed/v1/chunks/000010.json") {
+        fixtures.override("feed/v2/head.json") { jsonResponse(headJson(chunkCount = 10)) }
+        fixtures.override("feed/v2/chunks/000010.json") {
             jsonResponse(
                 chunkJson(
                     10,
@@ -109,8 +109,8 @@ class EndlessFeedTest {
         compose.onNodeWithTag("feed").performTouchInput { swipeDown() }
 
         compose.waitUntil(TIMEOUT_MS) { compose.onAllNodes(hasText("2 new papers")).fetchSemanticsNodes().isNotEmpty() }
-        assertTrue(fixtures.requested.count { it == "feed/v1/head.json" } >= 2)
-        assertTrue("feed/v1/upgrades.json" in fixtures.requested.drop(fixtures.requested.indexOf("feed/v1/chunks/000007.json")))
+        assertTrue(fixtures.requested.count { it == "feed/v2/head.json" } >= 2)
+        assertTrue("feed/v2/upgrades.json" in fixtures.requested.drop(fixtures.requested.indexOf("feed/v2/chunks/000007.json")))
         // The reader still sees the same cards; the new ones are just above.
         assertEquals(onScreen, compose.cardsOnScreen())
         compose.onNodeWithTag("feed").performScrollToIndex(0)
@@ -119,7 +119,7 @@ class EndlessFeedTest {
     }
 
     @Test fun aHeadThatNeedsANewerAppShowsTheUpdateMessageAndTheFeed() {
-        fixtures.override("feed/v1/head.json") { jsonResponse(headJson(chunkCount = 9, minApp = 99)) }
+        fixtures.override("feed/v2/head.json") { jsonResponse(headJson(chunkCount = 9, minApp = 99)) }
 
         launch()
 
@@ -131,20 +131,20 @@ class EndlessFeedTest {
     @Test fun aFeedWithOnlyTwoPapersToShowInTwelveChunksShowsTheTwoAndThenTheEnd() {
         // The live feed's shape when 0.1.1 was made: 12 chunks, 461 papers, two explained by upgrades.
         val now = System.currentTimeMillis()
-        fixtures.override("feed/v1/head.json") { jsonResponse(headJson(chunkCount = 12)) }
+        fixtures.override("feed/v2/head.json") { jsonResponse(headJson(chunkCount = 12)) }
         var k = 0
         for (number in 1..12) {
             val items = (0 until if (number == 12) 21 else 40).map {
                 val id = "arxiv-2611.%05d".format(10000 + k++)
                 itemJson(id, "A paper with no page, number $k", "physics", "optics", 5.0, now - k * 60_000L, explained = false)
             }
-            fixtures.override("feed/v1/chunks/%06d.json".format(number)) { jsonResponse(chunkJson(number, items)) }
+            fixtures.override("feed/v2/chunks/%06d.json".format(number)) { jsonResponse(chunkJson(number, items)) }
         }
         val upgrade = { id: String ->
             """"$id":{"explainer":"papers/$id/","hero":{"path":"fixture-plates/1/hero.webp","width":1200,"height":708},"explained_at":"2026-11-13T12:00:00Z"}"""
         }
         // Paper 290 is in chunk 8, paper 410 in chunk 11.
-        fixtures.override("feed/v1/upgrades.json") {
+        fixtures.override("feed/v2/upgrades.json") {
             jsonResponse("""{"v":1,"upgrades":{${upgrade("arxiv-2611.10290")},${upgrade("arxiv-2611.10410")}}}""")
         }
         val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)

@@ -38,6 +38,13 @@ android {
         compose = true
         buildConfig = true
     }
+
+    // src/fixtures is a small content base (head, chunks, one explainer) that the
+    // fake servers in both test suites serve.
+    sourceSets {
+        named("test") { resources.directories += "src/fixtures" }
+        named("androidTest") { assets.directories += "src/fixtures" }
+    }
 }
 
 dependencies {

@@ -16,11 +16,10 @@ BASE = "https://api.biorxiv.org/details"
 VENUES = {"biorxiv": "bioRxiv", "medrxiv": "medRxiv"}
 
 
-def fetch(server: str, since: date, limit: int | None, http: Http) -> list[dict]:
-    today = http.today()
+def fetch(server: str, since: date, until: date, limit: int | None, http: Http) -> list[dict]:
     records, new_count, cursor = [], 0, 0
     while True:
-        url = f"{BASE}/{server}/{since.isoformat()}/{today.isoformat()}/{cursor}/json"
+        url = f"{BASE}/{server}/{since.isoformat()}/{until.isoformat()}/{cursor}/json"
         try:
             data = http.get(url).json()
         except ValueError as error:

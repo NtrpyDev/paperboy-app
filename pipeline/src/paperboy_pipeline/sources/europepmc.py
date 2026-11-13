@@ -17,8 +17,8 @@ BASE = "https://www.ebi.ac.uk/europepmc/webservices/rest"
 PAGE = 1000
 
 
-def fetch(since: date, limit: int | None, http: Http) -> list[dict]:
-    query = f"OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[{since.isoformat()} TO {http.today().isoformat()}]"
+def fetch(since: date, until: date, limit: int | None, http: Http) -> list[dict]:
+    query = f"OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[{since.isoformat()} TO {until.isoformat()}]"
     records, cursor = [], "*"
     while True:
         params = {

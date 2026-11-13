@@ -1,6 +1,6 @@
 """Crossref journal articles through the REST API (https://api.crossref.org/works).
 
-Filter: created on or after `since`, type journal-article, has an abstract; newest created
+Filter: created from `since` through `until`, type journal-article, has an abstract; newest created
 first, paged with a deep-paging cursor. No mailto is sent, so requests use the public pool,
 which allows one list request per second (spacing lives in sources.http). Crossref records carry
 no full text pointer here.
@@ -20,11 +20,11 @@ FIELDS = "DOI,type,title,author,abstract,container-title,created,published-onlin
 VERSION_ORDER = {"vor": 0, "unspecified": 1, "am": 2, "tdm": 3}
 
 
-def fetch(since: date, limit: int | None, http: Http) -> list[dict]:
+def fetch(since: date, until: date, limit: int | None, http: Http) -> list[dict]:
     records, cursor = [], "*"
     while True:
         params = {
-            "filter": f"from-created-date:{since.isoformat()},type:journal-article,has-abstract:true",
+            "filter": f"from-created-date:{since.isoformat()},until-created-date:{until.isoformat()},type:journal-article,has-abstract:true",
             "sort": "created",
             "order": "desc",
             "rows": min(PAGE, limit) if limit else PAGE,

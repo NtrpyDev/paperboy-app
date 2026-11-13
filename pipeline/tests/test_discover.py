@@ -129,7 +129,7 @@ def test_arxiv_requests_are_three_seconds_apart_and_follow_the_resumption_token(
     times = sources.times("oaipmh.arxiv.org")
     assert len(times) == 2
     assert times[1] - times[0] >= 3.0
-    assert "from=2026-11-11" in sources.urls("oaipmh.arxiv.org")[0]
+    assert "from=2026-11-11&until=2026-11-12" in sources.urls("oaipmh.arxiv.org")[0]
     assert "resumptionToken=" in sources.urls("oaipmh.arxiv.org")[1]
 
 
@@ -204,9 +204,9 @@ def test_biorxiv_and_medrxiv_first_versions_become_candidates(tmp_path):
     assert by_id(records)["doi-10.64898-2026.11.09.26367690"]["fulltext"]["kind"] == "biorxiv"
     assert by_id(records)["doi-10.64898-2026.11.08.765212"]["license"] == "other"
     assert sources.urls("api.biorxiv.org") == [
-        "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-13/0/json",
-        "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-13/3/json",
-        "https://api.biorxiv.org/details/medrxiv/2026-11-11/2026-11-13/0/json",
+        "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-12/0/json",
+        "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-12/3/json",
+        "https://api.biorxiv.org/details/medrxiv/2026-11-11/2026-11-12/0/json",
     ]
 
 
@@ -250,7 +250,7 @@ def test_europepmc_open_access_articles_and_preprints_become_candidates(tmp_path
     assert (preprint["status"], preprint["venue"], preprint["license"]) == ("preprint", "medRxiv", "cc-by-nc")
     assert preprint["fulltext"]["url"] == "https://www.ebi.ac.uk/europepmc/webservices/rest/PPR1334369/fullTextXML"
     query = parse_qs(urlsplit(sources.urls("www.ebi.ac.uk")[0]).query)
-    assert query["query"] == ["OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[2026-11-10 TO 2026-11-13]"]
+    assert query["query"] == ["OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[2026-11-10 TO 2026-11-12]"]
     assert query["sort"] == ["FIRST_PDATE_D desc"]
     # The second page repeats the cursor it was asked with, which marks the end.
     assert len(sources.urls("www.ebi.ac.uk")) == 2
@@ -296,7 +296,7 @@ def test_crossref_journal_articles_become_candidates_without_full_text(tmp_path)
     other = by_id(records)["doi-10.22335-rlct.v18i3.2411"]
     assert (other["venue"], other["license"], other["published"]) == ("Revista Logos Ciencia & Tecnología", None, "2026-11-12")
     query = parse_qs(urlsplit(sources.urls("api.crossref.org")[0]).query)
-    assert query["filter"] == ["from-created-date:2026-11-11,type:journal-article,has-abstract:true"]
+    assert query["filter"][0].startswith("from-created-date:2026-11-11,until-created-date:2026-11-12,type:journal-article,")
     assert (query["sort"], query["order"], query["cursor"]) == (["created"], ["desc"], ["*"])
     assert "mailto" not in query
 
@@ -430,27 +430,59 @@ def test_journal_article_of_a_preprint_already_in_the_feed_is_skipped(tmp_path):
     assert records == []
 
 
-def test_cursors_set_each_source_start_and_a_missing_cursor_means_two_days(tmp_path):
+def test_each_source_starts_the_day_after_its_cursor_and_ends_yesterday(tmp_path):
     content = tmp_path / "content"
     write_state(content, cursors={"arxiv": "2026-11-05", "crossref": "2026-11-09"})
     _, _, sources = run(tmp_path, content=content)
-    assert "from=2026-11-05" in sources.urls("oaipmh.arxiv.org")[0]
-    assert "from-created-date%3A2026-11-09" in sources.urls("api.crossref.org")[0]
-    assert sources.urls("api.biorxiv.org")[0] == "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-13/0/json"
+    assert "from=2026-11-06&until=2026-11-12" in sources.urls("oaipmh.arxiv.org")[0]
+    assert "from-created-date%3A2026-11-10%2Cuntil-created-date%3A2026-11-12" in sources.urls("api.crossref.org")[0]
+    # No cursor: the last two finished days.
+    assert sources.urls("api.biorxiv.org")[0] == "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-12/0/json"
 
 
-def test_missing_state_folder_means_nothing_seen_and_the_last_two_days(tmp_path):
+def test_missing_state_folder_means_nothing_seen_and_the_last_two_finished_days(tmp_path):
     code, records, sources = run(tmp_path, "--sources", "arxiv", content=tmp_path / "no-such-checkout")
     assert code == 0
     assert len(records) == 5
-    assert "from=2026-11-11" in sources.urls("oaipmh.arxiv.org")[0]
+    assert "from=2026-11-11&until=2026-11-12" in sources.urls("oaipmh.arxiv.org")[0]
+
+
+def test_until_sets_the_last_day_of_every_window(tmp_path):
+    content = tmp_path / "content"
+    write_state(content, cursors={"biorxiv": "2026-11-07"})
+    _, _, sources = run(tmp_path, "--sources", "biorxiv,medrxiv,europepmc", "--until", "2026-11-09", content=content)
+    assert sources.urls("api.biorxiv.org") == [
+        "https://api.biorxiv.org/details/biorxiv/2026-11-08/2026-11-09/0/json",
+        "https://api.biorxiv.org/details/biorxiv/2026-11-08/2026-11-09/3/json",
+        "https://api.biorxiv.org/details/medrxiv/2026-11-08/2026-11-09/0/json",
+    ]
+    query = parse_qs(urlsplit(sources.urls("www.ebi.ac.uk")[0]).query)
+    assert query["query"] == ["OPEN_ACCESS:y AND HAS_DOI:y AND FIRST_PDATE:[2026-11-08 TO 2026-11-09]"]
+
+
+def test_a_source_already_processed_through_the_last_day_is_skipped(tmp_path, capsys):
+    content = tmp_path / "content"
+    write_state(content, cursors={"arxiv": "2026-11-12", "biorxiv": "2026-11-11"})
+    code, records, sources = run(tmp_path, "--sources", "arxiv,biorxiv", content=content)
+    assert code == 0
+    assert sources.urls("oaipmh.arxiv.org") == []
+    assert sources.urls("api.biorxiv.org")[0] == "https://api.biorxiv.org/details/biorxiv/2026-11-12/2026-11-12/0/json"
+    assert {r["source"] for r in records} == {"biorxiv"}
+    assert capsys.readouterr().out.splitlines()[0] == "arxiv: skipped, processed through 2026-11-12"
+
+
+def test_since_after_until_is_refused(tmp_path, capsys):
+    code, records, sources = run(tmp_path, "--since", "2026-11-13")
+    assert code == 2
+    assert sources.requests == []
+    assert "--since 2026-11-13 is after --until 2026-11-12" in capsys.readouterr().err
 
 
 def test_since_overrides_cursors(tmp_path):
     content = tmp_path / "content"
     write_state(content, cursors={"arxiv": "2026-11-05"})
     _, _, sources = run(tmp_path, "--sources", "arxiv", "--since", "2026-11-12", content=content)
-    assert "from=2026-11-12" in sources.urls("oaipmh.arxiv.org")[0]
+    assert "from=2026-11-12&until=2026-11-12" in sources.urls("oaipmh.arxiv.org")[0]
 
 
 def test_rate_limited_answer_is_retried_after_the_time_the_server_asks(tmp_path):

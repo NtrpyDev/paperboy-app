@@ -4,9 +4,11 @@ Reads each source from its start date, merges records of the same paper (see
 paperboy_pipeline.dedupe), skips papers already in the content repo's state/seen/, and writes
 WORK/candidates.jsonl, one Candidate per line, newest first. Prints one count line per source.
 
-The start date is --since when given; otherwise the source's cursor in
-CONTENT_REPO/state/cursors.json; otherwise two days before today (UTC). Discover only reads
-the content repo. Exit status is 1 when a source failed or a record did not match the Candidate
+Each source's window is whole days, both ends inclusive (UTC). It ends on --until, by default
+yesterday. It starts on --since when given; otherwise the day after the source's cursor in
+CONTENT_REPO/state/cursors.json (the last day already processed); otherwise the day before
+--until, so the last two finished days. A source whose cursor is already at or past --until is
+skipped. Discover only reads the content repo. Exit status is 1 when a source failed or a record did not match the Candidate
 schema; the candidates that could be read are still written.
 """
 import argparse
@@ -23,14 +25,15 @@ from ..content_repo import ContentRepo, PublishError
 from ..sources import ADAPTERS
 from ..sources.http import Http, SourceError, make_client
 
-DEFAULT_DAYS = 2
+DEFAULT_DAYS = 2  # window length when a source has no cursor
 
 
 def register(subparsers) -> None:
     parser = subparsers.add_parser("discover", help="list new papers from the sources as candidates", description=__doc__)
     parser.add_argument("--work", type=Path, required=True, help="work folder; candidates.jsonl is written here")
     parser.add_argument("--content", type=Path, required=True, help="content repo checkout to read state/ from")
-    parser.add_argument("--since", type=date.fromisoformat, help="start date YYYY-MM-DD for every source (default: each source's cursor)")
+    parser.add_argument("--since", type=date.fromisoformat, help="first day YYYY-MM-DD for every source (default: the day after each source's cursor)")
+    parser.add_argument("--until", type=date.fromisoformat, help="last day YYYY-MM-DD, inclusive (default: yesterday, UTC)")
     parser.add_argument("--sources", type=source_list, default=list(ADAPTERS), help="comma separated: " + ",".join(ADAPTERS))
     parser.add_argument("--limit", type=_positive, help="at most this many new papers from each source")
     parser.set_defaults(run=run)
@@ -53,6 +56,10 @@ def _positive(text: str) -> int:
 
 def run(args, *, transport: httpx.BaseTransport | None = None, clock=time.monotonic, sleep=time.sleep, today: date | None = None) -> int:
     today = today or datetime.now(timezone.utc).date()
+    until = args.until or today - timedelta(days=1)
+    if args.since is not None and args.since > until:
+        print(f"discover: --since {args.since} is after --until {until}", file=sys.stderr)
+        return 2
     try:
         repo = ContentRepo(args.content)
     except (PublishError, ValueError) as error:
@@ -62,12 +69,16 @@ def run(args, *, transport: httpx.BaseTransport | None = None, clock=time.monoto
 
     fetched: dict[str, list[dict]] = {}
     failed: dict[str, str] = {}
+    skipped: dict[str, str] = {}
     with make_client(transport) as client:
         http = Http(client, clock=clock, sleep=sleep, today=lambda: today)
         for name in args.sources:
-            since = _since(args.since, cursors.get(name), today)
+            since = _since(args.since, cursors.get(name), until)
+            if since > until:
+                skipped[name] = cursors[name]
+                continue
             try:
-                fetched[name] = ADAPTERS[name](since, args.limit, http)
+                fetched[name] = ADAPTERS[name](since, until, args.limit, http)
             except SourceError as error:
                 failed[name] = str(error)
 
@@ -96,20 +107,21 @@ def run(args, *, transport: httpx.BaseTransport | None = None, clock=time.monoto
         if name in failed:
             print(f"{name}: failed: {failed[name]}")
             continue
+        if name in skipped:
+            print(f"{name}: skipped, processed through {skipped[name]}")
+            continue
         found = sum(r["_new"] for r in fetched[name])
         written = sum(c["source"] == name for c in candidates)
         print(f"{name}: {found} found, {written} written")
     return 1 if failed or invalid else 0
 
 
-def _since(given: date | None, cursor: str | None, today: date) -> date:
+def _since(given: date | None, cursor: str | None, until: date) -> date:
     if given is not None:
-        start = given
-    elif cursor:
-        start = date.fromisoformat(cursor[:10])
-    else:
-        start = today - timedelta(days=DEFAULT_DAYS)
-    return min(start, today)
+        return given
+    if cursor:
+        return date.fromisoformat(cursor[:10]) + timedelta(days=1)
+    return until - timedelta(days=DEFAULT_DAYS - 1)
 
 
 def _seen(repo: ContentRepo, paper: dedupe.Paper) -> bool:

@@ -1,4 +1,7 @@
-"""One adapter per paper source. Each is fetch(since, limit, http) -> list of candidate records.
+"""One adapter per paper source. Each is fetch(since, until, limit, http) -> list of candidate records.
+
+`since` and `until` are the first and last day of the window, both inclusive (UTC). Each adapter
+puts the window into its query on the date that source uses to decide newness.
 
 A record has every Candidate field (schema/candidate.schema.json) plus two private fields that
 dedupe reads and discover drops before writing:

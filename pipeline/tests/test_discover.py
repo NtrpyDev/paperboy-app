@@ -307,3 +307,178 @@ def test_crossref_list_requests_are_at_least_one_second_apart(tmp_path):
     assert len(times) == 2
     assert times[1] - times[0] >= 1.0
     assert f"cursor={CROSSREF_SECOND_CURSOR}" in sources.urls("api.crossref.org")[1]
+
+
+def first_page_only(name):
+    """Serve one Crossref fixture for the first page and the recorded empty page after it."""
+    def route(request):
+        q = parse_qs(urlsplit(str(request.url)).query)
+        return name if q["cursor"] == ["*"] else "crossref/page2.json"
+    return route
+
+
+def test_preprint_and_journal_article_with_the_same_doi_come_out_once_with_journal_metadata(tmp_path):
+    # arXiv 2305.05556 was revised on 2026-11-11 to add its Scientific Reports DOI; Crossref has the article.
+    code, records, _ = run(
+        tmp_path, "--sources", "arxiv,crossref", "--since", "2026-11-11",
+        overrides={"oaipmh.arxiv.org": "pairs/arxiv_doi_pair.xml",
+                   "api.crossref.org": first_page_only("pairs/crossref_doi_pair.json")})
+    assert code == 0
+    assert len(records) == 1
+    paper = records[0]
+    assert paper["id"] == "arxiv-2305.05556"
+    assert paper["doi"] == "10.1038/s41598-026-77938-z"
+    assert paper["arxiv_id"] == "2305.05556"
+    assert (paper["status"], paper["venue"], paper["source"]) == ("peer_reviewed", "Scientific Reports", "crossref")
+    assert paper["url"] == "https://doi.org/10.1038/s41598-026-77938-z"
+    assert paper["fulltext"] == {"available": True, "kind": "arxiv_html", "url": "https://arxiv.org/html/2305.05556"}
+    assert paper["license"] == "cc-by"
+    assert "quant-ph" in paper["categories"]
+
+
+def test_preprint_and_journal_article_with_the_same_title_come_out_once(tmp_path):
+    code, records, _ = run(
+        tmp_path, "--sources", "arxiv,crossref", "--since", "2026-11-11",
+        overrides={"oaipmh.arxiv.org": "pairs/arxiv_title_pair.xml",
+                   "api.crossref.org": first_page_only("pairs/crossref_title_pair.json")})
+    assert code == 0
+    assert [(r["id"], r["doi"], r["status"], r["fulltext"]["kind"]) for r in records] == [
+        ("arxiv-2506.15578", "10.1002/qj.70201", "peer_reviewed", "arxiv_html")]
+
+
+def test_journal_doi_named_by_biorxiv_links_a_preprint_to_its_differently_titled_article(tmp_path):
+    code, records, _ = run(
+        tmp_path, "--sources", "biorxiv,crossref", "--since", "2026-11-11",
+        overrides={"api.biorxiv.org": "pairs/biorxiv_published.json",
+                   "api.crossref.org": first_page_only("pairs/crossref_published.json")})
+    assert code == 0
+    assert len(records) == 1
+    paper = records[0]
+    assert (paper["id"], paper["venue"], paper["status"]) == ("doi-10.3390-genes17111413", "Genes", "peer_reviewed")
+    assert paper["title"] == "Integrating CTCF and Histone Modification Profiles Identifies Distinct Chromatin Signatures in Human Cancer Cell Lines"
+    assert paper["fulltext"]["kind"] == "biorxiv"
+    assert paper["fulltext"]["url"].startswith("https://www.biorxiv.org/content/")
+
+
+def test_preprint_listed_by_medrxiv_and_europepmc_comes_out_once_from_medrxiv(tmp_path):
+    code, records, _ = run(
+        tmp_path, "--sources", "medrxiv,europepmc", "--since", "2026-10-01",
+        overrides={"api.biorxiv.org": "pairs/medrxiv_same_doi.json",
+                   "www.ebi.ac.uk": "pairs/europepmc_same_doi.json"})
+    assert code == 0
+    assert [(r["id"], r["source"], r["status"], r["fulltext"]["kind"]) for r in records] == [
+        ("doi-10.64898-2026.10.02.26364570", "medrxiv", "preprint", "biorxiv")]
+
+
+def test_every_source_together_writes_valid_unique_candidates_newest_first(tmp_path, capsys):
+    code, records, _ = run(tmp_path, "--since", "2026-11-11")
+    assert code == 0
+    assert len(records) == 17
+    assert len({r["id"] for r in records}) == 17
+    for record in records:
+        assert schemas.errors("candidate", record) == [], record["id"]
+    dates = [r["published"] for r in records]
+    assert dates == sorted(dates, reverse=True)
+    assert capsys.readouterr().out.splitlines() == [
+        "arxiv: 5 found, 5 written",
+        "biorxiv: 3 found, 3 written",
+        "medrxiv: 2 found, 2 written",
+        "europepmc: 4 found, 4 written",
+        "crossref: 3 found, 3 written",
+    ]
+
+
+def write_state(content, seen=(), cursors=None):
+    (content / "state" / "seen").mkdir(parents=True)
+    lines = []
+    for entry in seen:
+        lines.append(json.dumps({"chunk": 1, "added_at": "2026-11-12T10:00:00Z", **entry}))
+    (content / "state" / "seen" / "2026-11.jsonl").write_text("".join(line + "\n" for line in lines))
+    if cursors is not None:
+        (content / "state" / "cursors.json").write_text(json.dumps({"v": 1, "cursors": cursors}))
+    for line in lines:
+        assert schemas.errors("seen", json.loads(line)) == []
+
+
+def test_papers_already_in_the_feed_are_skipped_by_id_doi_or_title(tmp_path):
+    content = tmp_path / "content"
+    write_state(content, seen=[
+        {"id": "arxiv-2611.13622", "doi": None, "arxiv_id": "2611.13622",
+         "title_key": ids.title_key("Stochastic evolution of interacting directed strings")},
+        {"id": "doi-10.64898-other", "doi": "10.64898/2026.11.09.764949", "arxiv_id": None, "title_key": "0" * 20},
+        {"id": "doi-10.1-other", "doi": "10.1/other", "arxiv_id": None,
+         "title_key": ids.title_key("A mixed review of research on the competencies of built environment professionals "
+                                    "in infrastructure delivery within emerging economies")},
+    ])
+    code, records, _ = run(tmp_path, "--since", "2026-11-11", content=content)
+    assert code == 0
+    written = set(by_id(records))
+    assert len(records) == 14
+    assert not written & {"arxiv-2611.13622", "doi-10.64898-2026.11.09.764949", "doi-10.5130-pjx4c836"}
+
+
+def test_journal_article_of_a_preprint_already_in_the_feed_is_skipped(tmp_path):
+    content = tmp_path / "content"
+    crossref_title = json.loads((FIXTURES / "pairs/crossref_title_pair.json").read_text())["message"]["items"][0]["title"][0]
+    write_state(content, seen=[
+        {"id": "arxiv-2506.15578", "doi": None, "arxiv_id": "2506.15578", "title_key": ids.title_key(crossref_title)},
+    ])
+    code, records, _ = run(
+        tmp_path, "--sources", "crossref", "--since", "2026-11-11", content=content,
+        overrides={"api.crossref.org": first_page_only("pairs/crossref_title_pair.json")})
+    assert code == 0
+    assert records == []
+
+
+def test_cursors_set_each_source_start_and_a_missing_cursor_means_two_days(tmp_path):
+    content = tmp_path / "content"
+    write_state(content, cursors={"arxiv": "2026-11-05", "crossref": "2026-11-09"})
+    _, _, sources = run(tmp_path, content=content)
+    assert "from=2026-11-05" in sources.urls("oaipmh.arxiv.org")[0]
+    assert "from-created-date%3A2026-11-09" in sources.urls("api.crossref.org")[0]
+    assert sources.urls("api.biorxiv.org")[0] == "https://api.biorxiv.org/details/biorxiv/2026-11-11/2026-11-13/0/json"
+
+
+def test_missing_state_folder_means_nothing_seen_and_the_last_two_days(tmp_path):
+    code, records, sources = run(tmp_path, "--sources", "arxiv", content=tmp_path / "no-such-checkout")
+    assert code == 0
+    assert len(records) == 5
+    assert "from=2026-11-11" in sources.urls("oaipmh.arxiv.org")[0]
+
+
+def test_since_overrides_cursors(tmp_path):
+    content = tmp_path / "content"
+    write_state(content, cursors={"arxiv": "2026-11-05"})
+    _, _, sources = run(tmp_path, "--sources", "arxiv", "--since", "2026-11-12", content=content)
+    assert "from=2026-11-12" in sources.urls("oaipmh.arxiv.org")[0]
+
+
+def test_rate_limited_answer_is_retried_after_the_time_the_server_asks(tmp_path):
+    code, records, sources = run(
+        tmp_path, "--sources", "crossref", "--since", "2026-11-11",
+        statuses={"api.crossref.org": [(429, {"Retry-After": "7"})]})
+    assert code == 0
+    assert len(records) == 3
+    times = sources.times("api.crossref.org")
+    assert times[1] - times[0] >= 7
+
+
+def test_a_failing_source_is_reported_and_the_others_are_still_written(tmp_path, capsys):
+    code, records, sources = run(
+        tmp_path, "--sources", "arxiv,biorxiv", "--since", "2026-11-11",
+        statuses={"oaipmh.arxiv.org": [(503, {})] * 5})
+    assert code == 1
+    assert {r["source"] for r in records} == {"biorxiv"}
+    assert len(sources.times("oaipmh.arxiv.org")) == 5
+    out = capsys.readouterr().out.splitlines()
+    assert out[0].startswith("arxiv: failed: ")
+    assert out[1] == "biorxiv: 3 found, 3 written"
+
+
+def test_requests_carry_the_pipeline_user_agent_and_no_contact_details(tmp_path):
+    _, _, sources = run(tmp_path, "--since", "2026-11-11")
+    for _, request in sources.requests:
+        assert request.headers["User-Agent"] == "paperboy-pipeline/0.1 (+https://github.com/NtrpyDev/paperboy-app)"
+        assert "@" not in str(request.url)
+        assert "mailto" not in str(request.url)
+        assert "From" not in request.headers

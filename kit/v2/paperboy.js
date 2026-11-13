@@ -1320,6 +1320,72 @@
     });
   }
 
+  /* Unicode superscript and subscript characters (10⁻⁵, CO₂) are not in the kit's label font, and
+     a phone with no fallback for them draws empty boxes. Every run of them, typed anywhere on the
+     page or drawn later by a chart, is redrawn as ordinary digits raised or lowered. A run made
+     only of ¹ ² ³ is left alone: the fonts have those three. */
+  var SUP = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁺": "+", "⁻": "−", "⁼": "=", "⁽": "(", "⁾": ")", "ⁿ": "n", "ⁱ": "i" };
+  var SUB = { "₀": "0", "₁": "1", "₂": "2", "₃": "3", "₄": "4", "₅": "5", "₆": "6", "₇": "7", "₈": "8", "₉": "9", "₊": "+", "₋": "−", "₌": "=", "₍": "(", "₎": ")" };
+  var SCRIPT_RUN = /[⁰¹²³⁴-⁹⁺⁻⁼⁽⁾ⁿⁱ]+|[₀-₎]+/g;
+  var SCRIPT_NEEDS = /[⁰⁴-⁹⁺⁻⁼⁽⁾ⁿⁱ₀-₎]/;
+  function scriptParts(text) {
+    var parts = [], last = 0, m;
+    SCRIPT_RUN.lastIndex = 0;
+    while ((m = SCRIPT_RUN.exec(text))) {
+      if (!SCRIPT_NEEDS.test(m[0])) continue;
+      var up = SUP[m[0].charAt(0)] !== undefined, map = up ? SUP : SUB, plain = "";
+      for (var i = 0; i < m[0].length; i++) plain += map[m[0].charAt(i)];
+      if (m.index > last) parts.push({ kind: "text", text: text.slice(last, m.index) });
+      parts.push({ kind: up ? "sup" : "sub", text: plain });
+      last = m.index + m[0].length;
+    }
+    if (!parts.length) return null;
+    if (last < text.length) parts.push({ kind: "text", text: text.slice(last) });
+    return parts;
+  }
+  function fixScriptNode(node) {
+    var parent = node.parentNode;
+    if (!parent || !SCRIPT_NEEDS.test(node.nodeValue)) return;
+    if (parent.closest && parent.closest(".katex, script, style, textarea, title, desc")) return;
+    var parts = scriptParts(node.nodeValue);
+    if (!parts) return;
+    var inSvg = parent.namespaceURI === SVGNS, frag = document.createDocumentFragment(), shift = 0;
+    parts.forEach(function (part) {
+      if (inSvg) {
+        /* dy moves the pen and stays moved, so each piece undoes the shift before it. */
+        var want = part.kind === "sup" ? -0.42 : part.kind === "sub" ? 0.24 : 0;
+        if (part.kind === "text" && shift === 0) { frag.appendChild(document.createTextNode(part.text)); return; }
+        var span = document.createElementNS(SVGNS, "tspan");
+        span.setAttribute("dy", (want - shift).toFixed(2) + "em");
+        span.textContent = part.text;
+        frag.appendChild(span);
+        shift = want;
+      } else if (part.kind === "text") {
+        frag.appendChild(document.createTextNode(part.text));
+      } else {
+        frag.appendChild(el(part.kind, { class: "pb-script", text: part.text }));
+      }
+    });
+    parent.replaceChild(frag, node);
+  }
+  function fixScripts(root) {
+    if (root.nodeType === 3) { fixScriptNode(root); return; }
+    if (root.nodeType !== 1) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [], n;
+    while ((n = walker.nextNode())) if (SCRIPT_NEEDS.test(n.nodeValue)) nodes.push(n);
+    nodes.forEach(fixScriptNode);
+  }
+  function setupScripts() {
+    var root = document.querySelector(".pb") || document.body;
+    fixScripts(root);
+    new MutationObserver(function (records) {
+      records.forEach(function (r) {
+        if (r.type === "characterData") fixScripts(r.target);
+        else Array.prototype.forEach.call(r.addedNodes, fixScripts);
+      });
+    }).observe(root, { childList: true, subtree: true, characterData: true });
+  }
+
   var readyFns = [];
   var booted = false;
   /* Page code goes inside PB.ready(fn). It runs after the document, the kit, and math are set up.
@@ -1339,6 +1405,7 @@
     run(setupSigns);
     run(setupTerms);
     run(setupWait);
+    run(setupScripts);
     readyFns.forEach(run);
     run(setupTurns);
     requestAnimationFrame(function () {

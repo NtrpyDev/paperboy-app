@@ -86,8 +86,8 @@ class AppGraph(
     val fields = FieldSelection(fieldStore)
 
     /**
-     * Who may read, in the paid build; null in the free build. Asked on every cold start: it
-     * starts as the graph is built.
+     * Who may read, in the paid build; null in the free build. The app's screens start it
+     * (PaperboyRoot), so a graph that only serves images, as in tests, never asks Play.
      */
     val access: AccessModel? = paid?.let { p ->
         // Its own client: no HTTP cache and no pass interceptor, the same connections.
@@ -126,7 +126,6 @@ class AppGraph(
 
     init {
         gate = access
-        access?.start()
     }
 
     fun newFeedSession() = FeedSession(feedSource, ranker, tasteStore, seenStore, appVersionCode)

@@ -49,31 +49,48 @@ Paperboy's code is under the GNU General Public License, version 3 or later.
 
 The Android app is the Gradle project at the repo root (`app/`). It needs JDK 17 and the Android SDK; `tools/dev-env.sh` sets both up on the dev machine. The script is POSIX shell, so from fish run each command below as `bash -c 'source tools/dev-env.sh && ...'`.
 
-Build a debug APK (written to `app/build/outputs/apk/debug/`):
+### Two builds
+
+One codebase builds two apps, chosen at build time by product flavor:
+
+- `free`: today's app. Reads the open feed, and the update cover links to GitHub releases. This is the APK the release workflow publishes.
+- `paid`: the Google Play app. Google Play Billing (`app/src/paid/`), the entitlement call to the worker (`POST /v1/entitlement`), the pass on every feed and explainer request, the subscription screens, and the update cover linking to the Play Store listing. Only this build has the Play Billing Library and the `com.android.vending.BILLING` permission. Nothing can be bought yet: there is no Play listing, so its tests run against a fake Play (`app/src/sharedTest/`).
+
+Both use the package name `io.github.ntrpydev.paperboy`. Code for both is in `app/src/main/`; `app/src/free/` and `app/src/paid/` hold what differs.
+
+Build the debug APKs (written to `app/build/outputs/apk/free/debug/` and `app/build/outputs/apk/paid/debug/`):
 
 ```sh
 source tools/dev-env.sh
-./gradlew assembleDebug
+./gradlew assembleFreeDebug
+./gradlew assemblePaidDebug
 ```
 
-Run the unit tests (JVM, no device needed):
+Run the unit tests (JVM, no device needed), for each build:
 
 ```sh
-./gradlew testDebugUnitTest
+./gradlew testFreeDebugUnitTest testPaidDebugUnitTest
 ```
 
-Run the instrumented tests (needs a running emulator or a connected device):
+Run the instrumented tests (needs a running emulator or a connected device). The free build runs `app/src/androidTest/`; the paid build runs those and `app/src/androidTestPaid/`:
 
 ```sh
-./gradlew connectedDebugAndroidTest
+./gradlew connectedFreeDebugAndroidTest
+./gradlew connectedPaidDebugAndroidTest
 ```
+
+Release builds need the signing variables the release workflow sets (`PAPERBOY_KEYSTORE_FILE`, `PAPERBOY_KEYSTORE_PASSWORD`, `PAPERBOY_KEY_ALIAS`, `PAPERBOY_KEY_PASSWORD`). The free release APK is `./gradlew assembleFreeRelease`. The paid build is published as an Android App Bundle, which Google Play requires for new apps (https://developer.android.com/guide/app-bundle): `./gradlew bundlePaidRelease`, written to `app/build/outputs/bundle/paidRelease/`. No workflow uploads it.
+
+The paid build's subscription ids are placeholders until the subscription exists in Play Console. Set the real ones with `-Ppaperboy.productId=<product id> -Ppaperboy.basePlanId=<base plan id>`, or change the defaults in `app/build.gradle.kts`. The product id must match what the worker is sent and what Play Console shows.
+
+### Content base
 
 The app reads the feed and explainers from the content base, `https://paperboy.ntrpydev.workers.dev` by default. To point a debug build at another server, for example the fixture files in `app/src/fixtures` served on your machine:
 
 ```sh
 python3 -m http.server 18765 --bind 127.0.0.1 --directory app/src/fixtures
 adb reverse tcp:18765 tcp:18765
-./gradlew installDebug -Ppaperboy.contentBase=http://localhost:18765/
+./gradlew installFreeDebug -Ppaperboy.contentBase=http://localhost:18765/
 ```
 
 Debug builds allow plain HTTP only to `localhost`, `127.0.0.1`, and `10.0.2.2`; release builds allow HTTPS only.

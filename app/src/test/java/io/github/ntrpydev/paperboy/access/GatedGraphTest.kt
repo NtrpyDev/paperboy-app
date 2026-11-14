@@ -73,12 +73,15 @@ class GatedGraphTest {
     private fun paidGraph(gateway: FakeBillingGateway): AppGraph {
         // As after the picker: fields are saved before the graph starts.
         io.github.ntrpydev.paperboy.fields.FileFieldStore(java.io.File(tmp.root, "files/fields.txt")).save(setOf(Field.Math))
-        return AppGraph(
+        val graph = AppGraph(
             contentBase = server.url("/"),
             cacheDir = tmp.newFolder("cache"),
             filesDir = java.io.File(tmp.root, "files"),
             paid = PaidSetup(gateway, FakeBillingGateway.PRODUCT, "io.github.ntrpydev.paperboy", cookies = { FakePassCookies() }, scope = scope),
         )
+        // PaperboyRoot starts it in the app.
+        graph.access!!.start()
+        return graph
     }
 
     private fun feedRequests() = requests.filter { it.url.encodedPath.startsWith("/feed/") }

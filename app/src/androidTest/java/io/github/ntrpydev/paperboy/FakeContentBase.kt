@@ -23,6 +23,13 @@ import okio.Buffer
  * A test can replace the response for one path, read every request that was served, and
  * take the server offline.
  *
+ * For the paid build it can also act as the worker: [entitlement] answers POST
+ * /v1/entitlement, and with [gatePasses] set, every request under /feed/ and /papers/ needs one
+ * of those passes in the x-paperboy-pass header or the pb_pass cookie, as the content gate does
+ * (worker/src/handler.ts): otherwise 401 pass_expired for a pass in [expiredPasses], and
+ * pass_required for anything else. Both are off by default, so the free build's tests see
+ * today's open feed.
+ *
  * Every response says `Connection: close`, so each request opens a new connection. That
  * is what makes [offline] reliable: MockWebServer asks [peek] for the socket effect when it
  * accepts a connection, and a pooled connection would never be asked again.
@@ -35,6 +42,15 @@ class AssetFixtureDispatcher : Dispatcher() {
 
     /** While true, every new connection is closed as soon as it is accepted, like an unreachable server. */
     @Volatile var offline = false
+
+    /** The body of a 200 answer to POST /v1/entitlement, or null for 404 unknown_purchase. */
+    @Volatile var entitlement: String? = null
+
+    /** When set, the content gate is on and these passes open /feed/ and /papers/. */
+    @Volatile var gatePasses: Set<String>? = null
+
+    /** Passes the gate calls expired. */
+    @Volatile var expiredPasses: Set<String> = emptySet()
 
     override fun peek(): MockResponse =
         if (offline) MockResponse.Builder().onRequestStart(SocketEffect.CloseSocket()).build() else super.peek()
@@ -58,6 +74,17 @@ class AssetFixtureDispatcher : Dispatcher() {
         requested += path
         recorded += request
         overrides[path]?.let { return it() }
+        if (path == "v1/entitlement") {
+            val body = entitlement ?: return jsonError(404, "unknown_purchase")
+            return jsonResponse(body)
+        }
+        val passes = gatePasses
+        if (passes != null && (path.startsWith("feed/") || path.startsWith("papers/"))) {
+            val sent = listOfNotNull(request.headers["x-paperboy-pass"], cookie(request, "pb_pass")).filter { it.isNotEmpty() }
+            if (sent.none { it in passes }) {
+                return jsonError(401, if (sent.any { it in expiredPasses }) "pass_expired" else "pass_required")
+            }
+        }
         val file = if (path.endsWith("/")) "${path}index.html" else path
         val bytes = runCatching { assets.open(file).use { it.readBytes() } }.getOrNull()
             ?: return MockResponse.Builder().code(404).build()
@@ -83,6 +110,20 @@ fun AppGraph.withFields(fields: Set<Field> = Field.all): AppGraph = apply { this
 
 fun jsonResponse(body: String): MockResponse =
     MockResponse.Builder().code(200).addHeader("Content-Type", "application/json").body(body).build()
+
+fun jsonError(code: Int, error: String): MockResponse =
+    MockResponse.Builder().code(code).addHeader("Content-Type", "application/json").body("""{"error":"$error"}""").build()
+
+private fun cookie(request: RecordedRequest, name: String): String? =
+    request.headers["cookie"]?.split(";")?.map { it.trim() }?.firstOrNull { it.startsWith("$name=") }?.substringAfter("=")
+
+/** A 200 entitlement answer: entitled with [pass] until [untilMillis], in [state]. */
+fun entitledJson(pass: String, state: String = "trial", untilMillis: Long = System.currentTimeMillis() + 7L * 86_400_000) =
+    """{"entitled":true,"state":"$state","expires_at":"${rfc3339(untilMillis)}","pass":"$pass","pass_expires_at":"${rfc3339(minOf(untilMillis, System.currentTimeMillis() + 48L * 3_600_000))}"}"""
+
+/** A 200 entitlement answer that is not entitled. */
+fun notEntitledJson(state: String = "expired", expiresMillis: Long? = System.currentTimeMillis() - 86_400_000) =
+    """{"entitled":false,"state":"$state","expires_at":${expiresMillis?.let { "\"${rfc3339(it)}\"" } ?: "null"},"pass":null,"pass_expires_at":null}"""
 
 fun serverError(): MockResponse = MockResponse.Builder().code(503).build()
 

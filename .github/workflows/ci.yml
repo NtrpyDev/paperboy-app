@@ -23,8 +23,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Run the unit tests and build the debug APK
-        run: ./gradlew testDebugUnitTest assembleDebug
+      - name: Run the unit tests and build the debug APKs
+        run: ./gradlew testFreeDebugUnitTest testPaidDebugUnitTest assembleDebug
 
   pipeline:
     runs-on: ubuntu-latest

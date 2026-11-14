@@ -116,6 +116,8 @@ private fun Screens(graph: AppGraph, dark: Boolean, onToggleTheme: () -> Unit) {
     // Paid build: when entitlement is lost, the screens above the feed close, so the
     // subscription screens that cover the feed are what shows.
     if (access != null) {
+        // The cold start check: once per process, since the graph outlives the activity.
+        LaunchedEffect(access) { access.start() }
         val accessState by access.state.collectAsStateWithLifecycle()
         val canRead = accessState.canRead
         LaunchedEffect(canRead) {

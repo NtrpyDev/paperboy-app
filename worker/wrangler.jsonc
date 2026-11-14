@@ -41,9 +41,8 @@
         {
           "binding": "DB",
           "database_name": "paperboy-subscribers",
-          // PLACEHOLDER. The owner creates the database with
-          // `npx wrangler d1 create paperboy-subscribers` and pastes the id it prints here.
-          "database_id": "00000000-0000-0000-0000-000000000000",
+          // Created 2026-11-13 with `npx wrangler d1 create paperboy-subscribers`.
+          "database_id": "58b57cb1-c8d8-41a7-b262-b7be13f964a1",
           "migrations_dir": "migrations"
         }
       ],

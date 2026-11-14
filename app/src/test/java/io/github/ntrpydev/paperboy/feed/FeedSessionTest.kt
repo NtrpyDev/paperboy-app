@@ -669,4 +669,36 @@ class FeedSessionTest {
         assertTrue("arxiv-2611.20001" in session.ids())
         assertEquals(setOf("math", "astronomy"), session.fields())
     }
+
+    @Test fun `a seen card whose field is turned off and on again comes back in its place`() = runTest {
+        val session = session()
+        session.start()
+        val before = session.ids()
+        assertEquals(graphene, before.first())
+        // The reader reads the top few cards: the graphene paper (physics) is reached and seen.
+        session.reached(before[3])
+        session.markSeen(graphene)
+
+        session.setFields(noPhysics)
+        assertFalse(graphene in session.ids())
+        session.setFields(Field.all)
+
+        assertTrue("the seen card vanished", graphene in session.ids())
+        assertEquals(graphene, session.ids().first())
+        assertEquals(before.take(4), session.ids().take(4))
+    }
+
+    @Test fun `a paper seen in an earlier launch stays out when its field is turned off and on`() = runTest {
+        FileSeenStore(File(filesDir, "seen.txt")).add(listOf(graphene))
+        val session = session()
+        session.start()
+        assertFalse(graphene in session.ids())
+        session.reached(session.ids()[3])
+
+        session.setFields(noPhysics)
+        session.setFields(Field.all)
+
+        assertFalse(graphene in session.ids())
+    }
 }
+

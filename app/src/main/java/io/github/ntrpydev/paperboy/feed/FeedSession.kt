@@ -148,8 +148,9 @@ class FeedSession(
 
     /**
      * Shows only papers in [fields] from now on. The cards the reader has reached keep their
-     * places unless their field was turned off; the pool's papers in a field turned back on
-     * join the cards below them, with no new request. When the change leaves fewer unseen
+     * places; those in a field turned off are hidden there and show again when it is turned
+     * back on. The pool's other papers in a field turned back on join the cards below them,
+     * with no new request. When the change leaves fewer unseen
      * papers to show than a first screen needs, older chunks load as they do at the start.
      */
     suspend fun setFields(fields: Set<Field>) {
@@ -172,7 +173,9 @@ class FeedSession(
     suspend fun reached(id: String) {
         markReached(id)
         val index = arranged.indexOfFirst { it.id == id }
-        if (index >= 0 && index >= arranged.size - LOAD_AHEAD && _state.value.error == null) loadOlder()
+        // Counted in shown cards: reached cards hidden by a field change are still in [arranged].
+        val left = if (index < 0) Int.MAX_VALUE else arranged.subList(index, arranged.size).count(::shown)
+        if (left <= LOAD_AHEAD && _state.value.error == null) loadOlder()
     }
 
     /**
@@ -278,20 +281,24 @@ class FeedSession(
     private fun shown(item: FeedItem): Boolean =
         item.hasPage && Field.fromWire(item.field).let { it == null || it in fields }
 
+    /**
+     * Arranges the shown pool below the reached cards. A reached card whose field is turned
+     * off keeps its place in [arranged] and [publish] leaves it out, so turning the field back
+     * on shows it in that place again, seen or not, like every other card of this sitting. The
+     * ranker gets those hidden cards with the ones rated less, as cards the reader does not
+     * see, so the mix of kinds carries on from the last card the reader does see.
+     */
     private fun rearrange() {
         val taste = taste ?: Taste.Empty
-        // A reached card whose field was turned off leaves the feed; the rest keep their places.
-        val kept = arranged.take(reached).filter(::shown)
-        val current = kept + arranged.drop(reached).filter(::shown)
-        reached = kept.size
-        arranged = ranker.rearrange(current, reached, pool.filter(::shown), taste, seen, lessIds(taste), clock())
+        val hidden = arranged.take(reached).filterNot(::shown).mapTo(HashSet()) { it.id }
+        arranged = ranker.rearrange(arranged, reached, pool.filter(::shown), taste, seen, lessIds(taste) + hidden, clock())
         publish()
     }
 
     private fun publish() {
         val taste = taste ?: Taste.Empty
         _state.value = _state.value.copy(
-            items = arranged.filter { it.id !in collapsed },
+            items = arranged.filter { it.id !in collapsed && shown(it) },
             ratings = taste.ratings.associate { it.id to it.rating },
         )
     }

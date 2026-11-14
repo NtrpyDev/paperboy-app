@@ -12,6 +12,8 @@ class PaperboyApplication : Application(), SingletonImageLoader.Factory {
             contentBase = AppGraph.parseContentBase(BuildConfig.CONTENT_BASE),
             cacheDir = cacheDir,
             filesDir = filesDir,
+            // Null in the free build; Google Play and the content gate in the paid build.
+            paid = Edition.paidSetup(this),
         )
     }
 

@@ -90,8 +90,8 @@ fun AboutScreen(versionName: String, onBack: () -> Unit, onOpenLink: (String) ->
             HeadRow("About", "Version $versionName")
             Headline(voices("New science and math papers, explained visually.", "explained visually."), type.headline, wide.padding(top = 10.dp), press = true)
             Paragraph(
-                "Paperboy is a free, open source Android app: an endless feed of newly released science and math papers, " +
-                    "peer-reviewed and preprints, each labeled as one or the other. No account. No ads.",
+                io.github.ntrpydev.paperboy.ui.subscribe.LocalAboutSubscription.current?.intro ?: ("Paperboy is a free, open source Android app: an endless feed of newly released science and math papers, " +
+                    "peer-reviewed and preprints, each labeled as one or the other. No account. No ads."),
                 top = 14,
             )
             Paragraph(
@@ -124,6 +124,7 @@ fun AboutScreen(versionName: String, onBack: () -> Unit, onOpenLink: (String) ->
             Text(caps("Every explainer"), style = type.label, color = c.muted, modifier = wide.padding(top = 12.dp))
             Text("Machine written, and it can be wrong.", style = type.keyIdea, color = c.text, modifier = wide.padding(top = 10.dp))
             Paragraph("The page says so, and links the source so you can check it against the paper.", top = 12)
+            io.github.ntrpydev.paperboy.ui.subscribe.SubscriptionRows()
 
             Section("Source", null, voices("Free and open source.", "open source."))
             Paragraph("Paperboy’s source code is public.", top = 12)

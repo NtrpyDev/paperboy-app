@@ -8,6 +8,7 @@ import io.github.ntrpydev.paperboy.feed.FeedState
 import io.github.ntrpydev.paperboy.feed.RefreshResult
 import io.github.ntrpydev.paperboy.rank.Rating
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -27,9 +28,10 @@ const val LEAVE_MS = 360L
 /**
  * Holds one [FeedSession] for the feed screen and runs its work in the view model's scope.
  * The feed loads nothing until [fields] holds a selection (on first run, until the reader
- * confirms the picker); every later selection goes to the open feed.
+ * confirms the picker; in the paid build, also until the person is entitled); every later
+ * selection goes to the open feed.
  */
-class FeedModel(private val session: FeedSession, fields: StateFlow<Set<Field>?>) : ViewModel() {
+class FeedModel(private val session: FeedSession, fields: Flow<Set<Field>?>) : ViewModel() {
     val state: StateFlow<FeedState> = session.state
 
     private val _collapsed = MutableSharedFlow<String>(extraBufferCapacity = 16)

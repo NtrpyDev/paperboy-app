@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Merged into the paid build only. The Play Billing Library's own manifest declares the same
+     permission; it is written here too so the paid build states it and the free build never has
+     it ("These dependencies only appear in APKs that require the com.android.vending.BILLING
+     permission", https://developer.android.com/google/play/billing/deprecation-faq). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="com.android.vending.BILLING" />
+
+</manifest>

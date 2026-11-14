@@ -90,6 +90,11 @@ const val PAUSED_TURN = "Reading is paused."
 const val PAUSED_BODY = "Google Play could not charge your payment method. Fix it there and your feed comes back."
 const val PAUSED_BUTTON = "Fix payment in Google Play"
 
+const val USER_PAUSED_HEADLINE = "Your subscription is paused. Reading is paused."
+const val USER_PAUSED_TURN = "Reading is paused."
+const val USER_PAUSED_BODY = "Resume it in Google Play and your feed comes back."
+const val USER_PAUSED_BUTTON = "Resume in Google Play"
+
 /** What covers the feed in the paid build, or the feed itself. */
 sealed interface GateScreen {
     /** The feed; [paymentProblem] adds the notice that the payment did not go through. */

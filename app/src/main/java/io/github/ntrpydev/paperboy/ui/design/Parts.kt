@@ -250,7 +250,8 @@ fun SlabButton(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text, style = Paperboy.type.button, color = c.onSlab, modifier = Modifier.weight(1f))
-        Icon(icon, c.onSlab, 20.dp)
+        // A slab that leaves the app ends in the out arrow at 15, as the outline button does (paid.py OUT15).
+        if (icon === Icons.OutArrow) Icon(icon, c.onSlab, 15.dp) else Icon(icon, c.onSlab, 20.dp)
     }
 }
 

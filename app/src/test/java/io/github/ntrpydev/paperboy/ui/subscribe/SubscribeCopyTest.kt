@@ -55,9 +55,15 @@ class SubscribeCopyTest {
     }
 
     @Test fun `each turn is a suffix of its headline, so the second voice is set`() {
-        listOf(UNREACHABLE_HEADLINE to UNREACHABLE_TURN, NOTHING_HEADLINE to NOTHING_TURN, PAUSED_HEADLINE to PAUSED_TURN).forEach { (h, t) ->
+        listOf(UNREACHABLE_HEADLINE to UNREACHABLE_TURN, NOTHING_HEADLINE to NOTHING_TURN, PAUSED_HEADLINE to PAUSED_TURN, USER_PAUSED_HEADLINE to USER_PAUSED_TURN).forEach { (h, t) ->
             assertEquals(true, h.endsWith(" $t"))
         }
+    }
+
+    @Test fun `the person's own pause has its own words`() {
+        assertEquals("Your subscription is paused. Reading is paused.", USER_PAUSED_HEADLINE)
+        assertEquals("Resume it in Google Play and your feed comes back.", USER_PAUSED_BODY)
+        assertEquals("Resume in Google Play", USER_PAUSED_BUTTON)
     }
 
     private val ready = OfferState.Ready(FakeBillingGateway.trialOffer())

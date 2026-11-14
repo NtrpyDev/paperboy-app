@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Entitlement",
+  "description": "200 answer of POST /v1/entitlement. entitled is true for trial, active, and grace, and for canceled until expires_at. pass and pass_expires_at are set only when entitled.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "entitled",
+    "state",
+    "expires_at",
+    "pass",
+    "pass_expires_at"
+  ],
+  "properties": {
+    "entitled": {
+      "type": "boolean"
+    },
+    "state": {
+      "enum": [
+        "trial",
+        "active",
+        "grace",
+        "on_hold",
+        "paused",
+        "canceled",
+        "expired",
+        "pending"
+      ]
+    },
+    "expires_at": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "When the subscription expired or will expire unless renewed, from Google. Null when Google gives none, as for a pending purchase."
+    },
+    "pass": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^v1\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Sent as the x-paperboy-pass header and the pb_pass cookie on every request under /feed/ and /papers/."
+    },
+    "pass_expires_at": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The pass's exp: the earlier of expires_at and 48 hours from now."
+    }
+  }
+}

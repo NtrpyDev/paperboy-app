@@ -6,6 +6,7 @@ The edge worker at https://paperboy.ntrpydev.workers.dev. It is the content base
 
 - `/` and other site pages: static assets from `../site`.
 - `/kit/v1/*`, `/kit/v2/*`, and every later kit version: static assets, a copy of `../kit`. Old kit versions stay served.
+- `/owner/numbers`: the owner's numbers page, below. Paid worker only, behind a password.
 - `/v1/*`: the subscription API, below. Always handled by the Worker, never by static assets (`run_worker_first` in `wrangler.jsonc`).
 - `/feed/*` and `/papers/*`: files from the R2 bucket `paperboy-content`. On a miss the worker fetches the file from `https://raw.githubusercontent.com/NtrpyDev/paperboy-content/main/<path>`, stores it in the bucket, and serves it. `/papers/<id>/` serves that folder's `index.html`.
 
@@ -34,7 +35,7 @@ Run from this folder after `npm install`.
 | `npm run deploy` | Assembles the assets and deploys the worker as it runs today, with no subscriber database. |
 | `npm run deploy -- --env paid` | Assembles the assets and deploys the paid worker, with the subscriber database. Only after the going live steps below. |
 
-The tests come in two vitest projects. `handler` runs the worker's handler inside the Workers runtime with the `paid` environment's bindings: a local bucket, a local D1 database with `migrations/` applied, a fake content repo, and a fake Google (`test/handler/fake-google.ts`, which generates its own RSA keys for the service account and for Pub/Sub push tokens). `assets` starts the whole worker with wrangler's test harness to check the static assets and that `/v1/*` reaches the worker, because the Workers test pool does not serve assets.
+The tests come in two vitest projects. `handler` runs the worker's handler inside the Workers runtime with the `paid` environment's bindings: a local bucket, a local D1 database with `migrations/` applied, a fake content repo, and a fake Google (`test/handler/fake-google.ts`, which generates its own RSA keys for the service account and for Pub/Sub push tokens). `../schema/fixtures/cost/` is read by both the worker's tests and `pipeline/tests/test_cost_fixture.py`. `assets` starts the whole worker with wrangler's test harness to check the static assets and that `/v1/*` reaches the worker, because the Workers test pool does not serve assets.
 
 `wrangler deploy` with no `--env` prints a warning that several environments are defined. It deploys the top level, today's worker.
 
@@ -80,6 +81,19 @@ A purchase that replaces another (Google's `linkedPurchaseToken` for an upgrade,
 
 `CONTENT_GATE` is `off` by default. When it is `on`, every request under `/feed/` and `/papers/` needs a valid, unexpired pass in the `x-paperboy-pass` header or the `pb_pass` cookie (either one is enough). Otherwise the answer is 401 `{"error":"pass_required"}` (missing, malformed, or wrongly signed) or 401 `{"error":"pass_expired"}` (a correctly signed pass past its `exp`), and the content repo is not asked. Gated responses are served with `cache-control: private` in place of `public`, with the same max-age rules, and without `access-control-allow-origin`: the app reads the feed natively and its pages same-origin, so no other origin needs to read a subscriber's copy. `/`, the site, `/kit/`, and `/v1/active-fields` stay public. With the gate on and no `PASS_SECRET` the gated paths answer 503 `not_configured`.
 
+### The owner's numbers page
+
+`GET /owner/numbers` is the one place income and API cost show side by side, built to the board `design/canvas/project/Owner-Numbers.dc.html` and rendered by the worker with no JavaScript (`src/owner.ts`). It asks for HTTP Basic authentication: any username, and the password in the secret `OWNER_PASSWORD`, compared in constant time. Without that secret, or on the worker without the subscriber database, every `/owner/` path is 404. Answers carry `cache-control: no-store`, `x-robots-tag: noindex`, and a content security policy that allows only same-origin fonts and the kit's font stylesheet and the page's one style element (by its hash): no scripts, images, frames, or forms.
+
+What it counts:
+
+- Subscribers: rows that pay now, `active`, `grace`, and `canceled` before its expiry. Trials are counted apart as "Trials not yet paying". On hold, paused, expired, and pending count as neither.
+- Income after Google's cut: subscribers times `LIST_PRICE_USD` times (1 minus `GOOGLE_FEE_PERCENT` / 100). An estimate, and the page says so: real payouts come from Google's reports. With no price set it shows "not set", and so does left over.
+- API cost and pages made: from the content repo's `state/cost/<YYYY-MM>.jsonl` (written by the pipeline's `record-cost`), read through the bucket the same way feed files are, but never served: `/state/` stays 404. A complete run counts its `total_cost_usd`; an incomplete run the larger of that and its `budget_cap_usd`, the same rule as `spend_usd` and `budget-gate`. `../schema/fixtures/cost/` holds records both test suites check. A month with no file is $0; a file that cannot be read shows "cannot be read".
+- API cost by field: the records have no cost per field, so each run's cost is split evenly over the papers it was handed (`taken`). A run handed nothing counts in the month's total and on no field.
+- Status: "Making pages" when the field is in `GET /v1/active-fields` now.
+- By month: this month from live counts; a past month from its last daily snapshot (the `snapshots` table, written by the Cron Trigger at 23:55 UTC each day, `55 23 * * *`). A past month with no snapshot shows "not recorded". Up to 24 months, back to the first snapshot or subscriber.
+
 ### Variables and secrets
 
 Variables are in `wrangler.jsonc` (repeated for the `paid` environment, because environments do not inherit them). Secrets are set with `wrangler secret put` and never committed.
@@ -92,6 +106,9 @@ Variables are in `wrangler.jsonc` (repeated for the `paid` environment, because 
 | `PLAY_PACKAGE_NAME` | variable (`paid`) | The app's package name, `io.github.ntrpydev.paperboy`. |
 | `RTDN_AUDIENCE` | variable (`paid`) | The audience on the Pub/Sub push subscription. Set to `https://paperboy.ntrpydev.workers.dev/v1/rtdn`, which is what Pub/Sub uses when no audience is set. |
 | `RTDN_SERVICE_ACCOUNT` | variable (`paid`) | The service account email on the push subscription. Empty until the owner sets it, so every push is 401. |
+| `LIST_PRICE_USD` | variable (`paid`) | The subscription's listed monthly price in US dollars, for example `4.99`. Empty until the price is set; the numbers page then shows income as "not set". |
+| `GOOGLE_FEE_PERCENT` | variable (`paid`) | Google's fee on subscriptions in percent, `15` ("10% + 5% billing fee" for US auto-renewing subscriptions, https://support.google.com/googleplay/android-developer/answer/112622). |
+| `OWNER_PASSWORD` | secret | The numbers page's password. Unset means the page is 404. |
 | `PASS_SECRET` | secret | A random string that signs passes. Changing it ends every pass at once; apps get a new one on their next entitlement call. |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | secret | The whole JSON key file of the service account that calls the Play Developer API (`client_email`, `private_key`, `private_key_id` are read). |
 
@@ -100,7 +117,7 @@ Variables are in `wrangler.jsonc` (repeated for the `paid` environment, because 
 One-time steps, in order. The Google steps follow the pages linked in each.
 
 1. Create the database: `npx wrangler d1 create paperboy-subscribers`. Paste the id it prints into `env.paid.d1_databases[0].database_id` in `wrangler.jsonc`, in place of the all-zero placeholder.
-2. Apply the migration: `npx wrangler d1 migrations apply paperboy-subscribers --env paid --remote`.
+2. Apply the migrations (`migrations/0001_subscribers.sql` and `0002_snapshots.sql`): `npx wrangler d1 migrations apply paperboy-subscribers --env paid --remote`.
 3. Set the pass secret: `npx wrangler secret put PASS_SECRET --env paid`, and enter a long random string at the prompt (for example the output of `openssl rand -base64 48`).
 4. In Google Cloud: create a project, enable the Google Play Android Developer API and the Pub/Sub API, create a service account, and create a JSON key for it (https://developers.google.com/android-publisher/getting_started, https://docs.cloud.google.com/iam/docs/keys-create-delete).
 5. In Play Console, Users and permissions: invite the service account's email and grant "View financial data, orders, and cancellation survey responses" and "Manage orders and subscriptions".
@@ -111,3 +128,4 @@ One-time steps, in order. The Google steps follow the pages linked in each.
 10. Deploy the paid worker: `npm run deploy -- --env paid`. Check `GET /v1/active-fields` answers `{"v":1,"fields":[],...}`.
 11. In Play Console, Monetize, Monetization setup, Real-time developer notifications: enable them, enter the topic as `projects/<project_id>/topics/<topic>`, choose "Get notifications for subscriptions and all voided purchases", and click Send Test Message. The worker answers a verified test message 204; `npx wrangler tail --env paid` shows the request. A 401 means the email or audience does not match; no request at all may mean Cloudflare's Browser Integrity Check on `workers.dev` stopped it (unverified: neither Google nor Cloudflare says whether Pub/Sub pushes pass it; https://developers.cloudflare.com/workers/configuration/routing/workers-dev/).
 12. Once paid builds of the app send passes, set `CONTENT_GATE` to `on` in `env.paid.vars` and deploy again.
+13. For the numbers page: `npx wrangler secret put OWNER_PASSWORD --env paid`, set `LIST_PRICE_USD` in `env.paid.vars` once the price is chosen, and deploy. The daily snapshot starts with the deploy; Cloudflare says new Cron Triggers can take up to 15 minutes to take effect.

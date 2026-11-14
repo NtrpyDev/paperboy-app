@@ -35,4 +35,7 @@ The words this project uses, one meaning each.
 - **Numbers check**: the part of the render check that fails a quick explainer when it prints a number its paper's title and abstract do not print. Ruler tick labels, figure numbers, the citation, and names with digits are exempt. No agent is involved.
 - **Usage gate**: the rule that stops a run when the Claude subscription's weekly usage reaches the pace limit, or 70 percent of the week (the mark), whichever is lower, or cannot be read.
 - **Pace**: the gate's limit for the moment in the usage week: the mark times the fraction of the week elapsed, plus a head start of 10 points, never above the mark. It spreads the week's budget over the week so the feed does not go stale after the first days.
+- **Active field**: a field at least one paying subscriber has picked, as the worker lists it at `/v1/active-fields`. A run on the API account takes papers only in active fields.
+- **Budget gate**: the rule that stops a run on the API account when this month's recorded API spend reaches the month's budget paced across the month (a head start of 10 percent, then linear), or when the cost records cannot be read. The API account's counterpart of the usage gate.
+- **Cost record**: one line in the content repo's `state/cost/` saying what one run on the API account cost, from Claude Code's own estimate: total cost, tokens per model, and the pages built by kind and field.
 - **Content base**: the web address the app loads the feed and explainers from.

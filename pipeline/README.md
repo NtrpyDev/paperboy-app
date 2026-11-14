@@ -88,12 +88,12 @@ Rules:
   - `papers/`: "Published papers: explainer page, card image, and record for each"
   - `state/`: "Pipeline bookkeeping: papers in the feed, source cursors, the backlog, and claims"
 
-  Other changes in the checkout are left uncommitted. A run that changes nothing makes no commit. Every command that commits uses these subjects (`src/paperboy_pipeline/gitsync.py`).
+  Other changes in the checkout are left uncommitted. A run that changes nothing makes no commit. Every command that commits uses these subjects (`src/paperboy_pipeline/gitsync.py`); `record-cost`'s `state/cost/` lines go under the `state/` subject.
 - **`--push`** commits as `--commit` does and runs `git push origin HEAD:main`, never forced. When the push is rejected because the remote moved (another run pushed), it resets the checkout to the new `origin/main` and builds the whole change again from the work folder: the feed, the backlog removals, the outcomes, the claim releases. Up to five attempts. That is why the run must never change the content repo by hand: a reset would lose it.
 
 ## Pushing when runs overlap
 
-Runs overlap, and two runs that append to the same open chunk or seen file cannot be merged by git. So nothing merges: `queue add --push`, `queue take --push`, `cursors --push`, and `publish --push` each build their change from their arguments, the work folder, and what is on `main`, commit it, and push; on a rejected push they reset to the new `origin/main` and build it again (`gitsync.sync`). `queue add`, `queue take`, and `cursors` start from `origin/main` and refuse a checkout holding changes that are not on it, so they never throw work away; `publish` starts from the checkout as the run left it, because the run's `queue fail` and `queue back` live there and in `WORK/outcomes.jsonl`.
+Runs overlap, and two runs that append to the same open chunk or seen file cannot be merged by git. So nothing merges: `queue add --push`, `queue take --push`, `cursors --push`, `record-cost --push`, and `publish --push` each build their change from their arguments, the work folder, and what is on `main`, commit it, and push; on a rejected push they reset to the new `origin/main` and build it again (`gitsync.sync`). `queue add`, `queue take`, `cursors`, and `record-cost` start from `origin/main` and refuse a checkout holding changes that are not on it, so they never throw work away; `publish` starts from the checkout as the run left it, because the run's `queue fail` and `queue back` live there and in `WORK/outcomes.jsonl`.
 
 ## discover
 
@@ -253,6 +253,7 @@ A cursor is the last day (UTC) a source has been processed through: discovered, 
 ```
 paperboy-pipeline queue add   --content CONTENT_REPO --work WORK [--explain-floor 6.5] [--kinds arxiv_html,europepmc] [--push]
 paperboy-pipeline queue take  --content CONTENT_REPO --work WORK --full F --quick Q [--days D] [--claim-hours 3] [--run NAME] [--push]
+paperboy-pipeline queue take  --content CONTENT_REPO --work WORK --full F --per-field N (--fields-url URL | --fields-file PATH) [--days D] [--claim-hours 3] [--run NAME] [--push]
 paperboy-pipeline queue done  --content CONTENT_REPO --id PAPER_ID
 paperboy-pipeline queue fail  --content CONTENT_REPO --work WORK --id PAPER_ID --reason TEXT
 paperboy-pipeline queue back  --content CONTENT_REPO --work WORK --id PAPER_ID --reason TEXT
@@ -271,6 +272,7 @@ state/queue-failed.jsonl       QueueFailed: papers that left the backlog without
 
 - **`add`** writes `state/queue/<id>.json` for every record in `WORK/judged.jsonl`, with the whole record (abstract included, so a later run can build its quick explainer) plus `"queued_at"`, and a line in `state/queued/`. `explain` is set true when the paper may get a full explainer: full text available, a `fulltext.kind` in the allowlist, and significance at least `--explain-floor`. It never overwrites a waiting paper, and never adds a paper that is in the feed, ever entered the backlog, or failed. It prints `{"added", "may_get_full", "already_known", "failed_before", "waiting"}`. An invalid record exits 1 and changes nothing. `--push` commits and pushes the change (see "Pushing when runs overlap").
 - **`take`** first, with `--days`, takes out papers that waited more than D days, as `prune` does. Then it claims this run's papers among those waiting, not failed, not in the feed, and not claimed within `--claim-hours`: **full**, up to F papers with `explain` true; **quick**, up to Q of the rest. Each list is best first (highest significance, then newest `published`, then id) and alternates preprints and peer-reviewed papers one for one while both kinds wait, starting with the kind of the best paper. Each taken paper gets a claim (`page` says which kind of page), `WORK/papers/<id>/candidate.json`, and a line in `WORK/judged.jsonl` when that file does not hold it yet. It writes `WORK/take.json` and prints it with each paper's status, the number pruned, and the number waiting. Taking leaves the paper in the backlog; publish takes it out when it enters the feed. `--push` commits and pushes the claims, and takes again on a newer `main` when the push is rejected, so overlapping runs take different papers. `--run` names the run in its claims (default: the time and a random suffix).
+- **`take` with a field list** (`--fields-url` or `--fields-file`, for runs on the API account) takes papers only in the active fields, the fields at least one paying subscriber picked. The list is the worker's `GET /v1/active-fields` body, `{"v": 1, "fields": ["math", "space"], "updated_at": "<RFC 3339>"}`, read from the URL (one request, the pipeline's User-Agent) or from a file of that shape. **full**: up to F papers with `explain` true, from active fields only. **quick**: up to N for each active field (`--per-field`), each field's papers best first and alternating preprints and peer-reviewed as above; the list goes round the fields in the list's order, each field's best paper first, so a run cut short has served every field before any field gets its second. `--per-field` needs a field list and replaces `--quick`: `--quick` with a field list, or `--per-field` without one, exits 2 and changes nothing (`--quick` and `--per-field` together are refused by the parser). A list that cannot be fetched, is not valid JSON, is not that shape (`v` 1, `fields` a list of distinct strings, `updated_at` an RFC 3339 time), or names a field outside the 11 in `schema/feed-item.schema.json` exits 1 with a plain message and changes nothing: no prune, no claim, no `take.json`. An empty list is valid: it takes nothing and the prune still runs. Papers in fields that are not active stay in the backlog and age out as any other. `WORK/take.json` and the printed summary gain `"field"` (each taken paper's field), `"active_fields"`, and `"per_field"`. Without a field list, `take` and its output are exactly as above.
 - **`done`** takes a paper out of the backlog and releases its claim. Exit 1 when it is not waiting. Publish does this for every paper it adds.
 - **`fail`** takes the paper out, releases its claim, and appends `{"id", "reason", "at"}` to `state/queue-failed.jsonl` (once per paper), so it never comes back. It notes the action in `WORK/outcomes.jsonl`.
 - **`back`** is for a full explainer that failed or could not start: the paper waits again with `explain` false and the reason in `full_failed`, so it can only get a quick explainer, and its claim is released. Exit 1 when it is not waiting. It notes the action in `WORK/outcomes.jsonl`.
@@ -288,6 +290,43 @@ paperboy-pipeline gate [--max 70] [--head-start 10] [--no-pace] [--probe tools/u
 ```
 
 Runs the usage probe and exits 0 (go), 10 (stop: weekly usage is at or over the limit), or 11 (stop: usage could not be read). The limit is the pace limit `min(M, M * f + H)`, with M the mark (`--max`), H the head start (`--head-start`), and f the fraction of the seven day usage window elapsed, from the probe's `seven_day.resets_at` (Unix seconds, or an RFC 3339 time): `f = 1 - (resets_at - now) / 7 days`, held between 0 and 1. A missing or unreadable `resets_at` makes the limit the plain mark. `--no-pace` makes it the plain mark always. It prints one JSON line: `{"decision", "weekly_used_percentage", "max", "resets_at", "pace": {"week_elapsed", "head_start", "limit"}}` (`pace` is `null` with `--no-pace`).
+
+## budget-gate
+
+```
+paperboy-pipeline budget-gate --content CONTENT_REPO --budget-usd B [--head-start 10] [--no-pace] [--now RFC3339]
+```
+
+The gate for runs on the Anthropic API account, where `gate` has no subscription usage to read: Claude Code documents its rate limit windows only for claude.ai Pro, Max, and Ultra subscribers (`rate_limits`, https://code.claude.com/docs/en/statusline.md), so under an API key the usage probe is expected to find none and `gate` would stop every run (expected, not tested). It sums `spend_usd` over this month's cost records in `CONTENT_REPO/state/cost/<YYYY-MM>.jsonl` (the month in UTC) and exits 0 (go), 10 (stop: the spend is at or over the limit), or 11 (stop: the records cannot be read). The limit has the usage gate's shape: `min(B, B * f + B * H / 100)`, with B the month's budget in dollars (`--budget-usd`), H the head start as a percentage of B (`--head-start`, default 10), and f the fraction of the calendar month elapsed. `--no-pace` makes the limit B. It prints one JSON line: `{"decision", "month", "spent_usd", "budget_usd", "runs", "incomplete_runs", "pace": {"month_elapsed", "head_start", "limit_usd"}}` (`pace` is `null` with `--no-pace`). It fails closed: a checkout without `state/`, a line that is not JSON, or a line that is not a valid CostRecord stops the run. A month with no file has spent nothing. A run can still pass the limit by up to its own cap, which Claude Code enforces.
+
+## record-cost
+
+```
+paperboy-pipeline record-cost --content CONTENT_REPO --work WORK --result RESULT.json --run NAME --cap-usd CAP [--outcome success|failure|cancelled|skipped] [--push] [--now RFC3339]
+```
+
+Appends one CostRecord (`schema/cost-record.schema.json`) for one API run to `CONTENT_REPO/state/cost/<YYYY-MM>.jsonl`, by the month it is recorded:
+
+```
+state/cost/<YYYY-MM>.jsonl     CostRecord: one line per API run; budget-gate sums its spend_usd
+```
+
+- **From Claude Code's result.** `RESULT.json` is what `claude -p --output-format json` printed: one result message (a stream-json file's last result line is read too). The record takes `subtype`, `num_turns`, `duration_ms`, `total_cost_usd`, the number of `permission_denials`, and from `modelUsage`, per model, `inputTokens`, `outputTokens`, `cacheReadInputTokens`, `cacheCreationInputTokens`, `webSearchRequests`, and `costUSD`, written in snake case. Field names are from `SDKResultMessage` and `ModelUsage` in https://code.claude.com/docs/en/agent-sdk/typescript.md, read 2026-11-13. `modelUsage` rather than `usage`, because `usage` leaves out subagents (https://code.claude.com/docs/en/agent-sdk/cost-tracking.md). Both costs are Claude Code's client-side estimates, not billing data (same page).
+- **From the work folder.** `taken` and `pages`, each `{"full": {field: count}, "quick": {field: count}}`: the papers in `WORK/take.json` by kind and field (the field from `take.json`'s `field`, else the paper's `candidate.json`), and the pages that pass the rule `publish` uses, by the page's depth. `take_run` is `take.json`'s run name.
+- **A run that did not finish.** A missing, empty, or cut-off result file, a result whose `subtype` is not `success` or whose `is_error` is not false, or an `--outcome` other than `success` makes `"complete": false` with an `incomplete_reason`, and the record holds what is known. `spend_usd`, what the budget gate counts, is `total_cost_usd` for a complete run and the larger of `total_cost_usd` and `--cap-usd` for an incomplete one, because a cut-off or crashed run's result can be missing or zeroed (cost-tracking.md, "Recover totals after a session crash").
+- **Once per run.** A record whose `run` is already in the month's file is not written again. An invalid month file exits 1 and writes nothing.
+- **`--push`** commits and pushes the record, starting from `origin/main` and appending it again on a newer `main` when the push is rejected (see "Pushing when runs overlap"), with the `state/` commit subject.
+
+## API runs in GitHub Actions
+
+`.github/workflows/pipeline-api.yml` runs the runbook with `claude -p` on an API key, in API mode (`PAPERBOY_MODE=api`; see the runbook's "Which mode this run is in" and its owner's section for the secrets and setup). It checks out this repo (`code/`, no push credentials) and the content repo (`content/`) side by side, installs uv, Node.js 24, Claude Code (pinned with `npm install -g @anthropic-ai/claude-code@<version>`, https://code.claude.com/docs/en/setup.md), and uses the Google Chrome that the `ubuntu-24.04` runner image ships (https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md) as `PAPERBOY_CHROME`. Then `budget-gate`, then Claude Code with:
+
+- `--permission-mode dontAsk` and `--allowedTools` listing only the runbook's commands (`uv sync`, `uv run paperboy-pipeline`, the content repo pull, removing the work folder, `mkdir -p`, `date`), edits under `CODE/work/`, and reads of the content repo. `claude -p` denies every other call that needs approval (https://code.claude.com/docs/en/permission-modes.md, https://code.claude.com/docs/en/permissions.md). A subagent without its own `permissionMode` inherits the main conversation's mode (https://code.claude.com/docs/en/sub-agents.md); that page says built-in subagents inherit the parent's permission rules, and whether our six custom agents get the allow list the same way is unverified until a run.
+- `--max-budget-usd` from the run's cap (https://code.claude.com/docs/en/cli-reference.md).
+- `CLAUDE_CODE_PROMPT_CACHE_TTL=1h`, the one-hour cache for the main conversation, which an API key otherwise gets for five minutes (https://code.claude.com/docs/en/prompt-caching.md, "Choose the TTL yourself"). Subagents keep five minutes; `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL` would change that.
+- `--output-format json` saved to a file, which `record-cost` reads in a step that runs whether or not Claude Code finished, through a fresh sparse checkout of the content repo's `state/`.
+
+Not `--bare`: bare mode skips `.claude/agents/`, which the runbook's agents live in (https://code.claude.com/docs/en/headless.md). That page says bare mode "will become the default for `-p` in a future release"; Claude Code is pinned in the workflow so that change cannot arrive unannounced.
 
 ## reset-feed
 

@@ -10,7 +10,7 @@ Explainers are machine written and can be wrong. Each one says so and links its 
 
 ## How it works
 
-1. A scheduled cloud run follows `pipeline/RUNBOOK.md`. Once a day's papers are out, AI agents read their titles and abstracts, keep the best, and write each one's card text. The kept papers wait in a backlog in the content repo; nothing reaches the feed yet.
+1. A scheduled cloud run follows `pipeline/RUNBOOK.md`. A second way to run it, on an Anthropic API account in GitHub Actions for the fields paying subscribers picked, is built and off (`.github/workflows/pipeline-api.yml`). Once a day's papers are out, AI agents read their titles and abstracts, keep the best, and write each one's card text. The kept papers wait in a backlog in the content repo; nothing reaches the feed yet.
 2. Each hourly run takes the best papers waiting, alternating preprints and peer-reviewed papers, and builds a page for each. The very best with a free legal full text get a full explainer, built and verified from the full text by three agents (an expert reader, a visualizer, and a checker). The rest get a quick explainer, built by one agent from the title and abstract and checked by code so that every number it prints is in the abstract. Runs pace their usage through the week, and a paper that waits more than a week without a page ages out.
 3. A paper enters the feed only when its page passes. The run publishes the card, its picture, and its page to the content repo together.
 4. A Cloudflare Worker serves the feed, the explainers, the kit, and the website from that repo.
@@ -20,7 +20,7 @@ Explainers are machine written and can be wrong. Each one says so and links its 
 
 ```
 .claude/             Agent definitions the pipeline run uses: triage, scout, quick, expert, visualizer, checker
-.github/             GitHub Actions workflows: tests on every push, and the signed release APK
+.github/             GitHub Actions workflows: tests on every push, the signed release APK, and the pipeline run on the API account
 app/                 Android app (Kotlin, Jetpack Compose)
 design/              Design system, build handoff, and the Claude Design artboards
 docs/                Agent docs and the research notes behind the design decisions

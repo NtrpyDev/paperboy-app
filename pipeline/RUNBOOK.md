@@ -15,11 +15,20 @@ These are the owner's starting values. Change them here; nowhere else repeats th
 - **D = 7**: days a paper waits in the backlog before it ages out (`queue take --days`).
 - The usage gate's mark is 70 percent of the week with pacing on (the `gate` defaults; see the owner's section).
 
+In API mode (below), F and the per-field count N come from the run's settings in place of F and Q; D stays.
+
 Each step ends on a condition. Reach it before moving on.
+
+## Which mode this run is in
+
+Before step 1, run `echo "mode=$PAPERBOY_MODE fields_url=$PAPERBOY_FIELDS_URL per_field=$PAPERBOY_PER_FIELD full=$PAPERBOY_FULL budget_usd=$PAPERBOY_BUDGET_USD"`.
+
+- **`mode=` with nothing after it: a subscription run.** Do every step as written and ignore every "API mode" line.
+- **`mode=api`: a run on the Anthropic API account** (the GitHub Actions workflow sets these values). Three steps change, each named below as "API mode": the gate (step 1), the take (step 4), and the report (step 8), where the cost record is the workflow's job, not yours. Use the printed values as written: URL is `fields_url`, N is `per_field`, F is `full`, B is `budget_usd`.
 
 ## 1. Gate
 
-Run `uv run paperboy-pipeline gate`. Exit 0 means go. Any other exit means stop now: publish nothing, and end the run with the line the command printed. Run the gate again before each group of quick explainers in step 5 and before the full explainer in step 6; the same rule applies there (start nothing new, go straight to step 7 with what is already complete).
+Run `uv run paperboy-pipeline gate`. API mode: run `uv run paperboy-pipeline budget-gate --content CONTENT --budget-usd B` instead, here and every time a later step says to run the gate. Exit 0 means go. Any other exit means stop now: publish nothing, and end the run with the line the command printed. Run the gate again before each group of quick explainers in step 5 and before the full explainer in step 6; the same rule applies there (start nothing new, go straight to step 7 with what is already complete).
 
 ## 2. Set up
 
@@ -54,6 +63,8 @@ Done when both pushes succeeded. Each command pushes by itself: when the remote 
 - `quick`: up to Q papers for quick explainers, the best of the rest.
 
 Both lists run best first and alternate preprints and peer-reviewed papers one for one while both kinds wait. Each taken paper has a work folder `work/papers/<id>/` with its `candidate.json`. A paper gets one kind of page, never both.
+
+API mode: run `uv run paperboy-pipeline queue take --content CONTENT --work ../work --fields-url URL --per-field N --full F --days 7 --push` instead. It reads the active fields (the fields a paying subscriber picked) from URL and takes papers only in those fields: `full` holds up to F papers, `quick` up to N for each active field, and `field` says which field each paper is for. If it exits 1 with "the active field list is not usable", nothing was taken: go to step 8 and report that line.
 
 If both lists are empty, go to step 8. Done when the command exits 0.
 
@@ -94,6 +105,8 @@ Done when it exits 0. If it exits 1, report its error; the claims go stale after
 
 End the run with a short plain report: the days discovered and each source's line from discover, papers triaged and picked, judged, and added to the backlog; the papers taken; each quick explainer built (id, retried or not) and each set aside (with its reason); the full explainer (id and the checker's scores) or why it went back; the papers that entered the feed, from publish's last line; how many papers wait in the backlog (the first line of `uv run paperboy-pipeline queue list --content CONTENT`); and the weekly usage reading and pace limit from the last gate.
 
+API mode: report the month's spend, the budget, and the pace limit from the last budget gate in place of the weekly usage reading, and the active fields and the papers taken for each. Do not record the run's cost: the workflow records it from Claude Code's own result after you finish.
+
 ## Rules that hold throughout
 
 - Sources are open APIs and lawful free full text only. If a site answers with a challenge page or a refusal, that paper has no full text; do not try another route to the same file.
@@ -117,3 +130,28 @@ The pipeline runs as the Claude Code cloud routine `paperboy-pipeline`, hourly. 
 - **What a page costs:** a full explainer costs about half a point of weekly usage, measured on the first cloud run, 2026-11-13, on the Max plan: that run read two days of new papers (590 judged by 40 scout batches), then built three full explainers, one of which needed two revisions and was set aside; it took 95 minutes and moved weekly usage from 35 to 37 percent, with discovery under one point of that. The meter reads in whole points, so this is a rough figure. A quick explainer on Opus, the owner's pick for cleaner pictures, measured about 104,000 tokens and 3.5 minutes per page in the cost test, against about 83,000 tokens and 85 seconds on Sonnet. The quick agent's model is the `model:` line of `.claude/agents/paperboy-quick.md`.
 - **Change what a run does:** edit this runbook and the agent definitions in `.claude/agents/` on `main`. The next run picks them up.
 - **One-time: reset a feed published before every paper needed a page.** `uv run paperboy-pipeline reset-feed --content CONTENT --keep-explained --rewind-cursors-to YYYY-MM-DD` on a checkout of the content repo prints what it would do: start the feed again in `feed/v2/` with only the feed items with a page (merged with their `upgrades.json` entries into a new chunk 1), leave `feed/v1/` as a stub head with no chunks and `min_app` 2 so 0.1.0 installs show their update cover, delete the other paper folders, keep `state/seen` for those papers only, empty the backlog, claims, and backlog ledger, keep `queue-failed.jsonl`, and set every cursor later than the given day back to it, so the next run reads the days after it again under these rules. Add `--yes` to make the changes. It never commits or pushes: review with `git status`, then commit and push by hand, with the routine paused.
+
+## For the owner: the API run
+
+This section is not part of a run.
+
+**What it is.** The same runbook, run by Claude Code headless (`claude -p`) in the GitHub Actions workflow `.github/workflows/pipeline-api.yml`, billed to an Anthropic API account instead of the Claude subscription. The workflow sets `PAPERBOY_MODE=api`, so the run takes its three API forms: the budget gate in place of the usage gate, a take for the active fields only (`--per-field` quick explainers for each field a paying subscriber picked, full explainers only from those fields), and a cost record written by the workflow after Claude Code exits. Two API runs never overlap (the workflow's `concurrency` group). The job can read this repo but cannot push to it.
+
+**It is off.** The workflow only runs when started by hand, and it fails at its first steps until the setup below exists. The schedule is in the file as a commented block; remove the `#` in front of its three lines to turn it on.
+
+**One-time setup, in this repo's Settings > Secrets and variables > Actions:**
+
+- Secret `ANTHROPIC_API_KEY`: a Claude API key from the Claude Console. Make it in a workspace of its own and give that workspace a monthly spend limit; the default workspace cannot have one.
+- Secret `PAPERBOY_CONTENT_TOKEN`: a fine-grained personal access token with repository access to `NtrpyDev/paperboy-content` only and the Contents permission set to read and write. The run pushes the backlog, claims, feed, and cost records with it.
+- Variable `PAPERBOY_FIELDS_URL`: the worker's `GET /v1/active-fields` address.
+- Variable `PAPERBOY_MONTHLY_BUDGET_USD`: the month's API budget in dollars.
+
+**Start one run:** the repo's Actions tab, "Pipeline on the API account", "Run workflow". Its three inputs are the quick explainers per active field (default 2), the full explainers for the run (default 1), and the run's hard spend cap in dollars (default 20), which Claude Code enforces as `--max-budget-usd` on its own cost estimate, so a run can end a little over it. A scheduled run uses the defaults.
+
+**The budget gate and pacing:** before Claude Code starts, and at every gate in the runbook, `paperboy-pipeline budget-gate` sums this month's recorded spend from `CONTENT/state/cost/<YYYY-MM>.jsonl` and stops the run at the pace limit: with B the budget and f the fraction of the calendar month elapsed (UTC), the smaller of B and B times f plus a head start of 10 percent of B. A fresh month can spend 10 percent at once; halfway through, the limit is 60 percent; at the end, all of B. Change the head start with `--head-start` or turn pacing off with `--no-pace`, in step 1's API form and in the workflow's "Budget gate" step alike. It stops the run when a cost record cannot be read.
+
+**Cost records:** after every run that started Claude Code, finished or not, the workflow runs `paperboy-pipeline record-cost`, which appends one line to `state/cost/<YYYY-MM>.jsonl` (`schema/cost-record.schema.json`): Claude Code's estimated total cost and tokens per model, the papers taken and pages built by kind and field, and how many tool calls the permission rules denied. A run that was cut off is marked incomplete and counts its whole cap against the budget, because its real spend is unknown. These are Claude Code's own estimates; the Console's billing is the authority.
+
+**Inspect a run:** open the run in the Actions tab. "Show the run's report" prints the step 8 report; "Record what the run cost" prints the cost line. The full transcript is not kept.
+
+**What is not verified yet:** no run has been made on an API key, because no API account exists. Unchecked until the first run: that the allow list covers every command the runbook and agents use (a `permission_denials` count above 0 in the cost record names a gap), that `ubuntu-24.04`'s Google Chrome passes the render check, and that the cost and token fields arrive as the Claude Code docs describe.

@@ -5,7 +5,9 @@ a run builds its page: a full explainer for the best few with lawful free full t
 explainer for the rest. See paperboy_pipeline.backlog for the files.
 
   add     put every paper in WORK/judged.jsonl into the backlog, marking which may get a full explainer
-  take    claim this run's papers: up to --full for full explainers and up to --quick for quick ones
+  take    claim this run's papers: up to --full for full explainers and up to --quick for quick ones;
+          with a field list (--fields-url or --fields-file), only papers in the active fields,
+          and --per-field quick ones for each field in place of --quick
   done    take a paper out of the backlog (publish does this for every paper it adds to the feed)
   fail    take a paper out of the backlog without a page, for good, and record why
   back    a full explainer failed or had no full text: the paper waits again, for a quick page only
@@ -24,7 +26,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from .. import backlog, gitsync, schemas
+from .. import active_fields, backlog, gitsync, schemas
 from ..content_repo import ContentRepo, PublishError
 from ..explaining import EXPLAIN_FLOOR, explain_kinds, worth_explaining
 
@@ -50,7 +52,13 @@ def register(subparsers) -> None:
     p.add_argument("--push", action="store_true", help="commit and push the backlog, starting from origin/main")
     p = action("take", "claim this run's papers", work=True)
     p.add_argument("--full", type=_count, required=True, help="most papers to take for full explainers")
-    p.add_argument("--quick", type=_count, required=True, help="most papers to take for quick explainers")
+    # Either the run's quick count (today's form) or a count per active field (with a field list), never both.
+    count = p.add_mutually_exclusive_group(required=True)
+    count.add_argument("--quick", type=_count, help="most papers to take for quick explainers")
+    count.add_argument("--per-field", type=_count, help="most quick explainers to take for each active field (needs --fields-url or --fields-file)")
+    source = p.add_mutually_exclusive_group()
+    source.add_argument("--fields-url", help="URL of the worker's /v1/active-fields: take only for these fields")
+    source.add_argument("--fields-file", type=Path, help="a file of the /v1/active-fields shape: take only for these fields")
     p.add_argument("--days", type=_count, help="first prune papers that have waited longer than this many days")
     p.add_argument("--claim-hours", type=float, default=backlog.CLAIM_HOURS, help=f"a claim older than this is stale and its paper can be taken again (default {backlog.CLAIM_HOURS})")
     p.add_argument("--run", dest="run_name", help="this run's name in its claims (default: the time and a random suffix)")
@@ -164,7 +172,8 @@ def _prune_in(content: Path, days: int, now: str, claim_hours: float) -> int:
     return pruned
 
 
-def _choose(content: Path, full: int, quick: int, now: str, claim_hours: float) -> tuple[list[dict], list[dict]]:
+def _free(content: Path, now: str, claim_hours: float) -> list[dict]:
+    """Backlog entries a run may take: waiting, not failed, not freshly claimed, valid, not in the feed."""
     repo = ContentRepo(content)
     failed = backlog.failed_ids(content)
     claimed = backlog.fresh_claims(content, now, claim_hours)
@@ -179,19 +188,61 @@ def _choose(content: Path, full: int, quick: int, now: str, claim_hours: float) 
         if repo.find(entry) is not None:  # already in the feed: its page is never replaced
             continue
         free.append(entry)
+    return free
+
+
+def _choose(content: Path, full: int, quick: int, now: str, claim_hours: float) -> tuple[list[dict], list[dict]]:
+    free = _free(content, now, claim_hours)
     for_full = alternate([e for e in free if e["explain"]])[:full]
     taken = {e["id"] for e in for_full}
     for_quick = alternate([e for e in free if e["id"] not in taken])[:quick]
     return for_full, for_quick
 
 
+def _choose_per_field(content: Path, full: int, per_field: int, fields: list[str], now: str,
+                      claim_hours: float) -> tuple[list[dict], list[dict]]:
+    """Full explainers only from the active fields, up to `full` for the run; then up to
+    `per_field` quick explainers for each active field, each field's papers best first and
+    alternating preprints and peer-reviewed as alternate() does across the feed. The quick list
+    goes round the fields in the list's order, one paper each, so a run the gate cuts short
+    has served every field before any field gets its second."""
+    active = set(fields)
+    free = [e for e in _free(content, now, claim_hours) if e["field"] in active]
+    for_full = alternate([e for e in free if e["explain"]])[:full]
+    taken = {e["id"] for e in for_full}
+    lanes = [alternate([e for e in free if e["field"] == field and e["id"] not in taken])[:per_field] for field in fields]
+    for_quick = [lane[rank] for rank in range(per_field) for lane in lanes if rank < len(lane)]
+    return for_full, for_quick
+
+
+def _active_fields(args) -> list[str] | None:
+    """The field list for a per-field take, or None for today's take. Raises FieldsError."""
+    if args.fields_url is None and args.fields_file is None:
+        return None
+    return active_fields.load(url=args.fields_url, file=args.fields_file)
+
+
 def _take(args, now: str) -> int:
+    with_fields = args.fields_url is not None or args.fields_file is not None
+    if with_fields != (args.per_field is not None):
+        print("queue take: --per-field and a field list (--fields-url or --fields-file) go together; "
+              "without a field list use --quick", file=sys.stderr)
+        return 2
+    try:
+        fields = _active_fields(args)
+    except active_fields.FieldsError as error:
+        # No list, no spend: nothing is pruned, claimed, or written.
+        print(f"queue take: the active field list is not usable, nothing was taken: {error}", file=sys.stderr)
+        return 1
     run_name = args.run_name or f"{now}-{secrets.token_hex(3)}"
     result = {}
 
     def apply():
         pruned = _prune_in(args.content, args.days, now, args.claim_hours) if args.days is not None else 0
-        for_full, for_quick = _choose(args.content, args.full, args.quick, now, args.claim_hours)
+        if fields is None:
+            for_full, for_quick = _choose(args.content, args.full, args.quick, now, args.claim_hours)
+        else:
+            for_full, for_quick = _choose_per_field(args.content, args.full, args.per_field, fields, now, args.claim_hours)
         for page, entries in (("full", for_full), ("quick", for_quick)):
             for entry in entries:
                 claim = {"id": entry["id"], "run": run_name, "page": page, "claimed_at": now}
@@ -217,6 +268,10 @@ def _take(args, now: str) -> int:
             if rec["id"] not in present:
                 judged.write(json.dumps(rec, ensure_ascii=False) + "\n")
     taken = {"run": run_name, "full": [e["id"] for e in result["full"]], "quick": [e["id"] for e in result["quick"]]}
+    if fields is not None:
+        # Which field each paper is taken for, and the list it was taken under.
+        taken.update(field={e["id"]: e["field"] for e in result["full"] + result["quick"]},
+                     active_fields=fields, per_field=args.per_field)
     (args.work / "take.json").write_text(json.dumps(taken, indent=2) + "\n")
     summary = {**taken, "status": {e["id"]: e["status"] for e in result["full"] + result["quick"]},
                "pruned": result["pruned"], "waiting": len(backlog.waiting(args.content))}

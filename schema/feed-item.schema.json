@@ -123,11 +123,19 @@
       "type": "string"
     },
     "has_explainer": {
-      "type": "boolean"
+      "type": "boolean",
+      "description": "True for every item added since quick explainers: a paper enters the feed only with a page. False only on items in feeds published before then, which the app does not show."
     },
     "explainer": {
       "type": "string",
       "description": "Path from the content base, for example papers/<id>/. Present when has_explainer is true."
+    },
+    "depth": {
+      "enum": [
+        "full",
+        "abstract"
+      ],
+      "description": "What the page was built from: \"full\" for a full explainer (the paper's full text, by the expert, visualizer, and checker), \"abstract\" for a quick explainer (the title and abstract, by one agent). page.depth in the render check's check.json. Present when has_explainer is true. Items added before quick explainers have none, and they are all full explainers."
     },
     "hero": {
       "type": "object",

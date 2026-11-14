@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Cursors",
-  "description": "state/cursors.json. For each source, the last day (UTC) it has been processed through: discovered, judged, and published. Discover starts the day after. Only the cursors command writes it, and only forward.",
+  "description": "state/cursors.json. For each source, the last day (UTC) it has been processed through: discovered, judged, and put in the backlog. Discover starts the day after. The cursors command writes it, and only forward; the one-time reset-feed command can move it back.",
   "type": "object",
   "additionalProperties": false,
   "required": [

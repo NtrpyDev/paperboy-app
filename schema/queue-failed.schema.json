@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "QueueFailed",
-  "description": "One paper the explain queue gave up on (one JSON object per line in state/queue-failed.jsonl). queue fail appends these; queue add and queue take skip their ids.",
+  "description": "One paper that left the backlog without a page (one JSON object per line in state/queue-failed.jsonl): its quick explainer failed twice, or an operator gave up on it. queue fail appends these; queue add and queue take skip their ids, so it never comes back.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -18,7 +18,7 @@
     "reason": {
       "type": "string",
       "minLength": 1,
-      "description": "Why the paper cannot be explained, in a short plain sentence."
+      "description": "Why the paper got no page, in a short plain sentence."
     },
     "at": {
       "type": "string",

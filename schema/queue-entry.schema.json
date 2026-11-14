@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QueueEntry",
+  "description": "state/queue/<id>.json in the content repo: one paper waiting in the backlog for a page. Its whole Judged record, so a later run can build its page from the title and abstract, plus when it entered the backlog. queue add writes it; queue back marks a paper whose full explainer failed; publish deletes it when the paper enters the feed. Each field but the last two has the meaning it has in a Judged record (judged.schema.json).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "authors",
+    "abstract",
+    "venue",
+    "published",
+    "status",
+    "url",
+    "source",
+    "fulltext",
+    "hook",
+    "summary",
+    "field",
+    "tags",
+    "significance",
+    "explain",
+    "queued_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "judged.schema.json#/properties/id"
+    },
+    "doi": {
+      "$ref": "judged.schema.json#/properties/doi"
+    },
+    "arxiv_id": {
+      "$ref": "judged.schema.json#/properties/arxiv_id"
+    },
+    "title": {
+      "$ref": "judged.schema.json#/properties/title"
+    },
+    "authors": {
+      "$ref": "judged.schema.json#/properties/authors"
+    },
+    "abstract": {
+      "$ref": "judged.schema.json#/properties/abstract"
+    },
+    "venue": {
+      "$ref": "judged.schema.json#/properties/venue"
+    },
+    "published": {
+      "$ref": "judged.schema.json#/properties/published"
+    },
+    "status": {
+      "$ref": "judged.schema.json#/properties/status"
+    },
+    "license": {
+      "$ref": "judged.schema.json#/properties/license"
+    },
+    "url": {
+      "$ref": "judged.schema.json#/properties/url"
+    },
+    "source": {
+      "$ref": "judged.schema.json#/properties/source"
+    },
+    "categories": {
+      "$ref": "judged.schema.json#/properties/categories"
+    },
+    "fulltext": {
+      "$ref": "judged.schema.json#/properties/fulltext"
+    },
+    "hook": {
+      "$ref": "judged.schema.json#/properties/hook"
+    },
+    "hook_turn": {
+      "$ref": "judged.schema.json#/properties/hook_turn"
+    },
+    "readout": {
+      "$ref": "judged.schema.json#/properties/readout"
+    },
+    "summary": {
+      "$ref": "judged.schema.json#/properties/summary"
+    },
+    "field": {
+      "$ref": "judged.schema.json#/properties/field"
+    },
+    "tags": {
+      "$ref": "judged.schema.json#/properties/tags"
+    },
+    "significance": {
+      "$ref": "judged.schema.json#/properties/significance"
+    },
+    "explain": {
+      "$ref": "judged.schema.json#/properties/explain"
+    },
+    "queued_at": {
+      "type": "string",
+      "description": "UTC time the paper entered the backlog, RFC 3339. queue prune and queue take --days age papers out by it."
+    },
+    "full_failed": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Why its full explainer failed or could not start (no lawful full text, the expert found it not explainable, or the checker still failed it after two revisions). Present only then, and explain is false: the paper can get only a quick explainer."
+    }
+  }
+}

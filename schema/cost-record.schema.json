@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CostRecord",
+  "description": "One line of state/cost/<YYYY-MM>.jsonl in the content repo: what one pipeline run on the Anthropic API account cost, by the month it was recorded. record-cost writes it after the run from Claude Code's JSON result (https://code.claude.com/docs/en/headless.md, --output-format json; field shapes from SDKResultMessage and ModelUsage in https://code.claude.com/docs/en/agent-sdk/typescript.md) and the run's work folder; budget-gate sums spend_usd over the month. Costs are Claude Code's client-side estimates, not billing data (https://code.claude.com/docs/en/agent-sdk/cost-tracking.md).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "v",
+    "run",
+    "recorded_at",
+    "complete",
+    "budget_cap_usd",
+    "total_cost_usd",
+    "spend_usd",
+    "subtype",
+    "num_turns",
+    "duration_ms",
+    "permission_denials",
+    "models",
+    "take_run",
+    "taken",
+    "pages"
+  ],
+  "properties": {
+    "v": {
+      "const": 1
+    },
+    "run": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The run's name, unique per run (the workflow passes the GitHub run id and attempt). A second record for the same run in the same month is not written."
+    },
+    "recorded_at": {
+      "type": "string",
+      "description": "UTC time the record was made, RFC 3339. Its month names the file."
+    },
+    "complete": {
+      "type": "boolean",
+      "description": "True only when the result file held a result message with subtype success and is_error false, and the Claude step itself succeeded. False when the Claude step failed, was stopped, or was cut off: the record then holds what is known."
+    },
+    "incomplete_reason": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Why the run is marked incomplete, in one plain sentence. Present only when complete is false."
+    },
+    "budget_cap_usd": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "The hard per-run cap passed to Claude Code as --max-budget-usd."
+    },
+    "total_cost_usd": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "total_cost_usd from the result message: the estimated cost of the whole run, subagents included. null when there was no readable result."
+    },
+    "spend_usd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "What the budget gate counts for this run. A complete run counts total_cost_usd. An incomplete run counts the larger of total_cost_usd and budget_cap_usd, because a cut-off run's result may be missing or zeroed and its real spend is unknown."
+    },
+    "subtype": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The result message's subtype: success, error_max_turns, error_during_execution, error_max_budget_usd, or error_max_structured_output_retries. null without a result."
+    },
+    "num_turns": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "duration_ms": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "permission_denials": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "How many tool calls the run's permission rules denied (the length of the result's permission_denials). A number above 0 means the workflow's allow list missed a command the runbook needed."
+    },
+    "models": {
+      "type": "object",
+      "description": "The result's modelUsage, by model id: tokens and estimated cost per model, subagents included. Empty without a result.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input_tokens",
+          "output_tokens",
+          "cache_read_input_tokens",
+          "cache_creation_input_tokens",
+          "web_search_requests",
+          "cost_usd"
+        ],
+        "properties": {
+          "input_tokens": {
+            "$ref": "#/$defs/count"
+          },
+          "output_tokens": {
+            "$ref": "#/$defs/count"
+          },
+          "cache_read_input_tokens": {
+            "$ref": "#/$defs/count"
+          },
+          "cache_creation_input_tokens": {
+            "$ref": "#/$defs/count"
+          },
+          "web_search_requests": {
+            "$ref": "#/$defs/count"
+          },
+          "cost_usd": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "take_run": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The run name queue take wrote into its claims (work/take.json run), or null when the run took nothing."
+    },
+    "taken": {
+      "$ref": "#/$defs/by_kind",
+      "description": "Papers queue take handed the run, by kind of page and field."
+    },
+    "pages": {
+      "$ref": "#/$defs/by_kind",
+      "description": "Pages the run built that pass the rule publish uses, by kind of page (full for depth full, quick for depth abstract) and field."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "complete": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "incomplete_reason"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "incomplete_reason"
+          ]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "count": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "by_field": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "by_kind": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "full",
+        "quick"
+      ],
+      "properties": {
+        "full": {
+          "$ref": "#/$defs/by_field"
+        },
+        "quick": {
+          "$ref": "#/$defs/by_field"
+        }
+      }
+    }
+  }
+}

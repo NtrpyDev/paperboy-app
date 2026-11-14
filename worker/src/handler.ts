@@ -1,3 +1,6 @@
+import { verifyPass } from "./pass";
+import { createApi, type ApiEnv } from "./subscriptions";
+
 export const ORIGIN = "https://raw.githubusercontent.com/NtrpyDev/paperboy-content/main/";
 
 // How long a stored copy of a changing file is served before it is fetched again.
@@ -40,7 +43,17 @@ export interface Deps {
   now: () => number;
 }
 
+// Secrets are set with `wrangler secret put` and do not appear in the generated Env.
+export interface Secrets {
+  PASS_SECRET?: string;
+  GOOGLE_SERVICE_ACCOUNT_JSON?: string;
+}
+
+export type WorkerEnv = Env & ApiEnv & Secrets;
+
 export function createHandler(deps: Deps) {
+  const api = createApi(deps);
+
   // Fetches a file from the content repo and stores it, noting whether it was still
   // changing when fetched. Says "missing" when the repo answers 404 and
   // "unreachable" for any other failure.
@@ -101,7 +114,8 @@ export function createHandler(deps: Deps) {
   }
 
   return {
-    async fetch(request: Request, env: Env): Promise<Response> {
+    async fetch(request: Request, env: WorkerEnv): Promise<Response> {
+      if (new URL(request.url).pathname.startsWith("/v1/")) return api(request, env);
       if (request.method !== "GET" && request.method !== "HEAD") {
         return new Response("Method not allowed\n", { status: 405, headers: { allow: "GET, HEAD" } });
       }
@@ -112,8 +126,15 @@ export function createHandler(deps: Deps) {
     },
   };
 
-  async function respond(request: Request, env: Env): Promise<Response> {
-    let key = new URL(request.url).pathname.slice(1);
+  async function respond(request: Request, env: WorkerEnv): Promise<Response> {
+    const pathname = new URL(request.url).pathname;
+    // With the content gate on, everything under /feed/ and /papers/ needs a valid pass.
+    const gated = env.CONTENT_GATE === "on" && (pathname.startsWith("/feed/") || pathname.startsWith("/papers/"));
+    if (gated) {
+      const refused = await checkPass(request, env, deps.now());
+      if (refused) return refused;
+    }
+    let key = pathname.slice(1);
     if (key.startsWith("papers/") && key.endsWith("/")) key += "index.html";
     if (!isContentKey(key)) return notFound();
     const changing = await isChanging(env, key);
@@ -125,7 +146,7 @@ export function createHandler(deps: Deps) {
       // edits, so it keeps being refreshed until a copy is fetched after it stopped.
       const storedChanging = stored.customMetadata?.changing === "true";
       const due = (changing || storedChanging) && age > REFRESH_MS;
-      if (!due) return serve(key, stored.body, changing || storedChanging, "bucket");
+      if (!due) return serve(key, stored.body, changing || storedChanging, "bucket", gated);
       const fresh = await fill(env, key, changing);
       if (fresh === "missing") {
         // The content repo no longer has the file, as with feed/v1's chunks after the
@@ -134,15 +155,15 @@ export function createHandler(deps: Deps) {
         await forget(env, key);
         return notFound();
       }
-      if (fresh === "unreachable") return serve(key, stored.body, true, "bucket");
+      if (fresh === "unreachable") return serve(key, stored.body, true, "bucket", gated);
       await stored.body.cancel();
-      return serve(key, fresh.body, fresh.changing, "origin");
+      return serve(key, fresh.body, fresh.changing, "origin", gated);
     }
 
     const filled = await fill(env, key, changing);
     if (filled === "missing") return notFound();
     if (filled === "unreachable") return new Response("Content repo unreachable\n", { status: 502 });
-    return serve(key, filled.body, filled.changing, "origin");
+    return serve(key, filled.body, filled.changing, "origin", gated);
   }
 }
 
@@ -165,16 +186,55 @@ interface Filled {
 
 // The source header says whether this response was fetched from the content repo
 // just now or read from the bucket, so a deployed worker can be checked from outside.
-function serve(key: string, body: BodyInit, changing: boolean, source: "origin" | "bucket"): Response {
+// A gated response may be kept only by the device that asked (private, same max-age), and
+// carries no access-control-allow-origin: the app reads the feed natively and its pages
+// same-origin, so no other origin has a reason to read a subscriber's copy.
+function serve(key: string, body: BodyInit, changing: boolean, source: "origin" | "bucket", gated: boolean): Response {
   const extension = key.slice(key.lastIndexOf(".") + 1).toLowerCase();
+  const cache = changing ? SHORT_CACHE : LONG_CACHE;
   const headers = new Headers({
     "content-type": TYPES[extension] ?? "application/octet-stream",
-    "cache-control": changing ? SHORT_CACHE : LONG_CACHE,
+    "cache-control": gated ? cache.replace(/^public/, "private") : cache,
     "x-paperboy-source": source,
   });
   if (extension === "html") headers.set("content-security-policy", EXPLAINER_POLICY);
-  if (key.startsWith("feed/")) headers.set("access-control-allow-origin", "*");
+  if (key.startsWith("feed/") && !gated) headers.set("access-control-allow-origin", "*");
   return new Response(body, { headers });
+}
+
+// Null when the request carries a valid, unexpired pass in the x-paperboy-pass header or the
+// pb_pass cookie; otherwise the 401 to send. Any one valid pass is enough. The answer is
+// pass_expired only when a pass with a good signature has expired.
+async function checkPass(request: Request, env: WorkerEnv, now: number): Promise<Response | null> {
+  if (!env.PASS_SECRET) {
+    console.error("CONTENT_GATE is on but PASS_SECRET is not set");
+    return gateRefusal(503, "not_configured");
+  }
+  const candidates = [request.headers.get("x-paperboy-pass"), cookie(request, "pb_pass")].filter(
+    (p): p is string => typeof p === "string" && p.length > 0 && p.length <= 1024,
+  );
+  let expired = false;
+  for (const pass of candidates) {
+    const check = await verifyPass(env.PASS_SECRET, pass, now);
+    if (check.ok) return null;
+    if (check.reason === "expired") expired = true;
+  }
+  return gateRefusal(401, expired ? "pass_expired" : "pass_required");
+}
+
+function gateRefusal(status: number, error: string): Response {
+  return new Response(JSON.stringify({ error }), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+  });
+}
+
+function cookie(request: Request, name: string): string | null {
+  for (const part of (request.headers.get("cookie") ?? "").split(";")) {
+    const eq = part.indexOf("=");
+    if (eq > 0 && part.slice(0, eq).trim() === name) return part.slice(eq + 1).trim();
+  }
+  return null;
 }
 
 // Only plain file paths under feed/ and papers/ are passed on to the content repo.

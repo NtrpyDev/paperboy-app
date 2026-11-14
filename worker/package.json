@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node scripts/build-assets.mjs",
     "test": "node scripts/build-assets.mjs && vitest run",
-    "typecheck": "wrangler types && tsc --noEmit",
+    "typecheck": "wrangler types --strict-vars=false && tsc --noEmit",
     "deploy": "node scripts/build-assets.mjs && wrangler deploy"
   },
   "devDependencies": {

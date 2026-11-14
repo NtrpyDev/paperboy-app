@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Entitlement request",
+  "description": "Body of POST /v1/entitlement. The app sends it after a purchase, on every cold start, when the person changes fields, and when its pass is within 12 hours of expiring. The worker answers 400 bad_request for any body that does not match, or one over 8 KiB.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "purchase_token",
+    "product_id",
+    "fields"
+  ],
+  "properties": {
+    "purchase_token": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "description": "The Play purchase token. Play documents no format, so the worker only limits length and characters (printable ASCII, no spaces)."
+    },
+    "product_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._]{0,39}$",
+      "description": "The subscription product id, in Play's product id format."
+    },
+    "fields": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 11,
+      "uniqueItems": true,
+      "description": "The person's selected fields, as wire values. Same enum as field in feed-item.schema.json.",
+      "items": {
+        "enum": [
+          "physics",
+          "space",
+          "math",
+          "cs",
+          "biology",
+          "neuroscience",
+          "medicine",
+          "chemistry",
+          "earth",
+          "engineering",
+          "social"
+        ]
+      }
+    }
+  }
+}

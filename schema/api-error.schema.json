@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "API error",
+  "description": "Error body of the /v1/ endpoints and of the content gate. bad_request (400), unknown_purchase (404), store_unreachable (502, Google could not be reached), pass_required and pass_expired (401 from the content gate), unauthorized (401 from /v1/rtdn), keys_unreachable (502 from /v1/rtdn, Google's signing keys could not be read), not_configured (503, a binding, variable, or secret the endpoint needs is not set), not_found (404), method_not_allowed (405), internal (500).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "error"
+  ],
+  "properties": {
+    "error": {
+      "enum": [
+        "bad_request",
+        "unknown_purchase",
+        "store_unreachable",
+        "pass_required",
+        "pass_expired",
+        "unauthorized",
+        "keys_unreachable",
+        "not_configured",
+        "not_found",
+        "method_not_allowed",
+        "internal"
+      ]
+    }
+  }
+}

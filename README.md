@@ -30,7 +30,7 @@ pipeline/            Python package and runbook that turn new papers into feed i
 schema/              JSON schemas for the records the pipeline, worker, and app pass to each other
 site/                The website, a static page
 tools/               Small scripts for development, feed fixtures, and reading Claude usage
-worker/              Cloudflare Worker that serves the feed, explainers, kit, and website
+worker/              Cloudflare Worker that serves the feed, explainers, kit, and website, and the subscription API
 .gitignore           Files git never tracks
 build.gradle.kts     Root Gradle build file
 CLAUDE.md            Instructions for coding agents working in this repo
@@ -80,7 +80,7 @@ Debug builds allow plain HTTP only to `localhost`, `127.0.0.1`, and `10.0.2.2`; 
 
 ## Worker
 
-The edge worker in `worker/` serves the site, the kit, the feed, and the explainers at `https://paperboy.ntrpydev.workers.dev`. It needs Node.js. Run its tests from that folder:
+The edge worker in `worker/` serves the site, the kit, the feed, and the explainers at `https://paperboy.ntrpydev.workers.dev`, and the subscription API under `/v1/` (entitlement checks, Play notifications, and the active fields list). It needs Node.js. Run its tests from that folder:
 
 ```sh
 cd worker
@@ -88,4 +88,4 @@ npm install
 npm test
 ```
 
-`worker/README.md` describes what it serves and how to deploy it.
+`worker/README.md` describes what it serves, the subscription API, and how to deploy it and take it live.

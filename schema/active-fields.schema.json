@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Active fields",
+  "description": "200 answer of GET /v1/active-fields. The sorted wire values picked by at least one subscriber whose state counts: active, grace, and canceled before expiry, plus trial when COUNT_TRIALS is true. No counts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "v",
+    "fields",
+    "updated_at"
+  ],
+  "properties": {
+    "v": {
+      "const": 1
+    },
+    "fields": {
+      "type": "array",
+      "maxItems": 11,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "physics",
+          "space",
+          "math",
+          "cs",
+          "biology",
+          "neuroscience",
+          "medicine",
+          "chemistry",
+          "earth",
+          "engineering",
+          "social"
+        ]
+      }
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the worker built this list."
+    }
+  }
+}

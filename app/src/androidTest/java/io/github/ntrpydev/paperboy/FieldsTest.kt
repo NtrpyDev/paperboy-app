@@ -91,7 +91,7 @@ class FieldsTest {
         compose.waitForIdle()
         assertEquals(emptyList<String>(), feedRequests())
 
-        compose.onNodeWithTag("fields-continue").performScrollTo().performClick()
+        compose.onNodeWithTag("fields-continue").performClick()
         waitFor(hasText(TOP_HOOK))
         assertTrue(feedRequests().isNotEmpty())
         assertEquals(Field.all, FileFieldStore(File(filesDir, "fields.txt")).load())
@@ -108,7 +108,7 @@ class FieldsTest {
 
         row(Field.Physics).performClick()
         row(Field.Physics).assertIsOff()
-        compose.onNodeWithTag("fields-continue").performScrollTo().performClick()
+        compose.onNodeWithTag("fields-continue").performClick()
 
         // The pill paper (medicine) is the best paper left once the graphene paper (physics) is gone.
         waitFor(hasText(PILL_HOOK))
@@ -126,7 +126,7 @@ class FieldsTest {
         }
         waitFor(hasTestTag("fields"))
         row(Field.Physics).performClick()
-        compose.onNodeWithTag("fields-continue").performScrollTo().performClick()
+        compose.onNodeWithTag("fields-continue").performClick()
         waitFor(hasText(PILL_HOOK))
 
         launches++
@@ -148,7 +148,7 @@ class FieldsTest {
         // The picker starts from the saved selection.
         for (field in Field.entries) row(field).assertIsOn()
         row(Field.Physics).performClick()
-        compose.onNodeWithTag("fields-continue").performScrollTo().performClick()
+        compose.onNodeWithTag("fields-continue").performClick()
 
         // Saving returns to About; back from there shows the feed without physics.
         waitFor(hasTestTag("about"))
@@ -166,7 +166,7 @@ class FieldsTest {
         compose.onNodeWithTag("about-fields").performScrollTo().performClick()
         waitFor(hasTestTag("fields"))
         row(Field.Physics).assertIsOff().performClick()
-        compose.onNodeWithTag("fields-continue").performScrollTo().performClick()
+        compose.onNodeWithTag("fields-continue").performClick()
         waitFor(hasTestTag("about"))
         Espresso.pressBack()
         waitFor(hasTestTag("card:$GRAPHENE"))
@@ -179,7 +179,7 @@ class FieldsTest {
         for (field in Field.entries) row(field).performClick()
         for (field in Field.entries) row(field).assertIsOff()
 
-        compose.onNodeWithTag("fields-continue").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithTag("fields-continue").assertIsNotEnabled()
         compose.onNodeWithText("One field has to stay on.").assertIsDisplayed()
         compose.onNodeWithTag("fields-continue").performClick()
         compose.waitForIdle()
@@ -188,7 +188,7 @@ class FieldsTest {
         assertEquals(emptyList<String>(), feedRequests())
 
         row(Field.Math).performClick()
-        compose.onNodeWithTag("fields-continue").performScrollTo().assertIsEnabled()
+        compose.onNodeWithTag("fields-continue").assertIsEnabled()
         assertTrue(!exists(hasText("One field has to stay on.")))
         compose.onNodeWithTag("fields-continue").performClick()
         waitFor(hasTestTag("feed"))

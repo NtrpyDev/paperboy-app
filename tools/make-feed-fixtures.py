@@ -1,15 +1,25 @@
-"""Writes the app's fixture feed in app/src/fixtures/feed/v1.
+"""Writes the app's fixture feed in app/src/fixtures/feed/v2.
 
-Chunks 1 to 8 are closed chunks of 40 generated short cards each, oldest first. Some
-carry a second voice (hook_turn) and a readout, with and without an exponent and a unit.
+Chunks 1 to 8 are closed chunks of 40 generated papers each, oldest first. Some carry a
+second voice (hook_turn) and a readout, with and without an exponent and a unit.
+
+Most generated papers are explained, with day and night plates. The app shows only
+papers with an explainer, so a few are not, to prove they stay hidden: one in each
+closed chunk (HIDDEN), and papers 300, 301, and 302, which upgrades.json explains.
+Preprints and peer-reviewed papers take turns, except in chunks 3 and 4, which are
+lopsided: four preprints to every peer-reviewed paper (LOPSIDED).
+
 Chunk 9 is the open chunk and is written by hand; this script leaves it alone and
 counts its items for the head. upgrades.json explains three papers in closed chunks, one
 for each meaning of an entry's readout key: an object replaces the item's readout, null
 removes it, and no key keeps it. The first of them has the explainer in
 app/src/fixtures/papers/arxiv-2609.10300/.
 
-The plates are simple generated stills, day and night (hero.webp, hero-night.webp), for
-every explained paper in the fixtures. They need Pillow; without it the stills are skipped.
+The plates are simple generated stills, day and night (hero.webp, hero-night.webp). The
+open chunk's explained paper and the three upgraded papers have their own. The other
+explained papers share a few stills in app/src/fixtures/fixture-plates/, which keeps the
+fixtures small, and only arxiv-2611.04821 and arxiv-2609.10300 have explainer pages. The
+stills need Pillow; without it they are skipped.
 
 Run from the repo root: uv run --with pillow python tools/make-feed-fixtures.py
 Check against the schemas: uv run --project pipeline python tools/make-feed-fixtures.py --check
@@ -22,10 +32,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "app/src/fixtures"
-FEED = FIXTURES / "feed/v1"
+FEED = FIXTURES / "feed/v2"
 CLOSED_CHUNKS = 8
 CHUNK_SIZE = 40
 UPGRADED = "arxiv-2609.10300"
+# Papers 300 to 302 have no explainer in their chunk; upgrades.json gives them one.
+UPGRADED_K = {300, 301, 302}
+# One paper in each closed chunk has no explainer and no upgrade, so the app hides it.
+HIDDEN_K = {number * CHUNK_SIZE + 17 for number in range(CLOSED_CHUNKS)}
+# Chunks 3 and 4: only every fifth paper is peer-reviewed.
+LOPSIDED = range(2 * CHUNK_SIZE, 4 * CHUNK_SIZE)
+# Shared plate stills for the generated explained papers: fixture-plates/<n>/.
+SHARED_PLATES = 4
 # The open chunk's explained paper, written by hand in chunk 9; its stills are made here.
 OPEN_EXPLAINED = "arxiv-2611.04821"
 # Plates are 390 by 230 on the boards; the stills keep that ratio at 1200 wide.
@@ -61,12 +79,14 @@ def readout(k: int) -> dict | None:
     }[k % 4]
 
 
-def hero(paper: str, kind: str, to_scale: bool | None = None) -> dict:
+def hero(paper: str, kind: str, to_scale: bool | None = None, folder: str | None = None) -> dict:
+    """A plate with day and night stills in papers/<paper>/, or in [folder] when it is given."""
+    folder = folder or f"papers/{paper}"
     out = {
-        "path": f"papers/{paper}/hero.webp",
+        "path": f"{folder}/hero.webp",
         "width": PLATE_W,
         "height": PLATE_H,
-        "night": {"path": f"papers/{paper}/hero-night.webp", "width": PLATE_W, "height": PLATE_H},
+        "night": {"path": f"{folder}/hero-night.webp", "width": PLATE_W, "height": PLATE_H},
         "kind": kind,
     }
     if to_scale is not None:
@@ -84,8 +104,16 @@ def item(k: int) -> dict:
         extra["hook_turn"] = f"about {tag}"
     if readout(k):
         extra["readout"] = readout(k)
+    paper = f"arxiv-2609.{10000 + k:05d}"
+    peer_reviewed = k % 5 == 0 if k in LOPSIDED else k % 2 == 1
+    explained = k not in HIDDEN_K and k not in UPGRADED_K
+    if explained:
+        n = k % SHARED_PLATES
+        extra["explainer"] = f"papers/{paper}/"
+        extra["hero"] = hero(paper, "data" if n % 2 == 0 else "illustration",
+                             to_scale=None if n % 2 == 0 else n == 1, folder=f"fixture-plates/{n}")
     return {
-        "id": f"arxiv-2609.{10000 + k:05d}",
+        "id": paper,
         "title": f"Fixture study {k} on {tag}",
         "hook": f"Fixture paper {k}: a {field} finding about {tag}",
         **({"hook_turn": extra["hook_turn"]} if "hook_turn" in extra else {}),
@@ -93,12 +121,13 @@ def item(k: int) -> dict:
                    f"It stands in for a plain summary of a study about {tag}.",
         "field": field,
         "tags": [tag],
-        "status": "peer_reviewed" if k % 2 else "preprint",
-        "venue": "arXiv" if k % 2 == 0 else "Fixture Journal",
+        "status": "peer_reviewed" if peer_reviewed else "preprint",
+        "venue": "Fixture Journal" if peer_reviewed else "arXiv",
         "published": added.strftime("%Y-%m-%d"),
         "authors_short": "Fixture et al.",
         "url": f"https://arxiv.org/abs/2609.{10000 + k:05d}",
-        "has_explainer": False,
+        "has_explainer": explained,
+        **({"explainer": extra["explainer"], "hero": extra["hero"]} if explained else {}),
         # 3.0 to 7.4, below every hand-written paper in the open chunk.
         "significance": round(3.0 + (k * 7 % 45) / 10, 1),
         "added_at": rfc3339(added),
@@ -150,11 +179,12 @@ def generate() -> None:
             },
         },
     })
-    stills([OPEN_EXPLAINED, replaced, removed, kept])
+    stills([f"papers/{p}" for p in (OPEN_EXPLAINED, replaced, removed, kept)]
+           + [f"fixture-plates/{n}" for n in range(SHARED_PLATES)])
 
 
-def stills(papers: list[str]) -> None:
-    """A day and a night still per paper: rings in plate ink, a live line, a ruler. Not board art."""
+def stills(folders: list[str]) -> None:
+    """A day and a night still per folder: rings in plate ink, a live line, a ruler. Not board art."""
     try:
         from PIL import Image, ImageDraw
     except ImportError:
@@ -167,11 +197,12 @@ def stills(papers: list[str]) -> None:
     s = 2  # drawn at twice the size, then reduced, for smooth edges
     W, H = PLATE_W * s, PLATE_H * s
     band = round(H * 196 / 230)
-    for n, paper in enumerate(papers):
+    for n, folder in enumerate(folders):
         for name, t in themes.items():
             img = Image.new("RGB", (W, H), t["ground"])
             d = ImageDraw.Draw(img)
-            cx, cy = W * (0.62 + 0.08 * n), band * 0.38
+            # The shared stills (from the fifth on) put their rings further left, to tell them apart.
+            cx, cy = W * (0.62 + 0.08 * n if n < 4 else 0.12 + 0.16 * (n - 4)), band * 0.38
             r = 40 * s
             while r < W:
                 d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=t["plate"], width=t["ring"] * s)
@@ -193,7 +224,7 @@ def stills(papers: list[str]) -> None:
             for i in range(13):
                 x = 60 * s + i * 90 * s
                 d.line((x, band, x, band + (22 if i % 4 == 0 else 12) * s), fill=t["ink"], width=3 * s)
-            out = FIXTURES / "papers" / paper / name
+            out = FIXTURES / folder / name
             out.parent.mkdir(parents=True, exist_ok=True)
             img.resize((PLATE_W, PLATE_H), Image.LANCZOS).save(out, "WEBP", quality=80)
 

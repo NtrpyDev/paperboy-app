@@ -1,0 +1,24 @@
+{
+  "description": "What both test suites must read from the cost records beside this file: pipeline budget-gate sums spend_usd, and the worker's numbers page applies the same rule (a complete run counts total_cost_usd, an incomplete run the larger of total_cost_usd and budget_cap_usd).",
+  "months": {
+    "2026-10": {
+      "spend_usd": 24.75,
+      "runs": 3,
+      "incomplete_runs": 2,
+      "pages": {
+        "physics": 3,
+        "math": 1
+      }
+    },
+    "2026-11": {
+      "spend_usd": 11.5,
+      "runs": 3,
+      "incomplete_runs": 1,
+      "pages": {
+        "cs": 2,
+        "biology": 1,
+        "earth": 1
+      }
+    }
+  }
+}

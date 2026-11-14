@@ -1,3 +1,5 @@
+import { COST_KEY } from "./cost";
+import { createOwner, type OwnerEnv } from "./owner";
 import { verifyPass } from "./pass";
 import { createApi, type ApiEnv } from "./subscriptions";
 
@@ -47,12 +49,14 @@ export interface Deps {
 export interface Secrets {
   PASS_SECRET?: string;
   GOOGLE_SERVICE_ACCOUNT_JSON?: string;
+  OWNER_PASSWORD?: string;
 }
 
-export type WorkerEnv = Env & ApiEnv & Secrets;
+export type WorkerEnv = Env & ApiEnv & OwnerEnv & Secrets;
 
 export function createHandler(deps: Deps) {
   const api = createApi(deps);
+  const owner = createOwner({ now: deps.now, read: (env, key) => readInternal(env as WorkerEnv, key) });
 
   // Fetches a file from the content repo and stores it, noting whether it was still
   // changing when fetched. Says "missing" when the repo answers 404 and
@@ -107,6 +111,9 @@ export function createHandler(deps: Deps) {
   // chunk look open.
   async function isChanging(env: Env, key: string): Promise<boolean> {
     if (HEAD.test(key)) return true;
+    // A month's cost records change until the month ends (UTC).
+    const cost = COST_KEY.exec(key);
+    if (cost) return cost[1] >= new Date(deps.now()).toISOString().slice(0, 7);
     const chunk = CHUNK.exec(key);
     if (!chunk) return false;
     const open = await openChunk(env, `${chunk[1]}/head.json`);
@@ -115,7 +122,9 @@ export function createHandler(deps: Deps) {
 
   return {
     async fetch(request: Request, env: WorkerEnv): Promise<Response> {
-      if (new URL(request.url).pathname.startsWith("/v1/")) return api(request, env);
+      const pathname = new URL(request.url).pathname;
+      if (pathname.startsWith("/v1/")) return api(request, env);
+      if (pathname.startsWith("/owner/")) return owner.fetch(request, env);
       if (request.method !== "GET" && request.method !== "HEAD") {
         return new Response("Method not allowed\n", { status: 405, headers: { allow: "GET, HEAD" } });
       }
@@ -123,6 +132,11 @@ export function createHandler(deps: Deps) {
       if (request.method !== "HEAD") return res;
       await res.body?.cancel();
       return new Response(null, res);
+    },
+
+    // The daily Cron Trigger: a snapshot of today's subscriber counts for the numbers page.
+    async scheduled(controller: ScheduledController, env: WorkerEnv): Promise<void> {
+      await owner.snapshot(env, controller.scheduledTime);
     },
   };
 
@@ -137,6 +151,16 @@ export function createHandler(deps: Deps) {
     let key = pathname.slice(1);
     if (key.startsWith("papers/") && key.endsWith("/")) key += "index.html";
     if (!isContentKey(key)) return notFound();
+    const loaded = await load(env, key);
+    if (loaded === "missing") return notFound();
+    if (loaded === "unreachable") return new Response("Content repo unreachable\n", { status: 502 });
+    return serve(key, loaded.body, loaded.changing, loaded.source, gated);
+  }
+
+  // A file from the bucket, filled or refreshed from the content repo as its kind requires.
+  // "missing" when the content repo does not have it, "unreachable" when the content repo
+  // fails and the bucket has no copy.
+  async function load(env: Env, key: string): Promise<Loaded | Failure> {
     const changing = await isChanging(env, key);
 
     const stored = await env.CONTENT.get(key);
@@ -146,24 +170,31 @@ export function createHandler(deps: Deps) {
       // edits, so it keeps being refreshed until a copy is fetched after it stopped.
       const storedChanging = stored.customMetadata?.changing === "true";
       const due = (changing || storedChanging) && age > REFRESH_MS;
-      if (!due) return serve(key, stored.body, changing || storedChanging, "bucket", gated);
+      if (!due) return { body: stored.body, changing: changing || storedChanging, source: "bucket" };
       const fresh = await fill(env, key, changing);
       if (fresh === "missing") {
         // The content repo no longer has the file, as with feed/v1's chunks after the
         // feed restarted in feed/v2, so the stored copy goes too.
         await stored.body.cancel();
         await forget(env, key);
-        return notFound();
+        return "missing";
       }
-      if (fresh === "unreachable") return serve(key, stored.body, true, "bucket", gated);
+      if (fresh === "unreachable") return { body: stored.body, changing: true, source: "bucket" };
       await stored.body.cancel();
-      return serve(key, fresh.body, fresh.changing, "origin", gated);
+      return { body: fresh.body, changing: fresh.changing, source: "origin" };
     }
 
     const filled = await fill(env, key, changing);
-    if (filled === "missing") return notFound();
-    if (filled === "unreachable") return new Response("Content repo unreachable\n", { status: 502 });
-    return serve(key, filled.body, filled.changing, "origin", gated);
+    if (typeof filled === "string") return filled;
+    return { body: filled.body, changing: filled.changing, source: "origin" };
+  }
+
+  // The text of a content repo file for the worker's own use, never served: the owner's
+  // numbers page reads the cost records under state/ this way.
+  async function readInternal(env: Env, key: string): Promise<string | Failure> {
+    const loaded = await load(env, key);
+    if (typeof loaded === "string") return loaded;
+    return new Response(loaded.body).text();
   }
 }
 
@@ -182,6 +213,12 @@ type Failure = "missing" | "unreachable";
 interface Filled {
   body: ArrayBuffer;
   changing: boolean;
+}
+
+interface Loaded {
+  body: ReadableStream | ArrayBuffer;
+  changing: boolean;
+  source: "origin" | "bucket";
 }
 
 // The source header says whether this response was fetched from the content repo

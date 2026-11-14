@@ -41,6 +41,7 @@ import io.github.ntrpydev.paperboy.ui.feed.FeedModel
 import io.github.ntrpydev.paperboy.ui.feed.FeedScreen
 import io.github.ntrpydev.paperboy.ui.feed.LEAVE_MS
 import io.github.ntrpydev.paperboy.ui.feed.MastheadActions
+import io.github.ntrpydev.paperboy.ui.fields.FieldsScreen
 import io.github.ntrpydev.paperboy.ui.theme.Paperboy
 import io.github.ntrpydev.paperboy.ui.theme.PaperboyTheme
 import kotlinx.serialization.Serializable
@@ -54,6 +55,10 @@ private data class ExplainerKey(val url: String) : NavKey
 @Serializable
 private data object AboutKey : NavKey
 
+/** The field picker. [firstRun]: shown before the feed, which replaces it on confirm. */
+@Serializable
+private data class FieldsKey(val firstRun: Boolean) : NavKey
+
 /** Where a reader gets a newer version of the app. */
 private const val RELEASES_URL = "https://github.com/NtrpyDev/paperboy-app/releases"
 
@@ -61,8 +66,10 @@ private const val RELEASES_URL = "https://github.com/NtrpyDev/paperboy-app/relea
 private const val FEED_UP_MS = 360
 
 /**
- * The app's screens: the feed, and an explainer or About on top of it. The theme is the
- * reader's choice from the masthead, or the system setting until they make one.
+ * The app's screens: the feed, and an explainer or About on top of it, with the field
+ * picker on top of About. On first run (no saved fields) the app opens on the picker
+ * instead, and the feed takes its place once the reader confirms. The theme is the reader's
+ * choice from the masthead, or the system setting until they make one.
  */
 @Composable
 fun PaperboyRoot(graph: AppGraph) {
@@ -87,12 +94,13 @@ private fun Screens(graph: AppGraph, dark: Boolean, onToggleTheme: () -> Unit) {
     val context = LocalContext.current
     val reduced = Paperboy.reducedMotion
     // Held above the navigation so the feed keeps its items and scroll position while an explainer is open.
-    val feedModel = viewModel { FeedModel(graph.newFeedSession()) }
+    // The feed loads nothing until the reader has fields (FeedModel waits for them).
+    val feedModel = viewModel { FeedModel(graph.newFeedSession(), graph.fields.chosen) }
     SideEffect { feedModel.leaveMillis = if (reduced) 0L else LEAVE_MS }
     val feedState by feedModel.state.collectAsStateWithLifecycle()
     val leaving by feedModel.leaving.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
-    val backStack = rememberNavBackStack(FeedKey)
+    val backStack = rememberNavBackStack(if (graph.fields.chosen.value == null) FieldsKey(firstRun = true) else FeedKey)
 
     // Every card in the feed has an explainer page (FeedItem.hasPage); a tap opens it in the app.
     fun open(item: FeedItem) {
@@ -154,6 +162,22 @@ private fun Screens(graph: AppGraph, dark: Boolean, onToggleTheme: () -> Unit) {
                     versionName = BuildConfig.VERSION_NAME,
                     onBack = { backStack.removeLastOrNull() },
                     onOpenLink = { openInBrowser(context, it) },
+                    onOpenFields = { backStack.add(FieldsKey(firstRun = false)) },
+                )
+            }
+            entry<FieldsKey> { key ->
+                FieldsScreen(
+                    saved = graph.fields.chosen.value,
+                    onConfirm = { chosen ->
+                        graph.fields.choose(chosen)
+                        if (key.firstRun) {
+                            // The feed replaces the picker, so back from the feed leaves the app.
+                            backStack[backStack.indexOf(key)] = FeedKey
+                        } else {
+                            backStack.removeLastOrNull()
+                        }
+                    },
+                    onBack = if (key.firstRun) null else ({ backStack.removeLastOrNull() }),
                 )
             }
         },

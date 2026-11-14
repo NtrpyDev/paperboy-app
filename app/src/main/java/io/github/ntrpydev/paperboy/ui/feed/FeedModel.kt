@@ -3,6 +3,7 @@ package io.github.ntrpydev.paperboy.ui.feed
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.ntrpydev.paperboy.feed.FeedSession
+import io.github.ntrpydev.paperboy.fields.Field
 import io.github.ntrpydev.paperboy.feed.FeedState
 import io.github.ntrpydev.paperboy.feed.RefreshResult
 import io.github.ntrpydev.paperboy.rank.Rating
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -22,8 +24,12 @@ private const val COLLAPSE_DELAY_MS = 700L
 /** How long a card takes to leave by Feed up (HANDOFF.md 6.8), before it is taken out of the list. */
 const val LEAVE_MS = 360L
 
-/** Holds one [FeedSession] for the feed screen and runs its work in the view model's scope. */
-class FeedModel(private val session: FeedSession) : ViewModel() {
+/**
+ * Holds one [FeedSession] for the feed screen and runs its work in the view model's scope.
+ * The feed loads nothing until [fields] holds a selection (on first run, until the reader
+ * confirms the picker); every later selection goes to the open feed.
+ */
+class FeedModel(private val session: FeedSession, fields: StateFlow<Set<Field>?>) : ViewModel() {
     val state: StateFlow<FeedState> = session.state
 
     private val _collapsed = MutableSharedFlow<String>(extraBufferCapacity = 16)
@@ -45,7 +51,16 @@ class FeedModel(private val session: FeedSession) : ViewModel() {
     val refreshed: SharedFlow<RefreshResult> = _refreshed.asSharedFlow()
 
     init {
-        viewModelScope.launch { session.start() }
+        viewModelScope.launch {
+            var started = false
+            fields.filterNotNull().collect { chosen ->
+                session.setFields(chosen)
+                if (!started) {
+                    started = true
+                    session.start()
+                }
+            }
+        }
     }
 
     fun retry() {

@@ -5,6 +5,7 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.test.platform.app.InstrumentationRegistry
+import io.github.ntrpydev.paperboy.fields.Field
 import java.text.SimpleDateFormat
 import java.util.Collections
 import java.util.Date
@@ -73,6 +74,12 @@ class AssetFixtureDispatcher : Dispatcher() {
             .build()
     }
 }
+
+/**
+ * This graph with [fields] already picked, as after the first run, so the app opens on the
+ * feed. Every test that starts at the feed builds its graph through this.
+ */
+fun AppGraph.withFields(fields: Set<Field> = Field.all): AppGraph = apply { this.fields.choose(fields) }
 
 fun jsonResponse(body: String): MockResponse =
     MockResponse.Builder().code(200).addHeader("Content-Type", "application/json").body(body).build()

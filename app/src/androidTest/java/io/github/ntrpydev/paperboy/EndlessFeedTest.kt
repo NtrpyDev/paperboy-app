@@ -50,7 +50,7 @@ class EndlessFeedTest {
     }
 
     private fun launch() {
-        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
+        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir).withFields()
         compose.setContent { PaperboyTheme { PaperboyRoot(graph) } }
         compose.waitUntil(TIMEOUT_MS) { compose.onAllNodes(hasText(TOP_HOOK)).fetchSemanticsNodes().isNotEmpty() }
     }
@@ -147,7 +147,7 @@ class EndlessFeedTest {
         fixtures.override("feed/v2/upgrades.json") {
             jsonResponse("""{"v":1,"upgrades":{${upgrade("arxiv-2611.10290")},${upgrade("arxiv-2611.10410")}}}""")
         }
-        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
+        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir).withFields()
         compose.setContent { PaperboyTheme { PaperboyRoot(graph) } }
 
         compose.waitUntil(TIMEOUT_MS) { exists("card:arxiv-2611.10290") }

@@ -55,7 +55,7 @@ class ThemeChoiceTest {
             systemDark = isSystemInDarkTheme()
             // A new graph per launch, on the same app-private files, like a restart of the app.
             key(launches) {
-                val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
+                val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir).withFields()
                 PaperboyTheme { PaperboyRoot(graph) }
             }
         }

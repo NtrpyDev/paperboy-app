@@ -81,7 +81,7 @@ class HeroImageTest {
     }
 
     @Test fun theHeroIsDecodedOffTheMainThreadAtTheCardsSize() {
-        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
+        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir).withFields()
         var systemDark = false
         compose.setContent {
             systemDark = isSystemInDarkTheme()
@@ -114,7 +114,7 @@ class HeroImageTest {
         )
         fixtures.override("feed/v2/head.json") { jsonResponse(headJson(chunkCount = 1)) }
         fixtures.override("feed/v2/chunks/000001.json") { jsonResponse(chunkJson(1, items)) }
-        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
+        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir).withFields()
         compose.setContent { PaperboyTheme { PaperboyRoot(graph) } }
 
         compose.waitUntil(TIMEOUT_MS) { compose.onAllNodes(hasText("A paper whose plate loads")).fetchSemanticsNodes().isNotEmpty() }

@@ -25,11 +25,12 @@ import io.github.ntrpydev.paperboy.ui.theme.Paperboy
 import io.github.ntrpydev.paperboy.ui.theme.caps
 
 /**
- * The explainer top bar (SYSTEM.md 9.2), also used by About: a 48 dp row with the back
- * control "Feed" on the left and the small wordmark on the right, then the double rule.
+ * The explainer top bar (SYSTEM.md 9.2), also used by About and Fields: a 48 dp row with the
+ * back control on the left, named [backLabel] for the screen it returns to, and the small
+ * wordmark on the right, then the double rule.
  */
 @Composable
-fun TopBar(onBack: () -> Unit, modifier: Modifier = Modifier) {
+fun TopBar(onBack: () -> Unit, modifier: Modifier = Modifier, backLabel: String = "Feed") {
     val c = Paperboy.colors
     Column(
         modifier
@@ -53,7 +54,7 @@ fun TopBar(onBack: () -> Unit, modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Icon(Icons.Back, c.text, 20.dp)
-                Text(caps("Feed"), style = Paperboy.type.slug, color = c.text)
+                Text(caps(backLabel), style = Paperboy.type.slug, color = c.text)
             }
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.End) { Wordmark(small = true) }
         }

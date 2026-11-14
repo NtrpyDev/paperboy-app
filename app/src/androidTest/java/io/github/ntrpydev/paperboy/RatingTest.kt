@@ -66,7 +66,7 @@ class RatingTest {
     }
 
     private fun launch() {
-        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
+        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir).withFields()
         compose.setContent { PaperboyTheme { PaperboyRoot(graph) } }
         compose.waitUntil(TIMEOUT_MS) { compose.onAllNodes(hasTestTag("card:arxiv-m0")).fetchSemanticsNodes().isNotEmpty() }
         compose.waitForIdle()

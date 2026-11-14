@@ -224,9 +224,18 @@ fun Modifier.overhang(by: Dp): Modifier = layout { measurable, constraints ->
     layout(placeable.width, height) { placeable.place(0, -px) }
 }
 
-/** The primary slab: one per card, 48 dp tall, ink with a stock label and the arrow (SYSTEM.md 9.6). */
+/**
+ * The primary slab: one per card, 48 dp tall, ink with a stock label and the arrow (SYSTEM.md 9.6).
+ * Not [enabled], it is drawn at 40 percent and does nothing.
+ */
 @Composable
-fun SlabButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, icon: StrokeIcon = Icons.Arrow) {
+fun SlabButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: StrokeIcon = Icons.Arrow,
+    enabled: Boolean = true,
+) {
     val c = Paperboy.colors
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -234,8 +243,9 @@ fun SlabButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier,
         modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
+            .graphicsLayer { alpha = if (enabled) 1f else 0.4f }
             .background(if (pressed) c.muted else c.slab)
-            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick)
+            .clickable(interactionSource = interaction, indication = null, enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(start = 16.dp, end = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

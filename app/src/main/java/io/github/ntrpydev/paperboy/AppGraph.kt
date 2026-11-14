@@ -7,6 +7,9 @@ import io.github.ntrpydev.paperboy.feed.FeedSource
 import io.github.ntrpydev.paperboy.feed.HttpFeedSource
 import io.github.ntrpydev.paperboy.feed.SeenStore
 import io.github.ntrpydev.paperboy.feed.feedHttpClient
+import io.github.ntrpydev.paperboy.fields.FieldSelection
+import io.github.ntrpydev.paperboy.fields.FieldStore
+import io.github.ntrpydev.paperboy.fields.FileFieldStore
 import io.github.ntrpydev.paperboy.rank.FileTasteStore
 import io.github.ntrpydev.paperboy.rank.Ranker
 import io.github.ntrpydev.paperboy.rank.ScoredRanker
@@ -35,6 +38,10 @@ class AppGraph(
 
     /** The reader's day or night choice from the masthead. */
     val themeStore: ThemeStore = FileThemeStore(File(filesDir, "theme.txt"))
+
+    /** The fields the reader picked. No file yet means first run: the app opens on the picker. */
+    val fieldStore: FieldStore = FileFieldStore(File(filesDir, "fields.txt"))
+    val fields = FieldSelection(fieldStore)
 
     fun newFeedSession() = FeedSession(feedSource, ranker, tasteStore, seenStore, appVersionCode)
 

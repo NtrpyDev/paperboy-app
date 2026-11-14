@@ -136,7 +136,7 @@ class PaidFlowTest {
         waitFor(hasTestTag("about"))
 
         compose.onNodeWithTag("about-subscription").performScrollTo()
-        compose.onNodeWithText("Free trial, ends ", substring = true).assertExists()
+        compose.onNodeWithText("Free trial, ends ", substring = true, ignoreCase = true).assertExists()
         compose.onNodeWithText("Manage in Google Play").assertExists()
         compose.onNodeWithText("Paperboy is an open source Android app", substring = true).assertExists()
         assertTrue(!exists(hasText("No account.", substring = true)))

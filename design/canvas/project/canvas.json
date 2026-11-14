@@ -21,6 +21,10 @@
     {
       "id": "directions",
       "name": "First directions"
+    },
+    {
+      "id": "onboarding",
+      "name": "Onboarding"
     }
   ],
   "boards": {
@@ -145,6 +149,30 @@
       "h": 1040,
       "title": "App states, night",
       "page": "more"
+    },
+    "Onboarding-B-Day.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1760,
+      "h": 1012,
+      "title": "Pick your fields, day",
+      "page": "onboarding"
+    },
+    "Onboarding-B-Night.dc.html": {
+      "x": 0,
+      "y": 1132,
+      "w": 1760,
+      "h": 1012,
+      "title": "Pick your fields, night",
+      "page": "onboarding"
+    },
+    "Onboarding-Reentry-Day.dc.html": {
+      "x": 1840,
+      "y": 0,
+      "w": 470,
+      "h": 492,
+      "title": "Where you change fields later",
+      "page": "onboarding"
     }
   },
   "order": [
@@ -162,7 +190,10 @@
     "Explainer-Patterns-Night.dc.html",
     "Explainer-Wide.dc.html",
     "App-States-Day.dc.html",
-    "App-States-Night.dc.html"
+    "App-States-Night.dc.html",
+    "Onboarding-B-Day.dc.html",
+    "Onboarding-B-Night.dc.html",
+    "Onboarding-Reentry-Day.dc.html"
   ],
   "notes": {
     "directions": {
@@ -188,6 +219,14 @@
       "kind": "title1",
       "maxW": 10000,
       "page": "more"
+    },
+    "onboarding": {
+      "x": 0,
+      "y": -300,
+      "text": "First screen: pick your fields",
+      "kind": "title1",
+      "maxW": 2310,
+      "page": "onboarding"
     }
   },
   "designSystems": []

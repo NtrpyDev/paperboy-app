@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -44,6 +45,7 @@ import io.github.ntrpydev.paperboy.ui.design.voices
 import io.github.ntrpydev.paperboy.ui.theme.Paperboy
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import kotlinx.coroutines.launch
 
 /** Why an explainer page did not load. */
 private enum class PageFailure { Offline, Server }
@@ -63,6 +65,11 @@ val AppUserAgentToken = "PaperboyApp/${BuildConfig.VERSION_NAME}"
  * The page comes up in the app's theme, [dark]: the WebView is built on a context whose theme
  * says light or dark, and WebView sets `prefers-color-scheme` from that theme's
  * `isLightTheme` (developer.android.com/develop/ui/views/layout/webapps/dark-theme).
+ *
+ * In the paid build the page and its images carry the pass in the pb_pass cookie. When the
+ * content base refuses it (401), [onPassRefused] renews the pass once; true means a new pass is
+ * set and the page loads once more. A second refusal is not shown as a failure here: the person
+ * is not entitled, and the app covers the explainer with the subscription screens.
  */
 @Composable
 fun ExplainerScreen(
@@ -71,7 +78,13 @@ fun ExplainerScreen(
     onOpenExternal: (String) -> Unit,
     dark: Boolean = false,
     onBack: () -> Unit = {},
+    onPassRefused: (suspend () -> Boolean)? = null,
 ) {
+    val renewPass by rememberUpdatedState(onPassRefused)
+    val scope = rememberCoroutineScope()
+    var renewed by remember { mutableStateOf(false) }
+    // True while a refused page is held under the loading strip, so its error body never shows.
+    var holding by remember { mutableStateOf(false) }
     val openExternal by rememberUpdatedState(onOpenExternal)
     var webView by remember { mutableStateOf<WebView?>(null) }
     var canGoBack by remember { mutableStateOf(false) }
@@ -114,11 +127,11 @@ fun ExplainerScreen(
                             }
 
                             override fun onPageCommitVisible(view: WebView, url: String?) {
-                                loading = false
+                                if (!holding) loading = false
                             }
 
                             override fun onPageFinished(view: WebView, url: String?) {
-                                loading = false
+                                if (!holding) loading = false
                             }
 
                             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
@@ -126,7 +139,23 @@ fun ExplainerScreen(
                             }
 
                             override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
-                                if (request.isForMainFrame && response.statusCode >= 400) failure = PageFailure.Server
+                                if (!request.isForMainFrame || response.statusCode < 400) return
+                                val renew = renewPass
+                                if (response.statusCode == 401 && renew != null) {
+                                    holding = true
+                                    loading = true
+                                    if (!renewed) {
+                                        renewed = true
+                                        scope.launch {
+                                            if (renew()) {
+                                                holding = false
+                                                view.reload()
+                                            }
+                                        }
+                                    }
+                                    return
+                                }
+                                failure = PageFailure.Server
                             }
                         }
                         loadUrl(url)

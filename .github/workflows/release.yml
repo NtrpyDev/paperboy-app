@@ -1,4 +1,4 @@
-# Builds a signed release APK when a version tag is pushed and attaches it to a GitHub Release.
+# Builds the free build's signed release APK when a version tag is pushed and attaches it to a GitHub Release.
 # The tag must be "v" plus the versionName in app/build.gradle.kts, for example v0.1.0.
 name: Release
 
@@ -27,7 +27,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Run the unit tests
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testFreeDebugUnitTest
 
       - name: Decode the release keystore
         env:
@@ -46,19 +46,19 @@ jobs:
           PAPERBOY_KEYSTORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           PAPERBOY_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           PAPERBOY_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleFreeRelease
 
       - name: Check the tag against the version name and rename the APK
         id: apk
         run: |
-          outputs=app/build/outputs/apk/release
+          outputs=app/build/outputs/apk/free/release
           version="$(jq -r '.elements[0].versionName' "$outputs/output-metadata.json")"
           if [ "$GITHUB_REF_NAME" != "v$version" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match versionName $version in app/build.gradle.kts. Tag this commit v$version."
             exit 1
           fi
           apk="$outputs/paperboy-$version.apk"
-          mv "$outputs/app-release.apk" "$apk"
+          mv "$outputs/app-free-release.apk" "$apk"
           echo "path=$apk" >> "$GITHUB_OUTPUT"
           # The same APK under a fixed name, so the website can link to
           # releases/latest/download/paperboy.apk.

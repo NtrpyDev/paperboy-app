@@ -8,15 +8,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Cache
 import okhttp3.CacheControl
+import io.github.ntrpydev.paperboy.access.isGateRefusal
 import okhttp3.HttpUrl
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 
-/** The HTTP client for feed files, with an on-disk HTTP cache in [cacheDir]. */
-fun feedHttpClient(cacheDir: File): OkHttpClient =
+/**
+ * The HTTP client for feed files, with an on-disk HTTP cache in [cacheDir]. The paid build adds
+ * the pass interceptor in [interceptors].
+ */
+fun feedHttpClient(cacheDir: File, interceptors: List<Interceptor> = emptyList()): OkHttpClient =
     OkHttpClient.Builder()
         .cache(Cache(cacheDir, maxSize = 20L * 1024 * 1024))
+        .apply { interceptors.forEach { addInterceptor(it) } }
         .build()
 
 /** Reads `feed/v2/head.json`, `feed/v2/chunks/%06d.json` and `feed/v2/upgrades.json` under [contentBase]. */
@@ -50,7 +56,8 @@ class HttpFeedSource(
     /**
      * The body at [path]. On a network failure or an error status, a cached copy is used
      * if there is one, except for a [fresh] read, which asked for the server's answer.
-     * With [missingIsEmpty], a 404 gives null instead of an error.
+     * With [missingIsEmpty], a 404 gives null instead of an error. The content gate's refusal
+     * (paid build) is [Reason.NotEntitled] and never falls back to a saved copy.
      */
     private suspend fun get(path: String, fresh: Boolean, missingIsEmpty: Boolean = false): String? =
         withContext(Dispatchers.IO) {
@@ -66,6 +73,7 @@ class HttpFeedSource(
             }
             response.use {
                 if (it.code == 404 && missingIsEmpty) return@withContext null
+                if (isGateRefusal(it)) throw FeedUnavailableException(Reason.NotEntitled, "Pass refused for $path")
                 if (!it.isSuccessful) {
                     val saved = if (fresh) null else cached(request)
                     return@withContext saved ?: throw FeedUnavailableException(Reason.Server, "HTTP ${it.code} for $path")

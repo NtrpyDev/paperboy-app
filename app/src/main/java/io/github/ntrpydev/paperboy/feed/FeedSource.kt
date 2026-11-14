@@ -31,5 +31,8 @@ class FeedUnavailableException(
 
         /** A feed file arrived but did not match the wire format. */
         BadData,
+
+        /** The content gate refused the pass even after one renewal (paid build): the person is not entitled. */
+        NotEntitled,
     }
 }

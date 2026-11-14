@@ -9,6 +9,15 @@ plugins {
 val contentBase: String = providers.gradleProperty("paperboy.contentBase")
     .getOrElse("https://paperboy.ntrpydev.workers.dev")
 
+// The package name, shared by both flavors. The worker's PLAY_PACKAGE_NAME must match it.
+val appId = "io.github.ntrpydev.paperboy"
+
+// The paid build's subscription in Play Console (see productFlavors below).
+val subscriptionProductId: String = providers.gradleProperty("paperboy.productId")
+    .getOrElse("placeholder.subscription")
+val subscriptionBasePlanId: String = providers.gradleProperty("paperboy.basePlanId")
+    .getOrElse("placeholder-monthly")
+
 // Release signing comes from these environment variables, never from files in the repo.
 // The release workflow sets them from repository secrets. Debug builds need none of them.
 val releaseSigningVariables = listOf(
@@ -27,13 +36,41 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "io.github.ntrpydev.paperboy"
+        applicationId = appId
         minSdk = 26
         targetSdk = 36
         versionCode = 2
         versionName = "0.1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "CONTENT_BASE", "\"$contentBase\"")
+    }
+
+    // Two builds from one codebase, chosen at build time (README "Two builds"):
+    //   free: today's app. Reads the open feed, gets updates from GitHub releases.
+    //   paid: the Google Play app. Play Billing, the entitlement call, the pass on content
+    //         requests, and the Play Store listing for updates. Only this flavor depends on the
+    //         Play Billing Library and asks for the billing permission (src/paid/AndroidManifest.xml).
+    // Both keep the same application id, so a Play install can replace a GitHub one when both
+    // are signed with the same key (.private/research/play-store.md section 9).
+    flavorDimensions += "edition"
+    productFlavors {
+        create("free") {
+            dimension = "edition"
+            buildConfigField("boolean", "PAID", "false")
+            buildConfigField("String", "UPDATE_URL", "\"https://github.com/NtrpyDev/paperboy-app/releases\"")
+        }
+        create("paid") {
+            dimension = "edition"
+            buildConfigField("boolean", "PAID", "true")
+            // The store listing link, https://play.google.com/store/apps/details?id=<package_name>
+            // (https://developer.android.com/distribute/marketing-tools/linking-to-google-play).
+            buildConfigField("String", "UPDATE_URL", "\"https://play.google.com/store/apps/details?id=$appId\"")
+            // The subscription's product id and base plan id as created in Play Console. No store
+            // listing exists yet, so both are placeholders until then: set them with
+            // -Ppaperboy.productId=... -Ppaperboy.basePlanId=... or change the defaults here.
+            buildConfigField("String", "SUBSCRIPTION_PRODUCT_ID", "\"$subscriptionProductId\"")
+            buildConfigField("String", "SUBSCRIPTION_BASE_PLAN_ID", "\"$subscriptionBasePlanId\"")
+        }
     }
 
     signingConfigs {
@@ -69,17 +106,21 @@ android {
     // src/fixtures is a small content base (head, chunks, one explainer) that the
     // fake servers in both test suites serve. The unit tests also read the repo's schemas,
     // so the app's field list is checked against schema/feed-item.schema.json.
+    // src/sharedTest holds FakeBillingGateway, used by the unit tests and the paid instrumented tests.
     sourceSets {
         named("test") {
             resources.directories += "src/fixtures"
             resources.directories += "../schema"
+            kotlin.directories += "src/sharedTest/java"
         }
         named("androidTest") { assets.directories += "src/fixtures" }
+        named("androidTestPaid") { kotlin.directories += "src/sharedTest/java" }
     }
 }
 
-// Packaging a release fails here, with the names of the missing variables, instead of
-// writing an unsigned APK. Compiling and testing the release variant still work without them.
+// Packaging a release APK or signing a release bundle (either flavor) fails here, with the names
+// of the missing variables, instead of writing an unsigned file. Compiling and testing the
+// release variants still work without them.
 val checkReleaseSigning = tasks.register("checkReleaseSigning") {
     val missing = missingReleaseSigning
     doLast {
@@ -88,12 +129,13 @@ val checkReleaseSigning = tasks.register("checkReleaseSigning") {
                 "Release signing is not configured. Set these environment variables: " +
                     missing.joinToString(", ") +
                     ". PAPERBOY_KEYSTORE_FILE is the path to the PKCS12 release keystore. " +
-                    "Debug builds (assembleDebug) need none of them.",
+                    "Debug builds (assembleFreeDebug, assemblePaidDebug) need none of them.",
             )
         }
     }
 }
-tasks.matching { it.name == "packageRelease" || it.name == "signReleaseBundle" }.configureEach {
+val releasePackaging = Regex("package(Free|Paid)Release|sign(Free|Paid)ReleaseBundle")
+tasks.matching { releasePackaging.matches(it.name) }.configureEach {
     dependsOn(checkReleaseSigning)
 }
 
@@ -113,6 +155,7 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    "paidImplementation"(libs.billing)
     debugImplementation(libs.compose.ui.tooling)
 
     testImplementation(libs.junit)

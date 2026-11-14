@@ -134,8 +134,23 @@ fun FeedScreen(
     onOpenPaper: (FeedItem) -> Unit = onOpen,
     masthead: MastheadActions = MastheadActions(dark = false, onToggleTheme = {}, onAbout = {}),
     versionName: String = "",
+    /** Paid build: a renewal payment failed and the person still reads (grace period). */
+    paymentProblem: Boolean = false,
+    /** Opens the subscription in Google Play, where the payment is fixed. */
+    onFixPayment: () -> Unit = {},
 ) {
     val notices = remember { NoticeState() }
+    val fixPayment by rememberUpdatedState(onFixPayment)
+    LaunchedEffect(paymentProblem) {
+        if (!paymentProblem) return@LaunchedEffect
+        val spec = NoticeSpec(
+            "Your payment did not go through. Fix it in Google Play to keep reading.",
+            action = "Fix payment",
+            actionIcon = Icons.OutArrow,
+            durationMs = NoticeSpec.LONG_MS,
+        )
+        if (notices.show(spec)) fixPayment()
+    }
     val reduced = Paperboy.reducedMotion
     val undo by rememberUpdatedState(onUndoLess)
     val refresh by rememberUpdatedState(onRefresh)
@@ -583,6 +598,8 @@ private fun failureText(reason: Reason): String = when (reason) {
     Reason.Offline -> "You are offline, or the feed cannot be reached."
     Reason.Server -> "The feed server had a problem."
     Reason.BadData -> "The feed arrived in a form this app cannot read."
+    // Paid build only, where the subscribe or ended screen covers the feed at once.
+    Reason.NotEntitled -> "Subscribe to keep reading."
 }
 
 /** The cause in a head row label (ADDENDUM-APP.md 2.2). */
@@ -590,6 +607,7 @@ private fun reasonLabel(reason: Reason): String = when (reason) {
     Reason.Offline -> "No connection"
     Reason.Server -> "Server error"
     Reason.BadData -> "Unreadable data"
+    Reason.NotEntitled -> "Subscription"
 }
 
 private fun arrivedMessage(count: Int): String = when (count) {

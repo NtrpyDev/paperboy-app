@@ -7,14 +7,60 @@
   "workers_dev": true,
   "preview_urls": false,
   // The site and the kit. Built by scripts/build-assets.mjs from ../site and ../kit/v1.
+  // /v1/* is the subscription API and always goes to the Worker.
   "assets": {
     "directory": "./public",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none",
-    "run_worker_first": ["/feed/*", "/papers/*"]
+    "run_worker_first": ["/feed/*", "/papers/*", "/v1/*"]
   },
   // Published feed and explainers, filled on first request from the content repo.
   "r2_buckets": [
     { "binding": "CONTENT", "bucket_name": "paperboy-content" }
-  ]
+  ],
+  // The worker deployed today: no subscriber database, so /v1/* answers 503 not_configured
+  // and the content gate stays off. See worker/README.md, "Going live".
+  "vars": {
+    "CONTENT_GATE": "off",
+    "COUNT_TRIALS": "true"
+  },
+  "env": {
+    // The paid worker: the same Worker ("name" stays "paperboy") with the subscriber
+    // database. Deployed with `npm run deploy -- --env paid` once the owner has created the
+    // database. It lives in its own environment because a binding with a placeholder id would
+    // break today's `wrangler deploy`, and a binding with no id at all makes `wrangler deploy`
+    // create a database on the account by itself (automatic provisioning,
+    // https://developers.cloudflare.com/workers/wrangler/configuration/#automatic-provisioning).
+    // Bindings and vars are not inherited by environments, so each is repeated here.
+    "paid": {
+      "name": "paperboy",
+      "r2_buckets": [
+        { "binding": "CONTENT", "bucket_name": "paperboy-content" }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "paperboy-subscribers",
+          // PLACEHOLDER. The owner creates the database with
+          // `npx wrangler d1 create paperboy-subscribers` and pastes the id it prints here.
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "vars": {
+        // "on" locks /feed/ and /papers/ to subscribers with a valid pass.
+        "CONTENT_GATE": "off",
+        // "true" counts people in a free trial toward the active fields list.
+        "COUNT_TRIALS": "true",
+        // The app's package name on Google Play (applicationId in app/build.gradle.kts).
+        "PLAY_PACKAGE_NAME": "io.github.ntrpydev.paperboy",
+        // The audience set on the Pub/Sub push subscription. Pub/Sub uses the push endpoint
+        // URL when none is set. Change it if the worker moves to another host.
+        "RTDN_AUDIENCE": "https://paperboy.ntrpydev.workers.dev/v1/rtdn",
+        // PLACEHOLDER. The service account email set on the Pub/Sub push subscription.
+        // Empty means every push is refused until the owner sets it.
+        "RTDN_SERVICE_ACCOUNT": ""
+      }
+    }
+  }
 }

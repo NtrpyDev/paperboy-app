@@ -128,6 +128,7 @@ def test_passing_page_passes_and_writes_shots_and_hero(tmp_path):
     assert report["page"]["data_figures"] == 1
     assert report["page"]["height_px"] > 844
     assert report["page"]["kit"] == 1
+    assert report["page"]["depth"] == "full"
 
 
 def mean_brightness(path: Path) -> float:
@@ -204,3 +205,57 @@ def test_kit_folder_without_a_version_folder_is_a_tool_error(tmp_path):
     shutil.copy(FIXTURES / "pass" / "index.html", explainer / "index.html")
     assert main(["check", "--explainer", str(explainer), "--kit", str(tmp_path / "kit")]) == 2
     assert not (tmp_path / "check.json").exists()
+
+
+ARTICLE = '<article class="pb">'
+CONFIDENCE_TEXT = "<p>Body text for the confidence section.</p>"
+
+
+def pass_page_with_depth(depth: str, confidence: str = CONFIDENCE_TEXT) -> str:
+    """The passing fixture with data-depth on its article and its confidence section's text replaced."""
+    assert PASS_PAGE.count(ARTICLE) == 1 and PASS_PAGE.count(CONFIDENCE_TEXT) == 1
+    return PASS_PAGE.replace(ARTICLE, f'<article class="pb" data-depth="{depth}">').replace(CONFIDENCE_TEXT, confidence)
+
+
+def test_a_page_marked_full_is_a_full_page(tmp_path):
+    code, report = run_check(tmp_path, pass_page_with_depth("full"))
+    assert report["problems"] == []
+    assert code == 0
+    assert report["page"]["depth"] == "full"
+
+
+@pytest.mark.parametrize(
+    "note",
+    [
+        "<p>Built from the paper's abstract, not its full text. Machine written, and it can be wrong.</p>",
+        "<ul><li><b>This explainer</b>Built from the paper\u2019s abstract,\n  not its full text.</li></ul>",
+    ],
+    ids=["straight apostrophe", "curly apostrophe and a line break"],
+)
+def test_a_page_built_from_the_abstract_passes_when_its_ledger_says_so(tmp_path, note):
+    code, report = run_check(tmp_path, pass_page_with_depth("abstract", note))
+    assert report["problems"] == []
+    assert code == 0
+    assert report["page"]["depth"] == "abstract"
+
+
+def test_the_abstract_note_must_be_in_the_confidence_section(tmp_path):
+    # The rule fixture says it in the source footer only, which is not where the reader judges how sure to be.
+    code, report = run_check(tmp_path, FIXTURES / "missing-depth-note" / "index.html")
+    assert {p["rule"] for p in report["problems"]} == {"missing-depth-note"}
+    assert report["page"]["depth"] == "abstract"
+    assert code == 1
+
+
+def test_the_abstract_note_must_be_visible(tmp_path):
+    hidden = '<p style="display: none">Built from the paper\'s abstract, not its full text.</p>'
+    code, report = run_check(tmp_path, pass_page_with_depth("abstract", hidden))
+    assert {p["rule"] for p in report["problems"]} == {"missing-depth-note"}
+    assert code == 1
+
+
+def test_an_unknown_depth_is_recorded_as_null(tmp_path):
+    code, report = run_check(tmp_path, FIXTURES / "unknown-depth" / "index.html")
+    assert {p["rule"] for p in report["problems"]} == {"unknown-depth"}
+    assert report["page"]["depth"] is None
+    assert code == 1

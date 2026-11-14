@@ -31,12 +31,16 @@ def judged(n: int, **overrides) -> dict:
 
 def write_work(work: Path, records: list[dict], explained: dict[str, dict] | None = None) -> Path:
     """explained maps paper id to {"check": bool, "review": bool, "files": bool, "night": bool, "hero": dict,
-    "kit": int | None, "card": dict}. The booleans default to True; "hero" (the hero check.json reports)
-    defaults to none; "kit" (check.json's page.kit) defaults to 1, and None leaves page out; "card" is
-    written as card.json when given."""
+    "kit": int | None, "card": dict, "depth": str, "numbers": dict | None}. Without it every record gets a
+    passing full explainer. The booleans default to True; "hero" (the hero check.json reports) defaults to
+    none; "kit" (check.json's page.kit) defaults to 1, and None leaves page out; "card" is written as
+    card.json when given. "depth" "abstract" makes a quick explainer: page.numbers is "numbers"
+    (default: the numbers check ran and passed) and no review.json is written unless "review" is given."""
     work.mkdir(parents=True, exist_ok=True)
     (work / "judged.jsonl").write_text("".join(json.dumps(r) + "\n" for r in records))
-    for paper_id, opts in (explained or {}).items():
+    if explained is None:
+        explained = {r["id"]: {} for r in records}
+    for paper_id, opts in explained.items():
         folder = work / "papers" / paper_id
         (folder / "explainer").mkdir(parents=True, exist_ok=True)
         if opts.get("files", True):
@@ -49,11 +53,44 @@ def write_work(work: Path, records: list[dict], explained: dict[str, dict] | Non
             check["hero"] = opts["hero"]
         if opts.get("kit", 1) is not None:
             check["page"] = {"height_px": 2000, "figures": 3, "data_figures": 1, "kit": opts.get("kit", 1)}
+            if "depth" in opts:
+                check["page"]["depth"] = opts["depth"]
+            if opts.get("depth") == "abstract":
+                check["page"]["numbers"] = opts.get("numbers", {"checked": 4, "not_in_abstract": 0})
         (folder / "check.json").write_text(json.dumps(check))
         if "card" in opts:
             (folder / "card.json").write_text(json.dumps(opts["card"]))
-        (folder / "review.json").write_text(json.dumps({"pass": opts.get("review", True), "problems": []}))
+        if opts.get("depth") != "abstract" or "review" in opts:
+            (folder / "review.json").write_text(json.dumps({"pass": opts.get("review", True), "problems": []}))
     return work
+
+
+def as_old_short_cards(content: Path, paper_ids: list[str]) -> None:
+    """Turn published items into short cards, as feeds published before every paper needed a page
+    held them: no explainer, no plate, only meta.json in the paper folder."""
+    for path in content.glob("feed/v2/chunks/*.json"):
+        chunk = read_json(path)
+        for item in chunk["items"]:
+            if item["id"] in paper_ids:
+                for key in ("explainer", "hero", "depth"):
+                    item.pop(key, None)
+                item["has_explainer"] = False
+        path.write_text(json.dumps(chunk, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
+    for paper_id in paper_ids:
+        folder = content / "papers" / paper_id
+        meta = read_json(folder / "meta.json")
+        for key in ("depth", "check", "made_by"):
+            meta.pop(key, None)
+        meta.update(has_explainer=False, explained_at=None, kit=None, fulltext_source=None)
+        (folder / "meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
+        for name in ("index.html", "hero.webp", "hero-night.webp"):
+            (folder / name).unlink()
+
+
+def old_feed(tmp_path: Path, content: Path, records: list[dict], explained: tuple[str, ...] = ()) -> None:
+    """A content repo published before pages were required: every record a short card except `explained`."""
+    publish(write_work(tmp_path / "w-old", records), content)
+    as_old_short_cards(content, [r["id"] for r in records if r["id"] not in explained])
 
 
 def publish(work: Path, content: Path, *extra: str, now: str = NOW) -> int:
@@ -65,13 +102,13 @@ def read_json(path: Path):
     return json.loads(path.read_text())
 
 
-def test_first_publish_into_empty_repo_writes_a_short_card(tmp_path):
-    work = write_work(tmp_path / "work", [judged(1)])
+def test_only_a_paper_with_a_passing_page_enters_the_feed(tmp_path):
+    work = write_work(tmp_path / "work", [judged(1), judged(2)], explained={"arxiv-2611.00001": {}})
     content = tmp_path / "content"
 
     assert publish(work, content) == 0
 
-    chunk = read_json(content / "feed/v1/chunks/000001.json")
+    chunk = read_json(content / "feed/v2/chunks/000001.json")
     assert chunk["v"] == 1
     assert chunk["number"] == 1
     assert chunk["items"] == [
@@ -87,27 +124,43 @@ def test_first_publish_into_empty_repo_writes_a_short_card(tmp_path):
             "published": "2026-11-10",
             "authors_short": "Lovelace et al.",
             "url": "https://arxiv.org/abs/2611.00001",
-            "has_explainer": False,
+            "has_explainer": True,
+            "explainer": "papers/arxiv-2611.00001/",
+            "depth": "full",
+            "hero": {
+                "path": "papers/arxiv-2611.00001/hero.webp", "width": 120, "height": 63,
+                "night": {"path": "papers/arxiv-2611.00001/hero-night.webp", "width": 120, "height": 63},
+            },
             "significance": 7.5,
             "added_at": NOW,
         }
     ]
-    assert read_json(content / "feed/v1/head.json") == {
+    assert read_json(content / "feed/v2/head.json") == {
         "v": 1,
         "updated_at": NOW,
         "chunk_count": 1,
         "total_items": 1,
         "chunk_size": 40,
         "kit": 1,
-        "min_app": 1,
+        "min_app": 2,
     }
-    paper = content / "papers/arxiv-2611.00001"
-    assert sorted(p.name for p in paper.iterdir()) == ["meta.json"]
-    meta = read_json(paper / "meta.json")
-    assert meta["has_explainer"] is False
+    assert sorted(p.name for p in (content / "papers").iterdir()) == ["arxiv-2611.00001"]
+    meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
     assert meta["authors"] == ["Ada Lovelace", "Charles Babbage", "Mary Somerville"]
     assert meta["license"] == "cc-by"
+    assert meta["depth"] == "full"
     assert "abstract" not in meta
+    assert not (content / "feed/v2/upgrades.json").exists()
+
+
+def test_a_run_with_no_page_ready_writes_nothing(tmp_path):
+    work = write_work(tmp_path / "work", [judged(1)], explained={})
+    content = tmp_path / "content"
+    content.mkdir()
+
+    assert publish(work, content) == 0
+
+    assert tree(content) == {}
 
 
 def test_paper_with_a_passing_explainer_is_published_as_an_explained_card(tmp_path):
@@ -116,7 +169,7 @@ def test_paper_with_a_passing_explainer_is_published_as_an_explained_card(tmp_pa
 
     assert publish(work, content) == 0
 
-    [item] = read_json(content / "feed/v1/chunks/000001.json")["items"]
+    [item] = read_json(content / "feed/v2/chunks/000001.json")["items"]
     assert item["has_explainer"] is True
     assert item["explainer"] == "papers/arxiv-2611.00001/"
     assert item["hero"] == {
@@ -179,7 +232,7 @@ def test_plate_kind_comes_from_the_hero_the_render_check_reported(tmp_path, rend
 
     assert publish(work, content) == 0
 
-    [item] = read_json(content / "feed/v1/chunks/000001.json")["items"]
+    [item] = read_json(content / "feed/v2/chunks/000001.json")["items"]
     assert item["hero"] == {**HERO, **expected}
 
 
@@ -191,17 +244,17 @@ CARD_TEXT = {
 }
 
 
-@pytest.mark.parametrize("explained", [False, True], ids=["short card", "explained card"])
-def test_second_voice_and_readout_reach_the_feed_item_and_the_paper_record(tmp_path, explained):
-    paywalled = {"fulltext": {"available": False, "kind": None, "url": None}} if not explained else {}
+@pytest.mark.parametrize("depth", ["full", "abstract"], ids=["full explainer", "quick explainer"])
+def test_second_voice_and_readout_reach_the_feed_item_and_the_paper_record(tmp_path, depth):
+    paywalled = {"fulltext": {"available": False, "kind": None, "url": None}} if depth == "abstract" else {}
     record = judged(1, **CARD_TEXT, **paywalled)
-    work = write_work(tmp_path / "work", [record, judged(2)], explained={"arxiv-2611.00001": {}} if explained else None)
+    work = write_work(tmp_path / "work", [record, judged(2)], explained={"arxiv-2611.00001": {"depth": depth}, "arxiv-2611.00002": {}})
     content = tmp_path / "content"
 
     assert publish(work, content) == 0
 
-    first, second = read_json(content / "feed/v1/chunks/000001.json")["items"]
-    assert first["has_explainer"] is explained
+    first, second = read_json(content / "feed/v2/chunks/000001.json")["items"]
+    assert first["has_explainer"] is True and first["depth"] == depth
     meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
     for published in (first, meta):
         assert {k: published[k] for k in CARD_TEXT} == CARD_TEXT
@@ -274,7 +327,7 @@ def test_explained_card_takes_the_readout_the_expert_settled(tmp_path, card, exp
 
     assert publish(work, content) == 0
 
-    [item] = read_json(content / "feed/v1/chunks/000001.json")["items"]
+    [item] = read_json(content / "feed/v2/chunks/000001.json")["items"]
     meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
     for published in (item, meta):
         assert published.get("readout") == expected
@@ -283,30 +336,28 @@ def test_explained_card_takes_the_readout_the_expert_settled(tmp_path, card, exp
 
 
 def test_card_json_of_an_explainer_that_did_not_pass_is_ignored(tmp_path):
-    work = write_work(tmp_path / "work", [judged(1, **CARD_TEXT)], explained={"arxiv-2611.00001": {"review": False, "card": {"readout": None}}})
+    work = write_work(tmp_path / "work", [judged(1, **CARD_TEXT)], explained={"arxiv-2611.00001": {"review": False, "card": {"readout": {}}}})
     content = tmp_path / "content"
 
     assert publish(work, content) == 0
 
-    [item] = read_json(content / "feed/v1/chunks/000001.json")["items"]
-    assert item["has_explainer"] is False
-    assert item["readout"] == SCOUT_READOUT
+    assert not (content / "feed").exists() and not (content / "papers").exists()
 
 
 @pytest.mark.parametrize("card", [{"readout": None}, {"readout": EXPERT_READOUT}], ids=["null", "object"])
 def test_open_chunk_upgrade_replaces_or_removes_the_readout_in_place(tmp_path, card):
     content = tmp_path / "content"
-    publish(write_work(tmp_path / "w1", [judged(1, **CARD_TEXT), judged(2)]), content)
+    old_feed(tmp_path, content, [judged(1, **CARD_TEXT), judged(2)])
 
     work = write_work(tmp_path / "w2", [judged(1, **CARD_TEXT)], explained={"arxiv-2611.00001": {"card": card}})
     assert publish(work, content, now=LATER) == 0
 
-    first, _ = read_json(content / "feed/v1/chunks/000001.json")["items"]
+    first, _ = read_json(content / "feed/v2/chunks/000001.json")["items"]
     meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
     for published in (first, meta):
         assert published.get("readout") == card["readout"]
     assert first["has_explainer"] is True
-    assert not (content / "feed/v1/upgrades.json").exists()
+    assert not (content / "feed/v2/upgrades.json").exists()
 
 
 @pytest.mark.parametrize(
@@ -314,22 +365,22 @@ def test_open_chunk_upgrade_replaces_or_removes_the_readout_in_place(tmp_path, c
 )
 def test_closed_chunk_upgrade_carries_the_readout_in_upgrades_json(tmp_path, card):
     content = tmp_path / "content"
-    publish(write_work(tmp_path / "w1", [judged(1, **CARD_TEXT)] + [judged(n) for n in range(2, 42)]), content)
-    closed = (content / "feed/v1/chunks/000001.json").read_bytes()
+    old_feed(tmp_path, content, [judged(1, **CARD_TEXT)] + [judged(n) for n in range(2, 42)])
+    closed = (content / "feed/v2/chunks/000001.json").read_bytes()
 
     opts = {} if card is None else {"card": card}
     work = write_work(tmp_path / "w2", [judged(1, **CARD_TEXT)], explained={"arxiv-2611.00001": opts})
     assert publish(work, content, now=LATER) == 0
 
-    assert (content / "feed/v1/chunks/000001.json").read_bytes() == closed
-    entry = read_json(content / "feed/v1/upgrades.json")["upgrades"]["arxiv-2611.00001"]
+    assert (content / "feed/v2/chunks/000001.json").read_bytes() == closed
+    entry = read_json(content / "feed/v2/upgrades.json")["upgrades"]["arxiv-2611.00001"]
     expected = {"explainer": "papers/arxiv-2611.00001/", "hero": HERO, "explained_at": LATER}
     if card is not None:
         expected["readout"] = card["readout"]
     assert entry == expected
     meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
     assert meta.get("readout") == (SCOUT_READOUT if card is None else card["readout"])
-    assert schemas.errors("upgrades", read_json(content / "feed/v1/upgrades.json")) == []
+    assert schemas.errors("upgrades", read_json(content / "feed/v2/upgrades.json")) == []
 
 
 @pytest.mark.parametrize(
@@ -357,7 +408,7 @@ def test_paper_record_names_the_kit_version_its_page_loads(tmp_path):
 
     assert read_json(content / "papers/arxiv-2611.00001/meta.json")["kit"] == 2
     assert read_json(content / "papers/arxiv-2611.00002/meta.json")["kit"] == 1
-    assert read_json(content / "feed/v1/head.json")["kit"] == 1
+    assert read_json(content / "feed/v2/head.json")["kit"] == 1
 
 
 def test_passing_check_without_the_page_kit_version_aborts_with_nothing_changed(tmp_path, capsys):
@@ -389,20 +440,24 @@ def test_content_published_before_plates_and_readouts_still_validates_and_publis
     # A repo written before hero.night, hero.kind, hook_turn, and readout existed: one-image heroes,
     # in a closed chunk, in the open chunk, and in upgrades.json.
     content = tmp_path / "content"
-    publish(write_work(tmp_path / "w1", [judged(n) for n in range(1, 42)], explained={"arxiv-2611.00002": {}, "arxiv-2611.00041": {}}), content)
+    old_feed(tmp_path, content, [judged(n) for n in range(1, 42)], explained=("arxiv-2611.00002", "arxiv-2611.00041"))
     publish(write_work(tmp_path / "w2", [judged(1)], explained={"arxiv-2611.00001": {}}), content, now=LATER)
-    for path in content.glob("feed/v1/chunks/*.json"):
+    for path in content.glob("feed/v2/chunks/*.json"):
         chunk = read_json(path)
         for item in chunk["items"]:
             if "hero" in item:
                 item["hero"].pop("night")
         path.write_text(json.dumps(chunk, indent=2, sort_keys=True) + "\n")
-    upgrades = read_json(content / "feed/v1/upgrades.json")
+    upgrades = read_json(content / "feed/v2/upgrades.json")
     for entry in upgrades["upgrades"].values():
         entry["hero"].pop("night")
-    (content / "feed/v1/upgrades.json").write_text(json.dumps(upgrades, indent=2, sort_keys=True) + "\n")
+    (content / "feed/v2/upgrades.json").write_text(json.dumps(upgrades, indent=2, sort_keys=True) + "\n")
     for path in content.glob("papers/*/hero-night.webp"):
         path.unlink()
+    for path in content.glob("papers/*/meta.json"):
+        meta = read_json(path)
+        meta.pop("depth", None)
+        path.write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n")
 
     assert publish(write_work(tmp_path / "w3", [judged(42), judged(43)], explained={"arxiv-2611.00043": {}}), content, now="2026-11-15T00:00:00Z") == 0
 
@@ -411,25 +466,28 @@ def test_content_published_before_plates_and_readouts_still_validates_and_publis
             lines = path.read_text().splitlines() if path.suffix == ".jsonl" else [path.read_text()]
             for line in lines:
                 assert schemas.errors(schema, json.loads(line)) == [], path
-    assert "night" not in read_json(content / "feed/v1/chunks/000001.json")["items"][1]["hero"]
-    assert read_json(content / "feed/v1/chunks/000002.json")["items"][-1]["hero"]["night"]["path"] == "papers/arxiv-2611.00043/hero-night.webp"
+    assert "night" not in read_json(content / "feed/v2/chunks/000001.json")["items"][1]["hero"]
+    assert read_json(content / "feed/v2/chunks/000002.json")["items"][-1]["hero"]["night"]["path"] == "papers/arxiv-2611.00043/hero-night.webp"
 
 
 @pytest.mark.parametrize(
     "opts",
-    [{"check": False}, {"review": False}, {"files": False}, {"night": False}],
-    ids=["render check failed", "review failed", "explainer files missing", "night plate missing"],
+    [{"check": False}, {"review": False}, {"files": False}, {"night": False}, {"depth": "full", "review_file": False},
+     {"depth": "abstract", "numbers": None}, {"depth": "abstract", "numbers": {"checked": 5, "not_in_abstract": 1}},
+     {"depth": "abstract", "check": False}, {"depth": "deep"}],
+    ids=["render check failed", "review failed", "explainer files missing", "night plate missing", "full without review",
+         "quick without the numbers check", "quick with a number not in the abstract", "quick failed the render check", "unknown depth"],
 )
-def test_explainer_that_is_missing_or_failed_gives_a_short_card(tmp_path, opts):
+def test_a_paper_whose_page_is_missing_or_failed_does_not_enter_the_feed(tmp_path, opts):
     work = write_work(tmp_path / "work", [judged(1)], explained={"arxiv-2611.00001": opts})
+    if opts.get("review_file") is False:
+        (work / "papers/arxiv-2611.00001/review.json").unlink()
     content = tmp_path / "content"
+    content.mkdir()
 
     assert publish(work, content) == 0
 
-    [item] = read_json(content / "feed/v1/chunks/000001.json")["items"]
-    assert item["has_explainer"] is False
-    assert "hero" not in item and "explainer" not in item
-    assert sorted(p.name for p in (content / "papers/arxiv-2611.00001").iterdir()) == ["meta.json"]
+    assert tree(content) == {}
 
 
 def tree(root: Path) -> dict[str, bytes]:
@@ -442,7 +500,7 @@ def tree(root: Path) -> dict[str, bytes]:
 
 
 def chunk_ids(content: Path, number: int) -> list[str]:
-    return [i["id"] for i in read_json(content / f"feed/v1/chunks/{number:06d}.json")["items"]]
+    return [i["id"] for i in read_json(content / f"feed/v2/chunks/{number:06d}.json")["items"]]
 
 
 def test_chunk_rolls_over_after_40_items(tmp_path):
@@ -453,7 +511,7 @@ def test_chunk_rolls_over_after_40_items(tmp_path):
 
     assert chunk_ids(content, 1) == [f"arxiv-2611.{n:05d}" for n in range(1, 41)]
     assert chunk_ids(content, 2) == ["arxiv-2611.00041"]
-    head = read_json(content / "feed/v1/head.json")
+    head = read_json(content / "feed/v2/head.json")
     assert (head["chunk_count"], head["total_items"]) == (2, 41)
 
 
@@ -463,7 +521,7 @@ def test_items_append_to_the_open_chunk_across_runs_in_the_order_added(tmp_path)
     publish(write_work(tmp_path / "w2", [judged(2)]), content, now="2026-11-12T09:00:00Z")
 
     assert chunk_ids(content, 1) == ["arxiv-2611.00003", "arxiv-2611.00001", "arxiv-2611.00002"]
-    assert read_json(content / "feed/v1/head.json")["updated_at"] == "2026-11-12T09:00:00Z"
+    assert read_json(content / "feed/v2/head.json")["updated_at"] == "2026-11-12T09:00:00Z"
 
 
 def test_second_run_with_the_same_work_folder_changes_nothing(tmp_path):
@@ -494,17 +552,17 @@ def test_a_paper_already_in_the_feed_is_never_added_twice(tmp_path):
     publish(write_work(tmp_path / "w3", later), content)
 
     assert chunk_ids(content, 1) == ["arxiv-2611.00001", "arxiv-2611.00007", "arxiv-2611.00010"]
-    assert read_json(content / "feed/v1/head.json")["total_items"] == 3
+    assert read_json(content / "feed/v2/head.json")["total_items"] == 3
 
 
 def test_closed_chunks_are_never_modified(tmp_path):
     content = tmp_path / "content"
     publish(write_work(tmp_path / "w1", [judged(n) for n in range(1, 81)]), content)
-    closed = {k: v for k, v in tree(content).items() if k in ("feed/v1/chunks/000001.json", "feed/v1/chunks/000002.json")}
+    closed = {k: v for k, v in tree(content).items() if k in ("feed/v2/chunks/000001.json", "feed/v2/chunks/000002.json")}
     assert len(closed) == 2
 
     later = [judged(n) for n in range(1, 101)]
-    publish(write_work(tmp_path / "w2", later, explained={"arxiv-2611.00005": {}, "arxiv-2611.00045": {}}), content)
+    publish(write_work(tmp_path / "w2", later), content)
 
     after = tree(content)
     assert {k: after[k] for k in closed} == closed
@@ -522,35 +580,35 @@ HERO = {
 
 def test_short_card_in_the_open_chunk_gains_its_explainer_in_place(tmp_path):
     content = tmp_path / "content"
-    publish(write_work(tmp_path / "w1", [judged(1), judged(2)]), content)
+    old_feed(tmp_path, content, [judged(1), judged(2)])
 
     work = write_work(tmp_path / "w2", [judged(1)], explained={"arxiv-2611.00001": {}})
     assert publish(work, content, now=LATER) == 0
 
-    first, second = read_json(content / "feed/v1/chunks/000001.json")["items"]
+    first, second = read_json(content / "feed/v2/chunks/000001.json")["items"]
     assert first["has_explainer"] is True
     assert first["explainer"] == "papers/arxiv-2611.00001/"
     assert first["hero"] == HERO
     assert first["added_at"] == NOW
     assert second["has_explainer"] is False
-    assert not (content / "feed/v1/upgrades.json").exists()
+    assert not (content / "feed/v2/upgrades.json").exists()
     meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
     assert (meta["has_explainer"], meta["added_at"], meta["explained_at"]) == (True, NOW, LATER)
     assert (content / "papers/arxiv-2611.00001/index.html").exists()
-    assert read_json(content / "feed/v1/head.json")["updated_at"] == LATER
-    assert read_json(content / "feed/v1/head.json")["total_items"] == 2
+    assert read_json(content / "feed/v2/head.json")["updated_at"] == LATER
+    assert read_json(content / "feed/v2/head.json")["total_items"] == 2
 
 
 def test_short_card_in_a_closed_chunk_gains_its_explainer_through_upgrades(tmp_path):
     content = tmp_path / "content"
-    publish(write_work(tmp_path / "w1", [judged(n) for n in range(1, 42)]), content)
-    closed = (content / "feed/v1/chunks/000001.json").read_bytes()
+    old_feed(tmp_path, content, [judged(n) for n in range(1, 42)])
+    closed = (content / "feed/v2/chunks/000001.json").read_bytes()
 
     work = write_work(tmp_path / "w2", [judged(1)], explained={"arxiv-2611.00001": {}})
     assert publish(work, content, now=LATER) == 0
 
-    assert (content / "feed/v1/chunks/000001.json").read_bytes() == closed
-    assert read_json(content / "feed/v1/upgrades.json") == {
+    assert (content / "feed/v2/chunks/000001.json").read_bytes() == closed
+    assert read_json(content / "feed/v2/upgrades.json") == {
         "v": 1,
         "upgrades": {"arxiv-2611.00001": {"explainer": "papers/arxiv-2611.00001/", "hero": HERO, "explained_at": LATER}},
     }
@@ -595,9 +653,9 @@ def test_publish_never_touches_the_cursors(tmp_path):
 
 
 SCHEMA_FOR = [
-    ("feed/v1/head.json", "head"),
-    ("feed/v1/chunks/*.json", "chunk"),
-    ("feed/v1/upgrades.json", "upgrades"),
+    ("feed/v2/head.json", "head"),
+    ("feed/v2/chunks/*.json", "chunk"),
+    ("feed/v2/upgrades.json", "upgrades"),
     ("papers/*/meta.json", "paper-meta"),
     ("state/cursors.json", "cursors"),
     ("state/seen/*.jsonl", "seen"),
@@ -606,7 +664,7 @@ SCHEMA_FOR = [
 
 def test_every_output_file_matches_its_schema(tmp_path):
     content = tmp_path / "content"
-    publish(write_work(tmp_path / "w1", [judged(n) for n in range(1, 42)], explained={"arxiv-2611.00002": {}}), content)
+    old_feed(tmp_path, content, [judged(n) for n in range(1, 42)], explained=("arxiv-2611.00002",))
     publish(write_work(tmp_path / "w2", [judged(1), judged(41)], explained={"arxiv-2611.00001": {}, "arxiv-2611.00041": {}}), content)
 
     checked = set()
@@ -618,9 +676,9 @@ def test_every_output_file_matches_its_schema(tmp_path):
             checked.add(path.relative_to(content).as_posix())
     json_files = {k for k in tree(content) if k.endswith((".json", ".jsonl"))}
     assert json_files == checked
-    assert "feed/v1/upgrades.json" in checked
-    assert schemas.errors("feed-item", read_json(content / "feed/v1/chunks/000002.json")["items"][0]) == []
-    assert read_json(content / "feed/v1/chunks/000002.json")["items"][0]["has_explainer"] is True
+    assert "feed/v2/upgrades.json" in checked
+    assert schemas.errors("feed-item", read_json(content / "feed/v2/chunks/000002.json")["items"][0]) == []
+    assert read_json(content / "feed/v2/chunks/000002.json")["items"][0]["has_explainer"] is True
 
 
 def test_schemas_reject_what_publish_must_never_write():
@@ -718,7 +776,7 @@ def git_repo(path: Path) -> Path:
 SUBJECTS = {
     "feed": "Feed head and chunks the app reads",
     "papers": "Published papers: explainer page, card image, and record for each",
-    "state": "Pipeline bookkeeping: papers in the feed, source cursors, and the explain queue",
+    "state": "Pipeline bookkeeping: papers in the feed, source cursors, the backlog, and claims",
 }
 
 
@@ -741,8 +799,10 @@ def test_commit_makes_one_commit_per_changed_folder_with_its_subject(tmp_path):
 
 def test_commit_skips_folders_that_did_not_change(tmp_path):
     content = git_repo(tmp_path / "content")
-    work = write_work(tmp_path / "work", [judged(1)])
-    publish(work, content, "--commit")
+    work = write_work(tmp_path / "work", [judged(1)], explained={})
+    old_feed(tmp_path, content, [judged(1)])
+    git(content, "add", "-A")
+    git(content, "commit", "-q", "-m", "An old feed")
     count = len(git(content, "log", "--format=%s").splitlines())
 
     assert publish(work, content, "--commit") == 0
@@ -804,12 +864,132 @@ def test_without_now_the_current_utc_time_is_used(tmp_path):
 
     assert main(["publish", "--work", str(work), "--content", str(content)]) == 0
 
-    added_at = read_json(content / "feed/v1/chunks/000001.json")["items"][0]["added_at"]
+    added_at = read_json(content / "feed/v2/chunks/000001.json")["items"][0]["added_at"]
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", added_at)
-    assert read_json(content / "feed/v1/head.json")["updated_at"] == added_at
+    assert read_json(content / "feed/v2/head.json")["updated_at"] == added_at
 
 
 def test_now_with_an_offset_is_converted_to_utc(tmp_path):
     content = tmp_path / "content"
     publish(write_work(tmp_path / "work", [judged(1)]), content, now="2026-11-12T03:00:00-05:00")
-    assert read_json(content / "feed/v1/head.json")["updated_at"] == NOW
+    assert read_json(content / "feed/v2/head.json")["updated_at"] == NOW
+
+
+# Quick explainers
+
+def test_a_quick_explainer_enters_the_feed_without_a_checker(tmp_path):
+    work = write_work(tmp_path / "work", [judged(1, fulltext={"available": False, "kind": None, "url": None})],
+                      explained={"arxiv-2611.00001": {"depth": "abstract", "hero": {"path": "x", "width": 1, "height": 1, "kind": "data"}}})
+    (work / "papers/arxiv-2611.00001/made_by.json").write_text(json.dumps({"quick": "claude-opus-5-5"}))
+    assert not (work / "papers/arxiv-2611.00001/review.json").exists()
+    content = tmp_path / "content"
+
+    assert publish(work, content) == 0
+
+    [item] = read_json(content / "feed/v2/chunks/000001.json")["items"]
+    assert (item["has_explainer"], item["depth"], item["explainer"]) == (True, "abstract", "papers/arxiv-2611.00001/")
+    assert item["hero"] == {**HERO, "kind": "data"}
+    meta = read_json(content / "papers/arxiv-2611.00001/meta.json")
+    assert meta["depth"] == "abstract"
+    assert meta["made_by"] == {"quick": "claude-opus-5-5"}
+    assert meta["check"]["review"] is None
+    assert meta["check"]["render"]["page"]["numbers"] == {"checked": 4, "not_in_abstract": 0}
+    assert meta["fulltext_source"] is None
+    assert schemas.errors("paper-meta", meta) == []
+    assert sorted(p.name for p in (content / "papers/arxiv-2611.00001").iterdir()) == ["hero-night.webp", "hero.webp", "index.html", "meta.json"]
+
+
+def test_made_by_names_either_the_three_full_roles_or_the_one_quick_agent():
+    meta = {"made_by": None}
+    for made_by, ok in [(MADE_BY, True), ({"quick": "claude-opus-5-5"}, True), ({**MADE_BY, "quick": "x"}, False), ({"quick": ""}, False)]:
+        meta["made_by"] = made_by
+        errors = [e for e in schemas.errors("paper-meta", meta) if e.startswith("made_by")]
+        assert (errors == []) is ok, made_by
+
+
+# The backlog
+
+def backlog_entry(record: dict, queued_at: str = NOW) -> dict:
+    return {**record, "queued_at": queued_at}
+
+
+def test_papers_that_enter_the_feed_leave_the_backlog_and_the_run_releases_its_claims(tmp_path):
+    content = tmp_path / "content"
+    records = [judged(n) for n in (1, 2, 3, 4)]
+    for r in records:
+        (content / "state/queue").mkdir(parents=True, exist_ok=True)
+        (content / f"state/queue/{r['id']}.json").write_text(json.dumps(backlog_entry(r)))
+    (content / "state/claims").mkdir(parents=True)
+    for paper_id, run in (("arxiv-2611.00001", "this"), ("arxiv-2611.00002", "this"), ("arxiv-2611.00004", "another")):
+        (content / f"state/claims/{paper_id}.json").write_text(json.dumps({"id": paper_id, "run": run, "page": "quick", "claimed_at": NOW}))
+    work = write_work(tmp_path / "work", records[:2], explained={"arxiv-2611.00001": {"depth": "abstract"}})
+    (work / "take.json").write_text(json.dumps({"run": "this", "full": [], "quick": ["arxiv-2611.00001", "arxiv-2611.00002"]}))
+
+    assert publish(work, content) == 0
+
+    assert chunk_ids(content, 1) == ["arxiv-2611.00001"]
+    assert sorted(p.stem for p in (content / "state/queue").glob("*.json")) == ["arxiv-2611.00002", "arxiv-2611.00003", "arxiv-2611.00004"]
+    # The run's claims are released, published or not; another run's claim stays.
+    assert sorted(p.stem for p in (content / "state/claims").glob("*.json")) == ["arxiv-2611.00004"]
+
+
+def test_publish_applies_the_runs_queue_fail_and_queue_back_again(tmp_path):
+    content = tmp_path / "content"
+    (content / "state/queue").mkdir(parents=True)
+    for n in (1, 2):
+        (content / f"state/queue/arxiv-2611.0000{n}.json").write_text(json.dumps(backlog_entry(judged(n))))
+    work = write_work(tmp_path / "work", [], explained={})
+    (work / "outcomes.jsonl").write_text(
+        json.dumps({"action": "fail", "id": "arxiv-2611.00001", "reason": "Two quick pages failed.", "at": NOW}) + "\n"
+        + json.dumps({"action": "back", "id": "arxiv-2611.00002", "reason": "No lawful full text.", "at": NOW}) + "\n")
+
+    for _ in range(2):  # the second time changes nothing
+        assert publish(work, content) == 0
+        assert [p.stem for p in (content / "state/queue").glob("*.json")] == ["arxiv-2611.00002"]
+        entry = read_json(content / "state/queue/arxiv-2611.00002.json")
+        assert (entry["explain"], entry["full_failed"]) == (False, "No lawful full text.")
+        assert schemas.errors("queue-entry", entry) == []
+        assert [line["id"] for line in map(json.loads, (content / "state/queue-failed.jsonl").read_text().splitlines())] == ["arxiv-2611.00001"]
+
+
+def clone(remote: Path, path: Path) -> Path:
+    subprocess.run(["git", "clone", "-q", str(remote), str(path)], check=True)
+    git(path, "config", "user.name", "Test")
+    git(path, "config", "user.email", "test@example.invalid")
+    return path
+
+
+def test_a_rejected_push_is_built_again_on_top_of_the_newer_remote(tmp_path):
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "-q", "--bare", "-b", "main", str(remote)], check=True)
+    seed = git_repo(tmp_path / "seed")
+    git(seed, "remote", "add", "origin", str(remote))
+    git(seed, "push", "-q", "origin", "main")
+    run_a, run_b = clone(remote, tmp_path / "a"), clone(remote, tmp_path / "b")
+    # Both runs start from the same main; run B publishes first, into the same open chunk.
+    assert publish(write_work(tmp_path / "wb", [judged(2)]), run_b, "--push", now=LATER) == 0
+    work_a = write_work(tmp_path / "wa", [judged(1)])
+    (run_a / "state/queue").mkdir(parents=True)
+    (run_a / "state/queue/arxiv-2611.00001.json").write_text(json.dumps(backlog_entry(judged(1))))
+    (work_a / "outcomes.jsonl").write_text(json.dumps({"action": "fail", "id": "arxiv-2611.00009", "reason": "x", "at": NOW}) + "\n")
+
+    assert publish(work_a, run_a, "--push") == 0
+
+    assert git(remote, "rev-parse", "main") == git(run_a, "rev-parse", "HEAD")
+    assert chunk_ids(run_a, 1) == ["arxiv-2611.00002", "arxiv-2611.00001"]
+    assert read_json(run_a / "feed/v2/head.json")["total_items"] == 2
+    assert len((run_a / "state/seen/2026-11.jsonl").read_text().splitlines()) == 2
+    assert "arxiv-2611.00009" in (run_a / "state/queue-failed.jsonl").read_text()
+    assert git(run_a, "status", "--porcelain").strip() == ""
+
+
+def test_a_runs_papers_enter_best_first_alternating_preprints_and_peer_reviewed_papers(tmp_path):
+    def peer(n, significance):
+        return judged(n, id=f"doi-10.1-{n}", arxiv_id=None, doi=f"10.1/{n}", status="peer_reviewed", significance=significance)
+
+    records = [judged(1, significance=6.0), judged(2, significance=9.0), judged(3, significance=7.0), peer(4, 8.0), peer(5, 5.0)]
+    content = tmp_path / "content"
+
+    assert publish(write_work(tmp_path / "work", records), content) == 0
+
+    assert chunk_ids(content, 1) == ["arxiv-2611.00002", "doi-10.1-4", "arxiv-2611.00003", "doi-10.1-5", "arxiv-2611.00001"]

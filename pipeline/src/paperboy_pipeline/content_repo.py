@@ -6,18 +6,21 @@ changes until save() is called, and save() writes nothing when any file is inval
 
 Layout (paths relative to the content repo root):
 
-    feed/v1/head.json              Head
-    feed/v1/chunks/000001.json     Chunk, up to 40 items, oldest first
-    feed/v1/upgrades.json          Upgrades: explainers added to items in closed chunks
+    feed/v2/head.json              Head
+    feed/v2/chunks/000001.json     Chunk, up to 40 items, oldest first
+    feed/v2/upgrades.json          Upgrades: explainers added to items in closed chunks
     papers/<id>/index.html         the explainer (explained papers only)
     papers/<id>/hero.webp          the day plate, the card image in the light theme (explained papers only)
     papers/<id>/hero-night.webp    the night plate, the card image in the dark theme (explained papers only)
     papers/<id>/meta.json          PaperMeta
     state/seen/<YYYY-MM>.jsonl     one Seen line per paper in the feed, by month added
+    state/queued/<YYYY-MM>.jsonl   one line per paper that ever entered the backlog (read here;
+                                   the queue command writes it, see paperboy_pipeline.backlog)
     state/cursors.json             Cursors: the last day each source is processed through
                                    (read here; only the cursors command writes it)
-    state/queue/<id>.json          papers waiting for an explainer (the queue command)
-    state/queue-failed.jsonl       papers the queue gave up on (the queue command)
+    state/queue/<id>.json          the backlog: papers waiting for a page (the queue command)
+    state/claims/<id>.json         papers a run is building a page for (the queue command)
+    state/queue-failed.jsonl       papers that left the backlog without a page (the queue command)
 
 Rules this module keeps:
 - Only the open chunk is ever rewritten. The open chunk is the highest numbered chunk while
@@ -37,12 +40,17 @@ CHUNK_SIZE = 40
 # head.json's kit. Neither the app nor the worker reads it yet, so it has no settled meaning
 # and stays 1. A paper's own kit version is in its meta.json, from the page it loads.
 HEAD_KIT = 1
-MIN_APP = 1
+# The lowest app versionCode that reads this feed: 2 is release 0.1.1, the first build that reads feed/v2/.
+MIN_APP = 2
 
-HEAD = Path("feed/v1/head.json")
-CHUNKS = Path("feed/v1/chunks")
-UPGRADES = Path("feed/v1/upgrades.json")
+# The feed's folder. It moved from feed/v1/ to feed/v2/ when the feed restarted on 2026-11-13, so the new
+# chunks do not reuse addresses that apps and the worker cache as permanent.
+FEED = Path("feed/v2")
+HEAD = FEED / "head.json"
+CHUNKS = FEED / "chunks"
+UPGRADES = FEED / "upgrades.json"
 SEEN = Path("state/seen")
+QUEUED = Path("state/queued")
 CURSORS = Path("state/cursors.json")
 
 
@@ -117,6 +125,13 @@ class ContentRepo:
                 if line.strip():
                     self._index_seen(json.loads(line))
 
+        self._queued_keys: set[str] = set()
+        for path in sorted((self.root / QUEUED).glob("*.jsonl")):
+            for line in path.read_text().splitlines():
+                if line.strip():
+                    entry = json.loads(line)
+                    self._queued_keys |= _match_keys(**{k: entry.get(k) for k in ("id", "doi", "arxiv_id", "title_key")})
+
     # Reading
 
     def _read_json(self, rel: Path):
@@ -136,6 +151,15 @@ class ContentRepo:
             if key in self._seen_by_key:
                 return self._seen_by_key[key]
         return None
+
+    def known(self, record: dict) -> bool:
+        """True when the paper is in the feed or ever entered the backlog: it is never judged again."""
+        if self.find(record) is not None:
+            return True
+        keys = _match_keys(
+            id=record["id"], doi=record.get("doi"), arxiv_id=record.get("arxiv_id"), title_key=ids.title_key(record["title"])
+        )
+        return bool(keys & self._queued_keys)
 
     def meta(self, paper_id: str) -> dict | None:
         rel = paper_dir(paper_id) / "meta.json"

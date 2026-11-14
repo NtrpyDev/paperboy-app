@@ -8,6 +8,9 @@
   var SECTIONS = ["question", "method", "findings", "confidence", "matters"];
   var KINDS = ["data", "illustration", "paper"];
   var HERO_KINDS = ["data", "illustration"];
+  var DEPTHS = ["full", "abstract"]; // article.pb data-depth: what the page was built from; no mark is "full"
+  /* A page built from the abstract must tell the reader so in its "How sure is this?" section. */
+  var DEPTH_NOTE = /built from the paper['\u2019]s abstract,?\s+not its full text/i;
   var KIT = /^\/kit\/v([1-9][0-9]*)\//;
   var MIN_TEXT_PX = 11;
   var MIN_CONTROL_PX = 40;
@@ -81,6 +84,7 @@
   /* ---- The article: hero, sections, source, figures ---- */
 
   var figures = [];
+  var depth = null;
   if (!article) {
     s("missing-root", 'no <article class="pb">');
   } else {
@@ -110,6 +114,16 @@
     var expected = SECTIONS.filter(function (n) { return known.indexOf(n) >= 0; });
     var seen = known.filter(function (n, i) { return known.indexOf(n) === i; });
     if (seen.join() !== expected.join()) s("section-order", "sections run " + seen.join(", ") + "; the order is " + SECTIONS.join(", "));
+
+    var depthMark = article.getAttribute("data-depth");
+    if (depthMark === null) depth = "full";
+    else if (DEPTHS.indexOf(depthMark) >= 0) depth = depthMark;
+    else s("unknown-depth", 'article.pb has data-depth="' + depthMark + '", needs "full", "abstract", or no data-depth');
+    if (depth === "abstract") {
+      var ledger = article.querySelector('[data-section="confidence"]');
+      var said = ledger && DEPTH_NOTE.test((ledger.innerText || ledger.textContent || "").replace(/\s+/g, " "));
+      if (!said) s("missing-depth-note", 'a page with data-depth="abstract" must say "Built from the paper\'s abstract, not its full text." in its data-section="confidence" section');
+    }
 
     var source = article.querySelector(".pb-source");
     if (!source) {
@@ -203,13 +217,68 @@
   });
   if (tiny.length) l("small-control", "controls must be at least " + MIN_CONTROL_PX + " px in their smaller dimension: " + listed(tiny));
 
+  /* ---- The page's text, for the numbers check (paperboy_pipeline.numbers) ----
+     Every text the page prints, drawn labels included, as [zone, text] runs. A run ends at a
+     block element and at each SVG <text>. zone is "scale" inside the kit's ruler and value line
+     labels (.pb-tick-label, .pb-value-label), "slug" in the plate slug, "source" in the source
+     footer, otherwise "text". <sup> becomes ^{...} and <sub> _{...}; KaTeX math is read from
+     its TeX source; the kit's drawn signs (.pb-sign) are read as their character. Text in a
+     closed <details> (a figure's table) counts: one tap shows it. */
+  var runs = [];
+  (function () {
+    var BLOCK = /^(block|flex|grid|table|table-row|table-cell|table-caption|table-row-group|table-header-group|table-footer-group|list-item|flow-root)$/;
+    var SKIP = /^(script|style|noscript|template|head|title)$/;
+    var cur = null;
+    function flush() {
+      if (cur && cur.text.trim()) runs.push([cur.zone, cur.text.replace(/\s+/g, " ").trim()]);
+      cur = null;
+    }
+    function emit(zone, text) {
+      if (cur && cur.zone !== zone) flush();
+      if (!cur) cur = { zone: zone, text: "" };
+      cur.text += text;
+    }
+    function walk(node, zone) {
+      if (node.nodeType === 3) { emit(zone, node.nodeValue); return; }
+      if (node.nodeType !== 1) return;
+      var tag = node.tagName.toLowerCase();
+      if (SKIP.test(tag) || node.classList.contains("katex-mathml")) return;
+      if (node.matches(".pb-tick-label, .pb-value-label")) zone = "scale";
+      else if (node.matches(".pb-plate-slug")) zone = "slug";
+      else if (node.matches(".pb-source")) zone = "source";
+      if (node.classList.contains("katex")) {
+        var tex = node.querySelector('annotation[encoding="application/x-tex"]');
+        emit(zone, " \\(" + (tex ? tex.textContent : node.textContent) + "\\) ");
+        return;
+      }
+      if (node.classList.contains("pb-sign")) {
+        emit(zone, { times: "×", gt: ">" }[node.getAttribute("data-sign")] || " ");
+        return;
+      }
+      var svg = node instanceof SVGElement;
+      var block = svg ? (tag === "text" || tag === "svg" && !node.closest("p, span, li, td, th, h1, h2, h3, h4, figcaption, cite, small, b, em, a"))
+                      : tag === "br" || BLOCK.test(getComputedStyle(node).display);
+      if (block) flush();
+      /* Element edges are word edges ("<b>Record</b><span>30+</span>" reads "Record 30+"), so a
+         number never fuses with a label beside it into a name like "Record30". */
+      emit(zone, tag === "sup" ? " ^{" : tag === "sub" ? " _{" : " ");
+      for (var c = node.firstChild; c; c = c.nextSibling) walk(c, zone);
+      emit(zone, tag === "sup" || tag === "sub" ? "} " : " ");
+      if (block) flush();
+    }
+    if (document.body) walk(document.body, "text");
+    flush();
+  })();
+
   return {
     ready: doc.dataset.pbReady === "1",
+    text: runs,
     errors: Array.isArray(window.__pbErrors) ? window.__pbErrors.slice() : null,
     height: Math.ceil(Math.max(doc.scrollHeight, document.body ? document.body.scrollHeight : 0)),
     figures: figures.length,
     dataFigures: figures.filter(function (f) { return f.dataset.kind === "data"; }).length,
     kit: versions.length === 1 ? parseInt(versions[0], 10) : null,
+    depth: depth,
     structure: structure,
     layout: layout
   };

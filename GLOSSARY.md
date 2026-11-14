@@ -4,15 +4,18 @@ The words this project uses, one meaning each.
 
 - **Paper**: one scientific work, whether a preprint or a peer-reviewed article. Identified by a stable **paper id** built from its DOI or arXiv id.
 - **Badge**: the label saying what kind of paper it is: `PREPRINT` or `PEER-REVIEWED`.
-- **Feed**: the endless list of papers the app shows, newest and best first.
-- **Card**: one paper as it appears in the feed. An **explained card** has a plate and opens an explainer. A **short card** has only a summary and a link to the paper; paywalled papers and papers not yet explained are short cards.
+- **Feed**: the endless list of papers the app shows, newest and best first. Every paper in it has a page: a paper enters the feed only when its explainer passes.
+- **Card**: one paper as it appears in the feed. Every card has a plate and opens the paper's explainer. A **short card** (only a summary and a link to the paper) is gone: feeds published before 2026-11-13 held them, the app does not show them, and `reset-feed` removes them.
 - **Hook**: the one-line plain-language headline on a card. Not the paper's title.
 - **Second voice**: the closing clause of a hook, set in a second typeface (`hook_turn`). An exact suffix of the hook, marked by whoever writes the hook, never derived by code. Optional.
 - **Readout**: the one number from the paper that a card shows large, with its unit and a short label of what it measures. Optional.
 - **Summary**: the two to four plain sentences on a card, written by the pipeline. Never the paper's abstract.
-- **Explainer**: the interactive page that teaches one paper visually. One HTML document per paper.
+- **Explainer**: the interactive page that teaches one paper visually. One HTML document per paper. Every paper gets one kind of explainer, never both, and a published explainer is never replaced.
+- **Full explainer**: an explainer built from the paper's lawful free full text by the expert, the visualizer, and the checker. The best few papers waiting get one. Its `depth` is `full`.
+- **Quick explainer**: a shorter explainer built from the paper's title and abstract alone by one agent, `paperboy-quick` (`pipeline/QUICK.md`). Every paper in the feed without a full explainer has one. Its `depth` is `abstract`, it says so to the reader, and every number it prints is printed in the title or abstract (the numbers check).
+- **Depth**: what a page was built from: `full` (the full text) or `abstract` (the title and abstract). Set on the page as `data-depth`, read by the render check, and recorded on the feed item and in `meta.json`.
 - **Hero**: the showpiece visual at the top of an explainer. Its stills at rest are the card's plate.
-- **Plate**: the picture on an explained card: the hero at rest, captured twice, as the day plate (`hero.webp`, light color scheme) and the night plate (`hero-night.webp`, dark color scheme). The card shows the one for the reader's theme.
+- **Plate**: the picture on a card: the hero at rest, captured twice, as the day plate (`hero.webp`, light color scheme) and the night plate (`hero-night.webp`, dark color scheme). The card shows the one for the reader's theme.
 - **Kit**: the shared stylesheet and script every explainer loads. Versioned (`kit/v1`, `kit/v2`, ...); old versions stay served forever.
 - **Rating**: a reader's "more like this" or "less like this" on a card. Stored only on the phone.
 - **Taste**: the on-device model learned from ratings that reorders the feed for one reader.
@@ -22,10 +25,14 @@ The words this project uses, one meaning each.
 - **Pipeline**: everything that turns newly released papers into feed items and explainers.
 - **Run**: one execution of the pipeline in a cloud routine.
 - **Scout**: the pipeline agent that finds new papers and judges which are worth showing.
+- **Backlog**: the papers the scout kept that wait in the content repo for a page (`state/queue/`), each with its whole judged record. Each run takes the best of them; a paper leaves when it enters the feed, when it waits longer than the age limit (7 days), or when its quick explainer fails twice. A paper that entered the backlog is never judged again (`state/queued/`).
+- **Claim**: a run's mark on a backlog paper it is building a page for (`state/claims/`), pushed so an overlapping run takes different papers. A claim older than three hours is stale and the paper can be taken again.
 - **Expert**: the pipeline agent that reads one paper as a specialist in its field and writes the brief.
 - **Brief**: the expert's structured account of one paper: the question, method, findings with exact numbers and where they appear, limits, and what to visualize.
 - **Visualizer**: the pipeline agent that builds the explainer from the brief.
 - **Checker**: the pipeline agent that verifies an explainer against the paper and judges whether its visuals are clear. Independent of the visualizer.
 - **Render check**: the automated part of checking: loading the explainer in a headless browser and failing on script errors, overflow, or missing parts.
-- **Usage gate**: the rule that stops a run when the Claude subscription's weekly usage reaches 50 percent.
+- **Numbers check**: the part of the render check that fails a quick explainer when it prints a number its paper's title and abstract do not print. Ruler tick labels, figure numbers, the citation, and names with digits are exempt. No agent is involved.
+- **Usage gate**: the rule that stops a run when the Claude subscription's weekly usage reaches the pace limit, or 70 percent of the week (the mark), whichever is lower, or cannot be read.
+- **Pace**: the gate's limit for the moment in the usage week: the mark times the fraction of the week elapsed, plus a head start of 10 points, never above the mark. It spreads the week's budget over the week so the feed does not go stale after the first days.
 - **Content base**: the web address the app loads the feed and explainers from.

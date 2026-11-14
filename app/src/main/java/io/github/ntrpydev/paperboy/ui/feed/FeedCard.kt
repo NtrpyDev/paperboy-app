@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import io.github.ntrpydev.paperboy.feed.FeedItem
+import io.github.ntrpydev.paperboy.fields.fieldLabel
 import io.github.ntrpydev.paperboy.rank.Rating
 import io.github.ntrpydev.paperboy.ui.design.DoubleRule
 import io.github.ntrpydev.paperboy.ui.design.HatchedTag
@@ -159,10 +160,3 @@ private fun TagRow(item: FeedItem, onOpenPaper: () -> Unit) {
 
 /** The badge text from the glossary: PREPRINT or PEER-REVIEWED. */
 fun badgeLabel(item: FeedItem): String = if (item.isPeerReviewed) "PEER-REVIEWED" else "PREPRINT"
-
-/** Display names for the schema's field values. */
-fun fieldLabel(field: String): String = when (field) {
-    "cs" -> "Computer science"
-    "social" -> "Social science"
-    else -> field.replaceFirstChar { it.uppercase() }
-}

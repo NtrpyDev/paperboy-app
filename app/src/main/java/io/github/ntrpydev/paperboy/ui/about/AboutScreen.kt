@@ -74,7 +74,7 @@ private val Typefaces = listOf(
  * can be wrong, the source, and the licenses. The top bar stays; the column scrolls.
  */
 @Composable
-fun AboutScreen(versionName: String, onBack: () -> Unit, onOpenLink: (String) -> Unit) {
+fun AboutScreen(versionName: String, onBack: () -> Unit, onOpenLink: (String) -> Unit, onOpenFields: () -> Unit) {
     val c = Paperboy.colors
     val type = Paperboy.type
     Column(Modifier.fillMaxSize().background(c.ground)) {
@@ -99,6 +99,8 @@ fun AboutScreen(versionName: String, onBack: () -> Unit, onOpenLink: (String) ->
                     "and your ratings stay on this phone.",
                 top = 12,
             )
+            // The way to change fields after first run. The final design may move it.
+            Row(wide.padding(top = 12.dp)) { TextLink("Fields", Icons.ArrowLink, onOpenFields, Modifier.testTag("about-fields")) }
 
             Section("How an explainer is made", "Machine written", voices("Every paper gets its own page.", "its own page."))
             Paragraph(

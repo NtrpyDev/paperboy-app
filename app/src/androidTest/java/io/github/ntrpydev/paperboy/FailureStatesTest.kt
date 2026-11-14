@@ -59,7 +59,7 @@ class FailureStatesTest {
     }
 
     private fun launch() {
-        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
+        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir).withFields()
         compose.setContent { PaperboyTheme { PaperboyRoot(graph) } }
     }
 

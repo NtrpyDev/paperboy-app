@@ -44,7 +44,7 @@ class FeedToExplainerTest {
     }
 
     @Test fun feedShowsCardsAndTappingAnExplainedCardOpensItsExplainer() {
-        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir)
+        val graph = AppGraph(contentBase = server.url("/"), cacheDir = cacheDir, filesDir = filesDir).withFields()
         compose.setContent { PaperboyTheme { PaperboyRoot(graph) } }
 
         // The feed shows the newest chunk, newest item first.

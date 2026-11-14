@@ -1,5 +1,6 @@
 package io.github.ntrpydev.paperboy.feed
 
+import io.github.ntrpydev.paperboy.fields.Field
 import io.github.ntrpydev.paperboy.rank.Ranker
 import io.github.ntrpydev.paperboy.rank.Rating
 import io.github.ntrpydev.paperboy.rank.Taste
@@ -45,9 +46,11 @@ sealed interface RefreshResult {
  * reached keep their places; ratings and newly loaded papers only reorder the cards
  * below them.
  *
- * Only papers with an explainer page ([FeedItem.hasPage]) are shown. The pool keeps every
- * loaded paper, so one that an upgrade later explains joins the feed then; every count
- * that decides when to load more, and the count a refresh reports, is of shown papers.
+ * Only papers with an explainer page ([FeedItem.hasPage]) in one of the reader's selected
+ * fields are shown ([shown]); a paper in a field this app does not know is shown, since it
+ * cannot be turned off. The pool keeps every loaded paper, so one that an upgrade later
+ * explains, or whose field the reader turns back on, joins the feed then; every count that
+ * decides when to load more, and the count a refresh reports, is of shown papers.
  *
  * Methods are meant to be called from one thread (the main thread in the app).
  */
@@ -61,7 +64,11 @@ class FeedSession(
     private val clock: () -> Long = System::currentTimeMillis,
     /** Where file reads and writes run. */
     private val io: CoroutineContext = Dispatchers.IO,
+    /** The reader's selected fields. [setFields] changes them on an open feed. */
+    fields: Set<Field> = Field.all,
 ) {
+    private var fields: Set<Field> = fields.toSet()
+
     private val _state = MutableStateFlow(FeedState())
     val state: StateFlow<FeedState> = _state.asStateFlow()
 
@@ -122,7 +129,7 @@ class FeedSession(
             val current = pool.associateBy { it.id }
             arranged = arranged.map { current[it.id] ?: it }
             val taste = taste ?: Taste.Empty
-            val newShown = latest.values.filter { it.id !in known }.map { current.getValue(it.id) }.filter { it.hasPage }
+            val newShown = latest.values.filter { it.id !in known }.map { current.getValue(it.id) }.filter(::shown)
             val arrived = ranker.arrange(newShown, taste, seen, lessIds(taste), clock(), above = null)
             arranged = arrived + arranged
             // The new papers are above the card the reader is on, so they count as reached.
@@ -139,6 +146,21 @@ class FeedSession(
         }
     }
 
+    /**
+     * Shows only papers in [fields] from now on. The cards the reader has reached keep their
+     * places; those in a field turned off are hidden there and show again when it is turned
+     * back on. The pool's other papers in a field turned back on join the cards below them,
+     * with no new request. When the change leaves fewer unseen
+     * papers to show than a first screen needs, older chunks load as they do at the start.
+     */
+    suspend fun setFields(fields: Set<Field>) {
+        if (fields == this.fields) return
+        this.fields = fields.toSet()
+        if (oldestLoaded == 0) return
+        rearrange()
+        if (_state.value.error == null) load { unseenInPool() < START_POOL && oldestLoaded != 1 }
+    }
+
     /** Tries the failed load again. */
     suspend fun retry() {
         if (oldestLoaded == 0) start() else loadOlder()
@@ -151,7 +173,9 @@ class FeedSession(
     suspend fun reached(id: String) {
         markReached(id)
         val index = arranged.indexOfFirst { it.id == id }
-        if (index >= 0 && index >= arranged.size - LOAD_AHEAD && _state.value.error == null) loadOlder()
+        // Counted in shown cards: reached cards hidden by a field change are still in [arranged].
+        val left = if (index < 0) Int.MAX_VALUE else arranged.subList(index, arranged.size).count(::shown)
+        if (left <= LOAD_AHEAD && _state.value.error == null) loadOlder()
     }
 
     /**
@@ -247,19 +271,34 @@ class FeedSession(
     /** Papers in the pool that can be shown and have not been seen or rated less. */
     private fun unseenInPool(): Int {
         val less = lessIds(taste ?: Taste.Empty)
-        return pool.filter { it.hasPage }.mapTo(HashSet()) { it.id }.count { it !in seen && it !in less }
+        return pool.filter(::shown).mapTo(HashSet()) { it.id }.count { it !in seen && it !in less }
     }
 
+    /**
+     * True when the feed shows [item]: it has an explainer page, and its field is selected or
+     * is one this app does not know.
+     */
+    private fun shown(item: FeedItem): Boolean =
+        item.hasPage && Field.fromWire(item.field).let { it == null || it in fields }
+
+    /**
+     * Arranges the shown pool below the reached cards. A reached card whose field is turned
+     * off keeps its place in [arranged] and [publish] leaves it out, so turning the field back
+     * on shows it in that place again, seen or not, like every other card of this sitting. The
+     * ranker gets those hidden cards with the ones rated less, as cards the reader does not
+     * see, so the mix of kinds carries on from the last card the reader does see.
+     */
     private fun rearrange() {
         val taste = taste ?: Taste.Empty
-        arranged = ranker.rearrange(arranged, reached, pool.filter { it.hasPage }, taste, seen, lessIds(taste), clock())
+        val hidden = arranged.take(reached).filterNot(::shown).mapTo(HashSet()) { it.id }
+        arranged = ranker.rearrange(arranged, reached, pool.filter(::shown), taste, seen, lessIds(taste) + hidden, clock())
         publish()
     }
 
     private fun publish() {
         val taste = taste ?: Taste.Empty
         _state.value = _state.value.copy(
-            items = arranged.filter { it.id !in collapsed },
+            items = arranged.filter { it.id !in collapsed && shown(it) },
             ratings = taste.ratings.associate { it.id to it.rating },
         )
     }

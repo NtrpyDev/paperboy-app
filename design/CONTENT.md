@@ -52,7 +52,7 @@ No real preprint facts are provided. Show the badge on a card whose title and su
 
 - Name: Paperboy. Free. Open source. Android. No account. No ads.
 - A feed of newly released science and math papers, peer-reviewed and preprints, each labeled PEER-REVIEWED or PREPRINT.
-- Papers with a free legal full text get a visual explainer made by AI agents: one reads the paper as a domain expert, one builds the visuals, one checks every number against the paper and checks the visuals are clear.
+- Every paper in the feed has its own visual explainer (changed 2026-11-13; before that only papers with a free legal full text got one). Most are quick explainers that one AI agent builds from the paper's abstract, and the page says so. The best few each day are full explainers made from the full text by three AI agents: one reads the paper as a domain expert, one builds the visuals, one checks every number against the paper and checks the visuals are clear.
 - Every card links to the original paper.
 - "More like this" and "Less like this" tune the feed. Ratings stay on the phone.
 - Explainers are machine written and can be wrong. The page says so and links the source.

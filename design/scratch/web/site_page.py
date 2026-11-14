@@ -140,6 +140,24 @@ body, css = captured["body"], captured["css"]
 body = body.replace('href="#paper"', f'href="{PAPER}"')
 assert body.count(PAPER) == 2
 body = once(body, "[YOUR DOMAIN]", SITE_HOST)
+
+# ------------------------------------------------------------------ copy that changed after the board
+# The board was drawn when only papers with free full text got an explainer and the rest were
+# short cards. Since 2026-11-13 every paper in the feed has its own page: most are quick
+# explainers built from the abstract, and the best few each day are full explainers.
+body = once(body, "Papers with a free legal full text get a visual explainer.", "Every paper gets its own visual explainer.")
+body = once(body, ">Papers with a free full text</span>", ">Every paper in the feed</span>")
+body = once(body, ">get a visual explainer.</span>", ">gets a visual explainer.</span>")
+body = once(body, ">Paywalled</", ">Every card</")
+body = once(body, "The outline button on a short card: Read the paper", "The button on every card: See it explained")
+_i = body.index("The button on every card: See it explained")
+_j = body.index("<span>Read the paper</span>", _i)
+assert _j - _i < 600, "the button label is not in the same row"
+body = body[:_j] + "<span>See it explained</span>" + body[_j + len("<span>Read the paper</span>"):]
+body = once(body, "Paywalled papers get a short card: no explainer, and a link out to the paper.", "Every card has a picture and opens its own explainer.")
+_p = body[body.index("A page of diagrams") - 400:body.index("A page of diagrams")]
+_p_open = _p[_p.rindex("<p "):]
+body = once(body, ">one job each.</span></h2>", ">one job each.</span></h2>\n" + _p_open + "Most pages are quick explainers: one agent draws the picture and builds the page from the paper's abstract, and the page says so. The best few papers each day get a full explainer from the full text, made by the three agents below.</p>")
 assert "#paper\"" not in body and "zoom" not in body
 assert "releases\"" not in body
 

@@ -5,9 +5,11 @@
 
 Boards:
   Paid-Subscribe-Day / -Night   after picking fields: the free trial, waiting on Google Play,
-                                Google Play not reached, no subscription found
+                                Google Play not reached, no subscription found, no free trial
+                                offered, waiting before the price has loaded
   Paid-States-Day / -Night      subscription ended, payment failed (feed still works), payment
-                                failed (reading paused), the subscription rows in About
+                                failed (reading paused), paused by the person, the update
+                                cover, the subscription rows in About
   Owner-Numbers                 a web page only the owner sees. Fluid, day only.
 
 Every word on a screen was written by the coordinator for the owner and is used verbatim.
@@ -124,6 +126,22 @@ def s_trial(k, wait=False):
                 + small_print(k, SMALL))
 
 
+def s_no_trial(k):
+    """Google Play offers this person no free trial: the same screen, selling the subscription."""
+    return root(k, sub_top(k)
+                + head2(k, "Subscribe to Paperboy.", "[PRICE] a month.")
+                + k.summary("Cancel any time in Google Play.").replace("<p ", f'<p{m("sentence")} ', 1)
+                + gets(k, SUB_GETS)
+                + f'<div{m("act")} style="flex: none; padding: 14px {M}px 0">{button(k, "Subscribe", name="go")}</div>'
+                + under_link(k, "I already subscribed", "#restore", top=2)
+                + small_print(k, SMALL))
+
+
+def s_waiting_price(k):
+    """Before the price has loaded: the label and the waiting line, and nothing else."""
+    return root(k, sub_top(k) + waiting(k, "wp" + k.theme[0]))
+
+
 def s_unreachable(k):
     return root(k, k.masthead(top=TOP) + cover(
         k, "ur" + k.theme[0], "Subscription", "", "idle",
@@ -165,6 +183,34 @@ def s_paused(k):
         button(k, "Fix payment in Google Play", icon=OUT15), size=30))
 
 
+def s_user_paused(k):
+    """The person paused the subscription themselves. Same layout as "Payment problem."."""
+    return root(k, masthead(k) + cover(
+        k, "up" + k.theme[0], "Subscription", "", "idle",
+        [[("Your subscription is paused.", False)], [("Reading is paused.", True)]],
+        "Resume it in Google Play and your feed comes back.",
+        button(k, "Resume in Google Play", icon=OUT15), size=30))
+
+
+def s_update(k):
+    """The update cover, as the app builds it (FeedScreen.kt UpdateCover, ui/design/Cover.kt):
+    under the masthead, a cover with no strip (head row, the head-2 headline, one sentence, the
+    outline button), then 18 px and a double rule with the hairline on top, then the feed,
+    which stays. Copy from the code, verbatim.
+    One difference from the app: Cover.kt puts the headline 2 dp under the head row. That 2 dp
+    was set for a headline under the strip's 36 dp band. With no strip, the system's own space
+    between a head row and a head-2 is 8 (ADDENDUM-APP 7.2), so the board draws 8."""
+    head = (k.headline([[("An update ", False), ("is needed.", True)]], size=30, lh=1.02)
+            .replace("padding: 10px", "padding: 8px", 1).replace("<h2 ", f'<h2{m("headline")} ', 1))
+    block = (f'<section{m("update")} style="display: flex; flex-direction: column; flex: none">'
+             + slug_row(k, "Update needed", "Version " + VERSION, top=15)
+             + head
+             + k.summary("This version of Paperboy is too old for the newest papers.").replace("<p ", f'<p{m("sentence")} ', 1)
+             + stack(button(k, "Get the update", kind="outline", icon=OUT15))
+             + k.divider() + '</section>')
+    return root(k, masthead(k) + block + column(hero1(k)))
+
+
 def sub_rows(k, status):
     on = len(FIELDS) - len(SOME_OUT)
     return (about_row(k, "Fields", f"{on} of {len(FIELDS)} selected", ARROW, "#fields", top=28)
@@ -188,7 +234,7 @@ def s_about_rows(k):
 
 
 def alternates(k):
-    """Beside phone 4, for the owner: the Subscription row in its two other states."""
+    """Beside the About phone, for the owner: the Subscription row in its two other states."""
     rows = "".join(f'<div style="margin-top: 14px">{about_row(k, "Subscription", s, last=True)}</div>'
                    for s in ("Active, renews [DATE]", "Canceled, ends [DATE]"))
     return (f'<div style="width: 350px; flex: none; display: flex; flex-direction: column">'
@@ -201,12 +247,16 @@ SUBSCRIBE = [
     ("2. Waiting on Google Play", lambda k: s_trial(k, wait=True)),
     ("3. Google Play could not be reached", s_unreachable),
     ("4. Tapped I already subscribed, nothing found", s_none_found),
+    ("5. Google Play offers this person no free trial (they used it before)", s_no_trial),
+    ("6. Waiting on Google Play before the price has loaded", s_waiting_price),
 ]
 STATES_ = [
     ("1. Subscription ended", s_ended),
     ("2. Payment failed, Google is retrying (the feed still works)", s_retrying),
     ("3. Payment failed and access is paused", s_paused),
-    ("4. Subscription rows in About", s_about_rows),
+    ("4. The person paused the subscription themselves", s_user_paused),
+    ("5. This version of the app is too old (already in the app, never drawn)", s_update),
+    ("6. Subscription rows in About", s_about_rows),
 ]
 
 

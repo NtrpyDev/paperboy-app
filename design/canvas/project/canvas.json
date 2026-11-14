@@ -181,7 +181,7 @@
     "Paid-Subscribe-Day.dc.html": {
       "x": 0,
       "y": 0,
-      "w": 1760,
+      "w": 2620,
       "h": 1026,
       "title": "Subscribe, day",
       "page": "paid"
@@ -189,29 +189,29 @@
     "Paid-Subscribe-Night.dc.html": {
       "x": 0,
       "y": 1146,
-      "w": 1760,
+      "w": 2620,
       "h": 1026,
       "title": "Subscribe, night",
       "page": "paid"
     },
     "Paid-States-Day.dc.html": {
-      "x": 1840,
+      "x": 2700,
       "y": 0,
-      "w": 2150,
+      "w": 3010,
       "h": 1026,
       "title": "Subscription states, day",
       "page": "paid"
     },
     "Paid-States-Night.dc.html": {
-      "x": 1840,
+      "x": 2700,
       "y": 1146,
-      "w": 2150,
+      "w": 3010,
       "h": 1026,
       "title": "Subscription states, night",
       "page": "paid"
     },
     "Owner-Numbers.dc.html": {
-      "x": 4070,
+      "x": 5790,
       "y": 0,
       "w": 1280,
       "h": 1576,
@@ -283,7 +283,7 @@
       "y": -300,
       "text": "Paid app: subscribing, subscription states, and the owner's numbers",
       "kind": "title1",
-      "maxW": 5350,
+      "maxW": 7070,
       "page": "paid"
     }
   },

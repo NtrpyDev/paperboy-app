@@ -25,6 +25,10 @@
     {
       "id": "onboarding",
       "name": "Onboarding"
+    },
+    {
+      "id": "paid",
+      "name": "Paid app"
     }
   ],
   "boards": {
@@ -173,6 +177,47 @@
       "h": 492,
       "title": "Where you change fields later",
       "page": "onboarding"
+    },
+    "Paid-Subscribe-Day.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1760,
+      "h": 1026,
+      "title": "Subscribe, day",
+      "page": "paid"
+    },
+    "Paid-Subscribe-Night.dc.html": {
+      "x": 0,
+      "y": 1146,
+      "w": 1760,
+      "h": 1026,
+      "title": "Subscribe, night",
+      "page": "paid"
+    },
+    "Paid-States-Day.dc.html": {
+      "x": 1840,
+      "y": 0,
+      "w": 2150,
+      "h": 1026,
+      "title": "Subscription states, day",
+      "page": "paid"
+    },
+    "Paid-States-Night.dc.html": {
+      "x": 1840,
+      "y": 1146,
+      "w": 2150,
+      "h": 1026,
+      "title": "Subscription states, night",
+      "page": "paid"
+    },
+    "Owner-Numbers.dc.html": {
+      "x": 4070,
+      "y": 0,
+      "w": 1280,
+      "h": 1576,
+      "title": "Owner numbers",
+      "page": "paid",
+      "expand": "fill"
     }
   },
   "order": [
@@ -193,7 +238,12 @@
     "App-States-Night.dc.html",
     "Onboarding-B-Day.dc.html",
     "Onboarding-B-Night.dc.html",
-    "Onboarding-Reentry-Day.dc.html"
+    "Onboarding-Reentry-Day.dc.html",
+    "Paid-Subscribe-Day.dc.html",
+    "Paid-Subscribe-Night.dc.html",
+    "Paid-States-Day.dc.html",
+    "Paid-States-Night.dc.html",
+    "Owner-Numbers.dc.html"
   ],
   "notes": {
     "directions": {
@@ -227,6 +277,14 @@
       "kind": "title1",
       "maxW": 2310,
       "page": "onboarding"
+    },
+    "paid": {
+      "x": 0,
+      "y": -300,
+      "text": "Paid app: subscribing, subscription states, and the owner's numbers",
+      "kind": "title1",
+      "maxW": 5350,
+      "page": "paid"
     }
   },
   "designSystems": []

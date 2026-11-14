@@ -15,7 +15,7 @@ Score what a sharp, curious reader would gain from seeing this paper today. Two 
 
 - 9 to 10: specialists in the field would be surprised. Rare: at most one in several hundred papers.
 - 7 to 8: a clear, solid advance a non-specialist can appreciate once it is explained.
-- 5 to 6: competent and specific, worth a short card.
+- 5 to 6: competent and specific, worth a place in the feed.
 - 3 to 4: incremental, a routine application, a small benchmark gain, a survey with no new result.
 - 0 to 2: no checkable finding, pure position piece, or claims far beyond the evidence described.
 

@@ -5,10 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.hasContentDescription
@@ -40,7 +41,7 @@ import org.junit.runner.RunWith
 /**
  * The field picker: first run opens on it and loads no feed until it is confirmed, a field
  * turned off leaves the feed, the choice is remembered, About opens it again, and one field
- * has to stay on.
+ * has to stay selected.
  */
 @RunWith(AndroidJUnit4::class)
 class FieldsTest {
@@ -178,25 +179,25 @@ class FieldsTest {
         waitFor(hasTestTag("card:$GRAPHENE"))
     }
 
-    @Test fun oneFieldHasToStayOn() {
+    @Test fun oneFieldHasToStaySelected() {
         launch()
         waitFor(hasTestTag("fields"))
+        compose.onNodeWithText(HOW).assertIsDisplayed()
 
-        for (field in Field.entries) row(field).performClick()
-        for (field in Field.entries) row(field).assertIsOff()
+        for (field in Field.entries - Field.Math) row(field).performClick()
+        for (field in Field.entries - Field.Math) row(field).assertIsOff()
 
-        compose.onNodeWithTag("fields-continue").assertIsNotEnabled()
-        compose.onNodeWithText("One field has to stay on.").assertIsDisplayed()
-        compose.onNodeWithTag("fields-continue").performClick()
-        compose.waitForIdle()
-        compose.onNodeWithTag("fields").assertIsDisplayed()
-        assertTrue(!File(filesDir, "fields.txt").exists())
+        // The last one cannot be deselected: a tap leaves it selected, and it says it stays.
+        row(Field.Math).assertIsOn().performClick()
+        row(Field.Math).assertIsOn()
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "Selected. Stays selected"))
+        compose.onNodeWithText("One field has to stay selected.").assertIsDisplayed()
+        assertTrue(!exists(hasText(HOW)))
+        compose.onNodeWithText("ONE LEFT").assertIsDisplayed()
         assertEquals(emptyList<String>(), feedRequests())
 
-        row(Field.Math).performClick()
-        compose.onNodeWithTag("fields-continue").assertIsEnabled()
-        assertTrue(!exists(hasText("One field has to stay on.")))
-        compose.onNodeWithTag("fields-continue").performClick()
+        // The button is never disabled.
+        compose.onNodeWithTag("fields-continue").assertIsEnabled().performClick()
         waitFor(hasTestTag("feed"))
         assertEquals(setOf(Field.Math), FileFieldStore(File(filesDir, "fields.txt")).load())
     }
@@ -205,6 +206,7 @@ class FieldsTest {
         const val TIMEOUT_MS = 20_000L
         const val GRAPHENE = "arxiv-2611.04821"
         const val TOP_HOOK = "A flash of light flips twisted graphene into a new state of matter"
+        const val HOW = "Tap an icon to deselect it. Deselected fields never show in your feed. You can change this later."
         const val PILL_HOOK = "A weekly pill matched injections for weight loss in a large trial"
     }
 }

@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
@@ -26,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -33,12 +37,15 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import io.github.ntrpydev.paperboy.R
+import io.github.ntrpydev.paperboy.fields.Field
+import io.github.ntrpydev.paperboy.ui.design.Icon
 import io.github.ntrpydev.paperboy.ui.design.DoubleRule
 import io.github.ntrpydev.paperboy.ui.design.HeadRow
 import io.github.ntrpydev.paperboy.ui.design.Headline
@@ -74,7 +81,14 @@ private val Typefaces = listOf(
  * can be wrong, the source, and the licenses. The top bar stays; the column scrolls.
  */
 @Composable
-fun AboutScreen(versionName: String, onBack: () -> Unit, onOpenLink: (String) -> Unit, onOpenFields: () -> Unit) {
+fun AboutScreen(
+    versionName: String,
+    onBack: () -> Unit,
+    onOpenLink: (String) -> Unit,
+    /** How many fields the reader has selected, for the Fields row. */
+    fieldsSelected: Int,
+    onOpenFields: () -> Unit,
+) {
     val c = Paperboy.colors
     val type = Paperboy.type
     Column(Modifier.fillMaxSize().background(c.ground)) {
@@ -89,6 +103,7 @@ fun AboutScreen(versionName: String, onBack: () -> Unit, onOpenLink: (String) ->
             Spacer(Modifier.height(15.dp))
             HeadRow("About", "Version $versionName")
             Headline(voices("New science and math papers, explained visually.", "explained visually."), type.headline, wide.padding(top = 10.dp), press = true)
+            FieldsRow(fieldsSelected, onOpenFields)
             Paragraph(
                 io.github.ntrpydev.paperboy.ui.subscribe.LocalAboutSubscription.current?.intro ?: ("Paperboy is a free, open source Android app: an endless feed of newly released science and math papers, " +
                     "peer-reviewed and preprints, each labeled as one or the other. No account. No ads."),
@@ -99,8 +114,6 @@ fun AboutScreen(versionName: String, onBack: () -> Unit, onOpenLink: (String) ->
                     "and your ratings stay on this phone.",
                 top = 12,
             )
-            // The way to change fields after first run. The final design may move it.
-            Row(wide.padding(top = 12.dp)) { TextLink("Fields", Icons.ArrowLink, onOpenFields, Modifier.testTag("about-fields")) }
 
             Section("How an explainer is made", "Machine written", voices("Every paper gets its own page.", "its own page."))
             Paragraph(
@@ -147,6 +160,35 @@ fun AboutScreen(versionName: String, onBack: () -> Unit, onOpenLink: (String) ->
             Spacer(Modifier.height(40.dp))
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }
+    }
+}
+
+/**
+ * The Fields row, right under the title (board Onboarding-Reentry-Day, onboarding.py
+ * `reentry_screen`): hairlines above and below, "Fields" in the button face with how many are
+ * selected beside it, and the arrow. Opens the field picker.
+ */
+@Composable
+private fun FieldsRow(selected: Int, onOpen: () -> Unit) {
+    val c = Paperboy.colors
+    val type = Paperboy.type
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = Margin, end = Margin, top = 28.dp)
+            .clickable(interactionSource = null, indication = null, role = Role.Button, onClick = onOpen)
+            .testTag("about-fields"),
+    ) {
+        Rule(0.75.dp)
+        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp - 1.5.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.weight(1f)) {
+                Text("Fields", style = type.button, color = c.text, modifier = Modifier.alignByBaseline())
+                Spacer(Modifier.width(10.dp))
+                Text(caps("$selected of ${Field.entries.size} selected"), style = type.label, color = c.muted, maxLines = 1, modifier = Modifier.alignByBaseline())
+            }
+            Icon(Icons.Arrow, c.text, 20.dp)
+        }
+        Rule(0.75.dp)
     }
 }
 

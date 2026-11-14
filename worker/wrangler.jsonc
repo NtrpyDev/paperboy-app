@@ -7,12 +7,12 @@
   "workers_dev": true,
   "preview_urls": false,
   // The site and the kit. Built by scripts/build-assets.mjs from ../site and ../kit/v1.
-  // /v1/* is the subscription API and always goes to the Worker.
+  // /v1/* is the subscription API and /owner/* the owner's numbers page; both always go to the Worker.
   "assets": {
     "directory": "./public",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none",
-    "run_worker_first": ["/feed/*", "/papers/*", "/v1/*"]
+    "run_worker_first": ["/feed/*", "/papers/*", "/v1/*", "/owner/*"]
   },
   // Published feed and explainers, filled on first request from the content repo.
   "r2_buckets": [
@@ -59,8 +59,18 @@
         "RTDN_AUDIENCE": "https://paperboy.ntrpydev.workers.dev/v1/rtdn",
         // PLACEHOLDER. The service account email set on the Pub/Sub push subscription.
         // Empty means every push is refused until the owner sets it.
-        "RTDN_SERVICE_ACCOUNT": ""
-      }
+        "RTDN_SERVICE_ACCOUNT": "",
+        // PLACEHOLDER. The subscription's listed monthly price in US dollars, for example "4.99".
+        // Empty means the numbers page shows income as "not set".
+        "LIST_PRICE_USD": "",
+        // Google's fee on subscriptions, in percent: "10% + 5% billing fee" for US auto-renewing
+        // subscriptions, https://support.google.com/googleplay/android-developer/answer/112622
+        "GOOGLE_FEE_PERCENT": "15"
+      },
+      // The daily snapshot for the numbers page, five minutes before each UTC day ends, so a
+      // month's last snapshot is its end. Cron Triggers run on UTC and are not inherited by
+      // environments: https://developers.cloudflare.com/workers/configuration/cron-triggers/
+      "triggers": { "crons": ["55 23 * * *"] }
     }
   }
 }

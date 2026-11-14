@@ -33,6 +33,14 @@ describe("/v1/ on the worker deployed today", () => {
     expect(await res.json()).toEqual({ error: "not_configured" });
   });
 
+  it("sends /owner/numbers to the worker, which answers 404 without the paid environment", async () => {
+    const res = await server.fetch("/owner/numbers", { headers: { authorization: `Basic ${btoa("owner:anything")}` } });
+
+    expect(res.status).toBe(404);
+    expect(res.headers.get("x-robots-tag")).toBe("noindex");
+    await res.arrayBuffer();
+  });
+
   // A path the handler rejects before any fetch: 404, not the gate's 401.
   it("keeps the content gate off", async () => {
     const res = await server.fetch("/papers/a%2Fb/index.html");

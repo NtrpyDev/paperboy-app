@@ -11,8 +11,10 @@
   --reduced        render with prefers-reduced-motion and count running animations
   --crops          crop each screen at 2x into design/shots/onboarding/<board>/NN.png and a tile
   --t 2            seconds after load at which crops are taken
+  --width 390      viewport width, for a fluid page
+  --dir paid       folder under design/shots for the crops (default: onboarding)
 
-Nothing here writes outside design/shots/onboarding.
+Nothing here writes outside design/shots.
 """
 import argparse
 import pathlib
@@ -36,7 +38,8 @@ def run(name, a):
     raw = src.read_text()
     pv = re.search(r'"\$preview":\{"width":(\d+),"height":(\d+)\}', raw)
     w, h = int(pv.group(1)), int(pv.group(2))
-    out = DESIGN / "shots" / "onboarding" / name
+    w = a.width or w
+    out = DESIGN / "shots" / a.dir / name
     tmp = src.with_name("." + src.name + ".obcheck.html")
     tmp.write_text(dc_shot.to_plain_html(raw))
     try:
@@ -84,6 +87,9 @@ def run(name, a):
                     box = pg.locator(f'[data-screen="{n}"]').bounding_box()
                     pg.screenshot(path=str(path), full_page=True, clip={"x": box["x"] - 1, "y": box["y"] - 36, "width": box["width"] + 2, "height": box["height"] + 37})
                     shots.append(path)
+                if not shots:
+                    b.close()
+                    return
                 ims = [Image.open(s) for s in shots]
                 gap = 24
                 tile = Image.new("RGB", (sum(im.width for im in ims) + gap * (len(ims) - 1), max(im.height for im in ims)), (128, 128, 128))
@@ -106,6 +112,8 @@ if __name__ == "__main__":
     ap.add_argument("--measure", action="store_true")
     ap.add_argument("--reduced", action="store_true")
     ap.add_argument("--crops", action="store_true")
+    ap.add_argument("--width", type=int, default=0, help="viewport width, for a fluid page (default: the board's own)")
+    ap.add_argument("--dir", default="onboarding", help="folder under design/shots for the crops")
     a = ap.parse_args()
     for name in (a.boards or ALL):
         run(name, a)

@@ -35,6 +35,7 @@ import androidx.navigation3.ui.NavDisplay
 import io.github.ntrpydev.paperboy.AppGraph
 import io.github.ntrpydev.paperboy.BuildConfig
 import io.github.ntrpydev.paperboy.feed.FeedItem
+import io.github.ntrpydev.paperboy.fields.Field
 import io.github.ntrpydev.paperboy.store.ThemeChoice
 import io.github.ntrpydev.paperboy.ui.about.AboutScreen
 import io.github.ntrpydev.paperboy.ui.design.LandEasing
@@ -109,6 +110,7 @@ private fun Screens(graph: AppGraph, dark: Boolean, onToggleTheme: () -> Unit) {
     val feedState by feedModel.state.collectAsStateWithLifecycle()
     val leaving by feedModel.leaving.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
+    val chosenFields by graph.fields.chosen.collectAsStateWithLifecycle()
     val backStack = rememberNavBackStack(if (graph.fields.chosen.value == null) FieldsKey(firstRun = true) else FeedKey)
     val access = graph.access
     val manageUrl = access?.let { manageSubscriptionUrl(it.productId, graph.packageName ?: context.packageName) }
@@ -125,6 +127,8 @@ private fun Screens(graph: AppGraph, dark: Boolean, onToggleTheme: () -> Unit) {
             if (!canRead && feed >= 0) while (backStack.size > feed + 1) backStack.removeAt(backStack.lastIndex)
         }
     }
+
+    val masthead = MastheadActions(dark, onToggleTheme) { backStack.add(AboutKey) }
 
     // Every card in the feed has an explainer page (FeedItem.hasPage); a tap opens it in the app.
     fun open(item: FeedItem) {
@@ -168,7 +172,7 @@ private fun Screens(graph: AppGraph, dark: Boolean, onToggleTheme: () -> Unit) {
                     onUndoLess = feedModel::undoLess,
                     refreshed = feedModel.refreshed,
                     leaving = leaving,
-                    masthead = MastheadActions(dark, onToggleTheme) { backStack.add(AboutKey) },
+                    masthead = masthead,
                     versionName = BuildConfig.VERSION_NAME,
                     paymentProblem = paymentProblem,
                     onFixPayment = { manageUrl?.let { openLink(context, it) } },
@@ -199,6 +203,7 @@ private fun Screens(graph: AppGraph, dark: Boolean, onToggleTheme: () -> Unit) {
                         versionName = BuildConfig.VERSION_NAME,
                         onBack = { backStack.removeLastOrNull() },
                         onOpenLink = { openInBrowser(context, it) },
+                        fieldsSelected = chosenFields?.size ?: Field.entries.size,
                         onOpenFields = { backStack.add(FieldsKey(firstRun = false)) },
                     )
                 }
@@ -206,6 +211,7 @@ private fun Screens(graph: AppGraph, dark: Boolean, onToggleTheme: () -> Unit) {
             entry<FieldsKey> { key ->
                 FieldsScreen(
                     saved = graph.fields.chosen.value,
+                    masthead = masthead,
                     onConfirm = { chosen ->
                         graph.fields.choose(chosen)
                         if (key.firstRun) {

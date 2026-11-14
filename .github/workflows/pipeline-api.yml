@@ -1,0 +1,223 @@
+# One pipeline run on the Anthropic API account: Claude Code headless follows pipeline/RUNBOOK.md
+# in API mode (PAPERBOY_MODE=api). Off until the owner adds the secrets and variables below and
+# turns on the schedule. pipeline/RUNBOOK.md, "For the owner", lists the one-time setup.
+#
+# Secrets (repository, Settings > Secrets and variables > Actions):
+#   ANTHROPIC_API_KEY        a Claude API key from the Claude Console, in a workspace of its own so
+#                            it can carry a spend limit (https://code.claude.com/docs/en/github-actions.md)
+#   PAPERBOY_CONTENT_TOKEN   a fine-grained personal access token with access to NtrpyDev/paperboy-content
+#                            only and the Contents permission set to read and write
+#                            (https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+# Variables (same page, Variables tab):
+#   PAPERBOY_FIELDS_URL          the worker's GET /v1/active-fields address
+#   PAPERBOY_MONTHLY_BUDGET_USD  the month's API budget in US dollars, for budget-gate
+#
+# Docs this file relies on, read 2026-11-13:
+#   claude -p flags: https://code.claude.com/docs/en/cli-reference.md and https://code.claude.com/docs/en/headless.md
+#   permission rules and modes: https://code.claude.com/docs/en/permissions.md, https://code.claude.com/docs/en/permission-modes.md
+#   cache lifetime: https://code.claude.com/docs/en/prompt-caching.md ("Choose the TTL yourself")
+#   install: https://code.claude.com/docs/en/setup.md ("Install with npm")
+#   runner software (Google Chrome on ubuntu-24.04): https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
+#   concurrency: https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency
+#   always() and steps.<id>.outcome: https://docs.github.com/en/actions/reference/workflows-and-actions/expressions and .../contexts
+name: Pipeline on the API account
+
+on:
+  workflow_dispatch:
+    inputs:
+      per_field:
+        description: Quick explainers per active field (queue take --per-field)
+        type: number
+        default: 2
+      full:
+        description: Full explainers for the run, from active fields only (queue take --full)
+        type: number
+        default: 1
+      cap_usd:
+        description: Hard spend cap for this run in US dollars (claude --max-budget-usd)
+        type: number
+        default: 20
+  # The owner turns the schedule on by removing the # in front of the next three lines. Scheduled
+  # runs take the input defaults above. GitHub runs schedules only from the default branch, can
+  # delay or drop them at busy times, and disables them in a public repo after 60 days without
+  # repository activity (https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows).
+  # schedule:
+  #   # Every two hours, at 17 minutes past (off the top of the hour, which GitHub says is busiest).
+  #   - cron: "17 */2 * * *"
+
+# The job's own GITHUB_TOKEN can only read this repo, so nothing in the job can push to it.
+permissions:
+  contents: read
+
+# Two API runs never overlap: a new run waits for the running one to finish (only the newest waiting
+# run is kept), and a running one is never cancelled.
+concurrency:
+  group: paperboy-pipeline-api
+  cancel-in-progress: false
+
+env:
+  # The orchestrator's model. The agents' models are the model: lines in .claude/agents/.
+  ORCHESTRATOR_MODEL: opus
+  # Claude Code version, pinned so a run behaves the same until the owner moves it. 2.1.323 is the
+  # version the cloud routine reported on 2026-11-13 (docs/research/routine-env-probe.md); this file
+  # needs at least 2.1.302 (claude -p starts in Manual mode) and 2.1.242 (CLAUDE_CODE_PROMPT_CACHE_TTL).
+  CLAUDE_CODE_VERSION: 2.1.323
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 200
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v7
+        with:
+          path: code
+          # No token in this checkout's git config: the code repo is never pushed from a run.
+          persist-credentials: false
+
+      - name: Check out the content repo
+        uses: actions/checkout@v7
+        with:
+          repository: NtrpyDev/paperboy-content
+          ref: main
+          path: content
+          token: ${{ secrets.PAPERBOY_CONTENT_TOKEN }}
+
+      - name: Read the run's numbers
+        env:
+          IN_PER_FIELD: ${{ inputs.per_field }}
+          IN_FULL: ${{ inputs.full }}
+          IN_CAP_USD: ${{ inputs.cap_usd }}
+          FIELDS_URL: ${{ vars.PAPERBOY_FIELDS_URL }}
+          BUDGET_USD: ${{ vars.PAPERBOY_MONTHLY_BUDGET_USD }}
+        run: |
+          # A scheduled run has no inputs, so each falls back to the default above. 0 is kept as 0.
+          per_field="${IN_PER_FIELD:-2}"; full="${IN_FULL:-1}"; cap="${IN_CAP_USD:-20}"
+          [[ "$per_field" =~ ^[0-9]+$ ]] || { echo "per_field must be a whole number, got '$per_field'"; exit 1; }
+          [[ "$full" =~ ^[0-9]+$ ]] || { echo "full must be a whole number, got '$full'"; exit 1; }
+          [[ "$cap" =~ ^[0-9]+(\.[0-9]+)?$ ]] || { echo "cap_usd must be a number, got '$cap'"; exit 1; }
+          [[ -n "$FIELDS_URL" ]] || { echo "The repository variable PAPERBOY_FIELDS_URL is not set"; exit 1; }
+          [[ -n "$BUDGET_USD" ]] || { echo "The repository variable PAPERBOY_MONTHLY_BUDGET_USD is not set"; exit 1; }
+          {
+            echo "CODE=$GITHUB_WORKSPACE/code"
+            echo "CONTENT=$GITHUB_WORKSPACE/content"
+            echo "RESULT_FILE=$RUNNER_TEMP/claude-result.json"
+            echo "CAP_USD=$cap"
+            echo "BUDGET_USD=$BUDGET_USD"
+            echo "PAPERBOY_MODE=api"
+            echo "PAPERBOY_FIELDS_URL=$FIELDS_URL"
+            echo "PAPERBOY_PER_FIELD=$per_field"
+            echo "PAPERBOY_FULL=$full"
+            echo "PAPERBOY_BUDGET_USD=$BUDGET_USD"
+          } >> "$GITHUB_ENV"
+
+      # setup-uv publishes no major-version tags since v8, so it is pinned to the commit ci.yml uses.
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          working-directory: code/pipeline
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install Claude Code
+        run: |
+          npm install -g "@anthropic-ai/claude-code@$CLAUDE_CODE_VERSION"
+          claude --version
+
+      - name: Check the browser the render check uses
+        # ubuntu-24.04 ships Google Chrome; the render check finds google-chrome on PATH.
+        run: google-chrome --version
+
+      - name: Install the pipeline
+        working-directory: code/pipeline
+        run: uv sync
+
+      - name: Name the commits the run makes in the content repo
+        run: |
+          git config --global user.name "Paperboy pipeline (API)"
+          git config --global user.email "pipeline@paperboy.invalid"
+
+      - name: Budget gate
+        id: gate
+        working-directory: code/pipeline
+        run: |
+          set +e
+          uv run paperboy-pipeline budget-gate --content "$CONTENT" --budget-usd "$BUDGET_USD"
+          code=$?
+          set -e
+          case "$code" in
+            0) echo "go=true" >> "$GITHUB_OUTPUT" ;;
+            10) echo "go=false" >> "$GITHUB_OUTPUT"; echo "::notice::The month's spend is at the paced budget; no run this time." ;;
+            *) echo "::error::budget-gate could not read the cost records (exit $code); no run."; exit "$code" ;;
+          esac
+
+      - name: Run the pipeline with Claude Code
+        id: claude
+        if: steps.gate.outputs.go == 'true'
+        working-directory: code
+        # Less than the job's limit, so the cost record below still runs when this step is cut off.
+        timeout-minutes: 170
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # One-hour prompt cache for the main conversation; an API key gets five minutes otherwise.
+          CLAUDE_CODE_PROMPT_CACHE_TTL: 1h
+          DISABLE_AUTOUPDATER: "1"
+          PAPERBOY_CHROME: google-chrome
+        run: |
+          # The runbook's tools and nothing wider. In dontAsk mode every call these rules do not
+          # cover is denied; reads inside CODE need no rule. Edit(/work/**) is CODE/work, because a
+          # CLI rule's leading slash anchors at the working directory; Read(//...) is an absolute path.
+          rules=(
+            "Bash(uv sync *)"
+            "Bash(uv run paperboy-pipeline *)"
+            "Bash(git -C $CONTENT pull --ff-only)"
+            "Bash(git -C ../../content pull --ff-only)"
+            "Bash(rm -rf $CODE/work)"
+            "Bash(rm -rf ../work)"
+            "Bash(mkdir -p *)"
+            "Bash(date *)"
+            "Edit(/work/**)"
+            "Read(/$CONTENT/**)"
+          )
+          allowed="$(IFS=,; echo "${rules[*]}")"
+          claude -p "Follow pipeline/RUNBOOK.md exactly. CODE is $CODE and CONTENT is $CONTENT." \
+            --model "$ORCHESTRATOR_MODEL" \
+            --permission-mode dontAsk \
+            --max-budget-usd "$CAP_USD" \
+            --output-format json \
+            --allowedTools "$allowed" \
+            > "$RESULT_FILE"
+
+      - name: Show the run's report
+        if: always() && steps.claude.outcome != 'skipped' && steps.claude.outcome != ''
+        run: |
+          if [ -s "$RESULT_FILE" ]; then
+            python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); print(r.get("result") or r.get("errors"))' "$RESULT_FILE" || cat "$RESULT_FILE"
+          else
+            echo "Claude Code left no result."
+          fi
+
+      # The cost record goes through a fresh checkout of state/ only: the run's own checkout can
+      # hold half-done changes when the Claude step was cut off, and record-cost refuses those.
+      - name: Check out the content repo state for the cost record
+        if: always() && contains(fromJSON('["success", "failure", "cancelled"]'), steps.claude.outcome)
+        timeout-minutes: 10
+        uses: actions/checkout@v7
+        with:
+          repository: NtrpyDev/paperboy-content
+          ref: main
+          path: cost-content
+          token: ${{ secrets.PAPERBOY_CONTENT_TOKEN }}
+          sparse-checkout: state
+
+      - name: Record what the run cost
+        if: always() && contains(fromJSON('["success", "failure", "cancelled"]'), steps.claude.outcome)
+        timeout-minutes: 10
+        working-directory: code/pipeline
+        run: |
+          uv run paperboy-pipeline record-cost --content "$GITHUB_WORKSPACE/cost-content" --work ../work \
+            --result "$RESULT_FILE" --run "${{ github.run_id }}-${{ github.run_attempt }}" \
+            --cap-usd "$CAP_USD" --outcome "${{ steps.claude.outcome }}" --push

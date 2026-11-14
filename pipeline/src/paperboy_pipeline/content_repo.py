@@ -21,6 +21,8 @@ Layout (paths relative to the content repo root):
     state/queue/<id>.json          the backlog: papers waiting for a page (the queue command)
     state/claims/<id>.json         papers a run is building a page for (the queue command)
     state/queue-failed.jsonl       papers that left the backlog without a page (the queue command)
+    state/cost/<YYYY-MM>.jsonl     one cost record per API run (record-cost writes, budget-gate reads;
+                                   see paperboy_pipeline.cost)
 
 Rules this module keeps:
 - Only the open chunk is ever rewritten. The open chunk is the highest numbered chunk while

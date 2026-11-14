@@ -82,13 +82,13 @@ class FailureStatesTest {
     }
 
     @Test fun firstLoadServerErrorShowsTheCauseAndRetryLoadsTheFeed() {
-        fixtures.override("feed/v1/head.json") { serverError() }
+        fixtures.override("feed/v2/head.json") { serverError() }
         launch()
 
         waitFor("first-load-error")
         compose.onNodeWithText("The feed server had a problem.").assertIsDisplayed()
 
-        fixtures.clearOverride("feed/v1/head.json")
+        fixtures.clearOverride("feed/v2/head.json")
         retryIn("first-load-error")
         waitForText(TOP_HOOK)
     }
@@ -106,7 +106,7 @@ class FailureStatesTest {
     }
 
     @Test fun loadingMoreFailsInlineKeepsTheCardsAndRetryLoadsThem() {
-        fixtures.override("feed/v1/chunks/000006.json") { serverError() }
+        fixtures.override("feed/v2/chunks/000006.json") { serverError() }
         launch()
         waitForText(TOP_HOOK)
 
@@ -122,9 +122,9 @@ class FailureStatesTest {
         // The cards already loaded are all still there.
         assertTrue(compose.onAllNodes(isCard).fetchSemanticsNodes().isNotEmpty())
 
-        fixtures.clearOverride("feed/v1/chunks/000006.json")
+        fixtures.clearOverride("feed/v2/chunks/000006.json")
         retryIn("more-error")
-        compose.waitUntil(TIMEOUT_MS) { "feed/v1/chunks/000005.json" in fixtures.requested }
+        compose.waitUntil(TIMEOUT_MS) { "feed/v2/chunks/000005.json" in fixtures.requested }
         gone("more-error")
     }
 

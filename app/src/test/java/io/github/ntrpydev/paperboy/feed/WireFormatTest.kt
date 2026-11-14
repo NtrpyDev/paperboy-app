@@ -57,7 +57,7 @@ class WireFormatTest {
     }
 
     @Test fun `the open chunk's items carry the second voice and readouts`() {
-        val chunk = FeedJson.decodeFromString<Chunk>(javaClass.classLoader!!.getResource("feed/v1/chunks/000009.json")!!.readText())
+        val chunk = FeedJson.decodeFromString<Chunk>(javaClass.classLoader!!.getResource("feed/v2/chunks/000009.json")!!.readText())
         val explained = chunk.items.single { it.id == "arxiv-2611.04821" }
         assertEquals("into a new state of matter", explained.hookTurn)
         assertEquals(Readout("1.2", exponent = -9, unit = "seconds", label = "How long the new state lasts"), explained.readout)

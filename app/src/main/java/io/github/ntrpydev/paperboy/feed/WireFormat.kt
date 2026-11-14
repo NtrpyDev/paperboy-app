@@ -20,7 +20,7 @@ import kotlinx.serialization.json.JsonObject
 
 internal val FeedJson = Json { ignoreUnknownKeys = true }
 
-/** feed/v1/head.json: the small file that says how many chunks exist. */
+/** feed/v2/head.json: the small file that says how many chunks exist. */
 @Serializable
 data class Head(
     val v: Int,
@@ -34,7 +34,7 @@ data class Head(
     @SerialName("min_app") val minApp: Int,
 )
 
-/** feed/v1/chunks/<6 digits>.json: items in the order they were added, oldest first. */
+/** feed/v2/chunks/<6 digits>.json: items in the order they were added, oldest first. */
 @Serializable
 data class Chunk(
     val v: Int,
@@ -76,6 +76,12 @@ data class FeedItem(
     @SerialName("added_at") val addedAt: String,
 ) {
     val isPeerReviewed: Boolean get() = status == "peer_reviewed"
+
+    /**
+     * True when the paper has an explainer page to open, from its chunk or an upgrade. Only
+     * these papers are shown in the feed.
+     */
+    val hasPage: Boolean get() = hasExplainer && explainer != null
 }
 
 /** The card's plate: the explainer's hero at rest, as a day still with an optional night still. */
@@ -114,7 +120,7 @@ data class Readout(
     val label: String,
 )
 
-/** feed/v1/upgrades.json: explainers added to papers whose chunk closed before the explainer existed. */
+/** feed/v2/upgrades.json: explainers added to papers whose chunk closed before the explainer existed. */
 @Serializable
 data class Upgrades(
     val v: Int,

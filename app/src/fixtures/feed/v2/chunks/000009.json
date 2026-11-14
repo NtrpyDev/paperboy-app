@@ -41,7 +41,19 @@
       "published": "2026-11-04",
       "authors_short": "Chen and Park",
       "url": "https://arxiv.org/abs/2611.01177",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2611.01177/",
+      "hero": {
+        "path": "fixture-plates/0/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/0/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 6,
       "added_at": "2026-11-10T10:00:00Z"
     },
@@ -65,7 +77,19 @@
       "published": "2026-11-08",
       "authors_short": "Okafor et al.",
       "url": "https://www.biorxiv.org/content/10.1101/2026.11.08.000001",
-      "has_explainer": false,
+      "has_explainer": true,
+      "explainer": "papers/arxiv-2611.03310/",
+      "hero": {
+        "path": "fixture-plates/2/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/2/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "data"
+      },
       "significance": 6.8,
       "added_at": "2026-11-11T08:00:00Z"
     },
@@ -130,8 +154,21 @@
       "published": "2026-11-10",
       "authors_short": "Ruiz et al.",
       "url": "https://doi.org/10.1056/NEJMoa2609876",
-      "has_explainer": false,
-      "significance": 8.9,
+      "has_explainer": true,
+      "explainer": "papers/doi-10.1056-nejmoa2609876/",
+      "hero": {
+        "path": "fixture-plates/1/hero.webp",
+        "width": 1200,
+        "height": 708,
+        "night": {
+          "path": "fixture-plates/1/hero-night.webp",
+          "width": 1200,
+          "height": 708
+        },
+        "kind": "illustration",
+        "to_scale": true
+      },
+      "significance": 8.2,
       "added_at": "2026-11-12T12:00:00Z"
     }
   ]

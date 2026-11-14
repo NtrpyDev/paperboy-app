@@ -19,6 +19,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToKey
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -169,6 +170,11 @@ class FieldsTest {
         compose.onNodeWithTag("fields-continue").performClick()
         waitFor(hasTestTag("about"))
         Espresso.pressBack()
+        // The card returns in its old place, above the card the reader is on, so the list has to
+        // be scrolled up to it. The scroll throws until the feed holds the card again.
+        compose.waitUntil(TIMEOUT_MS) {
+            runCatching { compose.onNodeWithTag("feed").performScrollToKey(GRAPHENE) }.isSuccess
+        }
         waitFor(hasTestTag("card:$GRAPHENE"))
     }
 

@@ -378,6 +378,7 @@ ${RULE2}
 <section>${RULE2}${headrow("By field", monthName(n.month))}
 <div class="scroll"><table class="fields"><thead><tr>${th("Field")}${th("Subscribers who picked it", true)}${th("Pages made this month", true)}${th("API cost this month", true)}${th("Status")}</tr></thead>
 <tbody>${fieldRows}</tbody></table></div>
+<p class="note muted">A run's cost is split evenly across the papers it worked on, so a field's cost is an estimate.</p>
 </section>
 <section>${RULE2}${headrow("By month", "Newest first")}
 <div class="scroll"><table class="months"><thead><tr>${th("Month")}${th("Subscribers at month end", true)}${th("Income after Google's cut", true)}${th("API cost", true)}${th("Left over", true)}</tr></thead>

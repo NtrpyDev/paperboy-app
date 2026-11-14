@@ -162,8 +162,12 @@ describe("the owner's numbers page", () => {
     await seedEveryState();
     const s = setup();
 
-    const table = rows((await s.page()).html, "fields");
+    const { html } = await s.page();
+    const table = rows(html, "fields");
 
+    expect(html).toContain(
+      '</table></div>\n<p class="note muted">A run\'s cost is split evenly across the papers it worked on, so a field\'s cost is an estimate.</p>\n</section>',
+    );
     // Pages and cost from the November fixture: run 1 ($3.10) was handed cs twice and biology
     // once; run 2 ($0.40) was handed nothing; run 3 is incomplete and counts its $8 cap, all earth.
     expect(table).toEqual([

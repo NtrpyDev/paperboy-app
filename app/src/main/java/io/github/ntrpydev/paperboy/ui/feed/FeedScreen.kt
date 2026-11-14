@@ -212,10 +212,12 @@ fun FeedScreen(
 
 /**
  * The masthead (SYSTEM.md 9.1): the wordmark, which opens About, the strap, the theme
- * button, and the double rule. It is the first item of the list, so it scrolls away.
+ * button, and the double rule. It is the first item of the list, so it scrolls away. The
+ * field picker uses it too, on first run, with [opensAbout] false: the wordmark is only the
+ * wordmark there, since About is not reachable before the reader has picked fields.
  */
 @Composable
-private fun Masthead(actions: MastheadActions) {
+internal fun Masthead(actions: MastheadActions, opensAbout: Boolean = true) {
     val c = Paperboy.colors
     Column(Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars)) {
         Row(
@@ -228,8 +230,15 @@ private fun Masthead(actions: MastheadActions) {
             Box(
                 Modifier
                     .heightIn(min = 44.dp)
-                    .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = actions.onAbout)
-                    .semantics { contentDescription = "About Paperboy" },
+                    .then(
+                        if (opensAbout) {
+                            Modifier
+                                .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = actions.onAbout)
+                                .semantics { contentDescription = "About Paperboy" }
+                        } else {
+                            Modifier
+                        },
+                    ),
                 contentAlignment = Alignment.CenterStart,
             ) {
                 Wordmark(small = false, color = if (pressed) c.muted else c.text, modifier = Modifier.clearAndSetSemantics {})

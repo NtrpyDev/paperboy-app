@@ -48,6 +48,11 @@ data class PaperboyColors(
     val plate: Color,
     /** The live mark: vermilion or amber. Never text, never a button. */
     val live: Color,
+    /**
+     * Grid and drop lines in figures (SYSTEM.md section 11): ink-muted by day, structure by
+     * night. The deselected field drawings are drawn in it.
+     */
+    val structure: Color,
 )
 
 val DayColors = PaperboyColors(
@@ -62,6 +67,7 @@ val DayColors = PaperboyColors(
     onStamp = Color(0xFFE9E6DE),
     plate = Color(0xFF1F3FD0),
     live = Color(0xFFE0330A),
+    structure = Color(0xFF5A554B),
 )
 
 val NightColors = PaperboyColors(
@@ -76,6 +82,7 @@ val NightColors = PaperboyColors(
     onStamp = Color(0xFF0E1116),
     plate = Color(0xFF4D63C9),
     live = Color(0xFFFFA63D),
+    structure = Color(0xFF5E6573),
 )
 
 val LocalPaperboyColors = staticCompositionLocalOf { DayColors }

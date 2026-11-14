@@ -180,7 +180,7 @@ private fun Screens(graph: AppGraph, dark: Boolean, onToggleTheme: () -> Unit) {
                 if (access == null) {
                     feed(false)
                 } else {
-                    AccessGate(access, context.findActivity(), manageUrl.orEmpty(), { openLink(context, it) }, feed)
+                    AccessGate(access, context.findActivity(), manageUrl.orEmpty(), { openLink(context, it) }, masthead, feed)
                 }
             }
             entry<ExplainerKey> { key ->

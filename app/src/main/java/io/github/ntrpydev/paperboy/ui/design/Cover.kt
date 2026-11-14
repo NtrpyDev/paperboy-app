@@ -31,8 +31,7 @@ fun Cover(
     action: (@Composable () -> Unit)? = null,
 ) {
     Column(modifier.fillMaxWidth()) {
-        HeadRow(name, state)
-        if (strip != null) Strip(strip)
+        if (strip != null) StatusLine(name, state, strip) else HeadRow(name, state)
         Headline(
             headline,
             if (big) Paperboy.type.headline else Paperboy.type.head2,

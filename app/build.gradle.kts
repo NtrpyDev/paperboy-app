@@ -67,9 +67,13 @@ android {
     }
 
     // src/fixtures is a small content base (head, chunks, one explainer) that the
-    // fake servers in both test suites serve.
+    // fake servers in both test suites serve. The unit tests also read the repo's schemas,
+    // so the app's field list is checked against schema/feed-item.schema.json.
     sourceSets {
-        named("test") { resources.directories += "src/fixtures" }
+        named("test") {
+            resources.directories += "src/fixtures"
+            resources.directories += "../schema"
+        }
         named("androidTest") { assets.directories += "src/fixtures" }
     }
 }

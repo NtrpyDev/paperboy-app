@@ -1,5 +1,6 @@
 package io.github.ntrpydev.paperboy.feed
 
+import io.github.ntrpydev.paperboy.fields.Field
 import io.github.ntrpydev.paperboy.rank.FileTasteStore
 import io.github.ntrpydev.paperboy.rank.Rating
 import io.github.ntrpydev.paperboy.rank.ScoredRanker
@@ -37,7 +38,7 @@ class FeedSessionTest {
 
     private val client by lazy { feedHttpClient(tmp.newFolder("http-cache")) }
 
-    private fun TestScope.session(appVersionCode: Int = 1) = FeedSession(
+    private fun TestScope.session(appVersionCode: Int = 1, fields: Set<Field> = Field.all) = FeedSession(
         source = HttpFeedSource(server.url("/"), client),
         ranker = ScoredRanker,
         tasteStore = FileTasteStore(File(filesDir, "taste.json")),
@@ -45,6 +46,7 @@ class FeedSessionTest {
         appVersionCode = appVersionCode,
         clock = { now },
         io = StandardTestDispatcher(testScheduler),
+        fields = fields,
     )
 
     private fun chunksRequested() = fixtures.requested.filter { it.startsWith("feed/v2/chunks/") }.map { it.substring(15, 21).toInt() }
@@ -223,9 +225,9 @@ class FeedSessionTest {
     private fun resource(path: String) = javaClass.classLoader!!.getResource(path)!!.readText()
 
     /** A paper as chunk JSON, added now: explained with a plate, or with [explained] false, without a page. */
-    private fun newItem(id: String, explained: Boolean = true) =
+    private fun newItem(id: String, explained: Boolean = true, field: String = "physics") =
         """{"id":"$id","title":"Title of $id","hook":"A new paper that arrived on refresh","summary":"A summary of a paper that arrived after the session started.",""" +
-            """"field":"physics","tags":["optics"],"status":"preprint","venue":"arXiv","published":"2026-11-12",""" +
+            """"field":"$field","tags":["optics"],"status":"preprint","venue":"arXiv","published":"2026-11-12",""" +
             """"authors_short":"New et al.","url":"https://arxiv.org/abs/$id","has_explainer":$explained,""" +
             (if (explained) """"explainer":"papers/$id/","hero":{"path":"papers/$id/hero.webp","width":1200,"height":708},""" else "") +
             """"significance":5,"added_at":"2026-11-12T23:00:00Z"}"""
@@ -528,5 +530,143 @@ class FeedSessionTest {
         assertEquals(emptyList<String>(), session.ids())
         assertTrue(session.state.value.reachedEnd)
         assertFalse(session.state.value.loading)
+    }
+
+    // The reader's fields.
+
+    private val noPhysics = Field.all - Field.Physics
+    private val sixFields = setOf(Field.Physics, Field.Space, Field.Math, Field.Cs, Field.Biology, Field.Neuroscience)
+
+    private fun FeedSession.fields() = state.value.items.map { it.field }.toSet()
+
+    @Test fun `a paper in a field the reader turned off is never shown`() = runTest {
+        val session = session(fields = noPhysics)
+
+        session.start()
+
+        assertFalse("physics" in session.fields())
+        assertFalse(graphene in session.ids())
+        // Chunk 9 shows 3 papers and 8 and 7 show 36 and 35 without physics: 74.
+        assertEquals(listOf(9, 8, 7), chunksRequested())
+        assertEquals(74, session.state.value.items.size)
+
+        while (!session.state.value.reachedEnd) session.reached(session.ids().last())
+        assertFalse("physics" in session.fields())
+    }
+
+    @Test fun `start and load-ahead count only the papers in the selected fields`() = runTest {
+        val session = session(fields = sixFields)
+
+        session.start()
+
+        // The six fields show 2, 21, 22, then 22 papers in chunks 9 to 6: 43 is too few, 65 is enough.
+        assertEquals(listOf(9, 8, 7, 6), chunksRequested())
+        assertEquals(65, session.state.value.items.size)
+        assertEquals(sixFields.map { it.wire }.toSet(), session.fields())
+
+        val ids = session.ids()
+        session.reached(ids[ids.size - 9])
+        assertEquals(listOf(9, 8, 7, 6), chunksRequested())
+        session.reached(ids[ids.size - 8])
+        assertEquals(listOf(9, 8, 7, 6, 5, 4), chunksRequested())
+        assertEquals(65 + 19 + 23, session.state.value.items.size)
+    }
+
+    @Test fun `a feed with too few papers in the selected fields loads to chunk 1 and ends`() = runTest {
+        val session = session(fields = setOf(Field.Math))
+
+        session.start()
+
+        // 29 math papers have a page in the whole feed, fewer than a first screen needs.
+        assertEquals((9 downTo 1).toList(), chunksRequested())
+        assertEquals(29, session.state.value.items.size)
+        assertEquals(setOf("math"), session.fields())
+        assertTrue(session.state.value.reachedEnd)
+    }
+
+    @Test fun `the refresh count is of papers in the selected fields`() = runTest {
+        val session = session(fields = noPhysics)
+        session.start()
+        val before = session.ids()
+        fixtures.override("feed/v2/chunks/000010.json") {
+            json(
+                """{"v":1,"number":10,"items":[${newItem("arxiv-2611.20002", field = "physics")},""" +
+                    """${newItem("arxiv-2611.20003", field = "math")}]}""",
+            )
+        }
+        fixtures.override("feed/v2/head.json") {
+            json(resource("feed/v2/head.json").replace("\"chunk_count\": 9", "\"chunk_count\": 10"))
+        }
+
+        assertEquals(RefreshResult.Arrived(1), session.refresh())
+        assertEquals(listOf("arxiv-2611.20003") + before, session.ids())
+    }
+
+    @Test fun `turning a field off on the open feed removes its cards, reached ones too`() = runTest {
+        val session = session()
+        session.start()
+        val before = session.state.value.items
+        session.reached(before[10].id)
+        val requests = fixtures.requested.size
+
+        session.setFields(noPhysics)
+
+        val after = session.state.value.items
+        assertFalse("physics" in session.fields())
+        // The reached cards left in other fields keep their order at the top.
+        val reachedKept = before.take(11).filter { it.field != "physics" }.map { it.id }
+        assertEquals(reachedKept, after.take(reachedKept.size).map { it.id })
+        // 82 cards less the physics ones still leave more than a first screen, so nothing loads.
+        assertEquals(requests, fixtures.requested.size)
+        assertEquals(before.count { it.field != "physics" }, after.size)
+    }
+
+    @Test fun `turning a field back on shows its pooled papers again without a new request`() = runTest {
+        val session = session(fields = noPhysics)
+        session.start()
+        val reachedIds = session.ids().take(5)
+        session.reached(reachedIds.last())
+        val requests = fixtures.requested.size
+
+        session.setFields(Field.all)
+
+        assertEquals(requests, fixtures.requested.size)
+        assertTrue(graphene in session.ids())
+        assertTrue("physics" in session.fields())
+        // They join below the cards the reader has reached.
+        assertEquals(reachedIds, session.ids().take(5))
+        assertEquals(82, session.state.value.items.size)
+    }
+
+    @Test fun `narrowing the fields on the open feed loads older chunks when too few are left`() = runTest {
+        val session = session()
+        session.start()
+        assertEquals(listOf(9, 8, 7), chunksRequested())
+
+        session.setFields(setOf(Field.Math))
+
+        assertEquals((9 downTo 1).toList(), chunksRequested())
+        assertEquals(29, session.state.value.items.size)
+        assertEquals(setOf("math"), session.fields())
+    }
+
+    @Test fun `fields set before the feed starts load nothing`() = runTest {
+        val session = session()
+
+        session.setFields(setOf(Field.Math))
+
+        assertEquals(emptyList<String>(), fixtures.requested)
+    }
+
+    @Test fun `a paper in a field this app does not know is shown whatever the reader picked`() = runTest {
+        val chunk9 = resource("feed/v2/chunks/000009.json").trimEnd().removeSuffix("]\n}").removeSuffix("]}")
+            .let { it.substring(0, it.lastIndexOf('}') + 1) } + "," + newItem("arxiv-2611.20001", field = "astronomy") + "]}"
+        fixtures.override("feed/v2/chunks/000009.json") { json(chunk9) }
+        val session = session(fields = setOf(Field.Math))
+
+        session.start()
+
+        assertTrue("arxiv-2611.20001" in session.ids())
+        assertEquals(setOf("math", "astronomy"), session.fields())
     }
 }
